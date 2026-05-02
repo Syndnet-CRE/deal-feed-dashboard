@@ -1,0 +1,206 @@
+/* ─────────────────────────────────────────────────────────────
+   Parcyl Design System — Colors & Type
+   Source: PARCYL Brand Guidelines (2026)
+   ───────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
+:root {
+  /* ── Brand / Primary Greens ─────────────────────────────── */
+  --parcyl-ink:        #0D0D0D;   /* Primary "black" from guidelines */
+  --parcyl-green-700:  #1DAF29;   /* Deep brand green */
+  --parcyl-green-500:  #5BCC48;   /* Mid brand green */
+  --parcyl-green-300:  #89EA60;   /* Light brand green / accent */
+
+  /* Convenience aliases */
+  --green:             var(--parcyl-green-500);
+  --green-deep:        var(--parcyl-green-700);
+  --green-bright:      var(--parcyl-green-300);
+
+  /* ── Grayscale (named per brand guide) ──────────────────── */
+  --cloud:    #EDEFF7;   /* 01 — page bg, hairlines on light */
+  --smoke:    #D3D6E0;   /* 02 — borders, dividers */
+  --steel:    #BCBFCC;   /* 03 — disabled fg */
+  --space:    #9DA2B3;   /* 04 — placeholder / muted fg */
+  --graphite: #6E7180;   /* 05 — secondary fg */
+  --arsenic:  #40424D;   /* 06 — primary body fg on light */
+  --phantom:  #1E1E24;   /* 07 — heading fg / surfaces on dark */
+  --black:    #000000;   /* 08 */
+
+  /* ── Semantic foreground ────────────────────────────────── */
+  --fg-1: var(--parcyl-ink);    /* primary text / headings */
+  --fg-2: var(--arsenic);       /* body */
+  --fg-3: var(--graphite);      /* secondary / captions */
+  --fg-4: var(--space);          /* tertiary / placeholder */
+  --fg-disabled: var(--steel);
+
+  /* ── Semantic background ────────────────────────────────── */
+  --bg-page:    #FFFFFF;
+  --bg-subtle:  var(--cloud);
+  --bg-card:    #FFFFFF;
+  --bg-inverse: var(--parcyl-ink);
+
+  /* ── Borders / dividers ─────────────────────────────────── */
+  --border-1: var(--smoke);
+  --border-2: var(--cloud);
+  --border-strong: var(--arsenic);
+
+  /* ── Accent / interaction ───────────────────────────────── */
+  --accent:        var(--parcyl-green-700);   /* primary CTA bg */
+  --accent-hover:  #18991F;                    /* derived: ~darken green-700 */
+  --accent-press:  #14801A;
+  --accent-soft:   #E8FAE6;                    /* tint surface */
+  --on-accent:     #FFFFFF;
+
+  /* Status (derived for product UI; not in brand guide) */
+  --success: var(--parcyl-green-700);
+  --warning: #F4B73E;
+  --danger:  #E5484D;
+  --info:    #3E7BFA;
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-sans: 'Manrope', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-display: var(--font-sans);
+
+  /* Weights — Manrope */
+  --w-light:     300;
+  --w-regular:   400;
+  --w-medium:    500;
+  --w-semibold:  600;
+  --w-bold:      700;
+  --w-extrabold: 800;
+
+  /* Type scale (per brand guide) */
+  --t-h1:  64px;   /* Heading 1 */
+  --t-h2:  48px;   /* Heading 2 */
+  --t-sh1: 32px;   /* Subheader 1 */
+  --t-sh2: 24px;   /* Subheader 2 */
+  --t-p1:  18px;   /* Paragraph 1 */
+  --t-p2:  16px;   /* Paragraph 2 */
+  --t-cap: 13px;   /* Caption (derived) */
+  --t-micro: 11px; /* Eyebrow (derived) */
+
+  /* Line heights */
+  --lh-tight:  1.05;
+  --lh-snug:   1.2;
+  --lh-normal: 1.45;
+  --lh-loose:  1.6;
+
+  /* Tracking */
+  --track-tight:  -0.02em;
+  --track-normal: 0;
+  --track-wide:   0.04em;
+  --track-eyebrow: 0.12em;
+
+  /* ── Radii ─────────────────────────────────────────────── */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ── Spacing scale (4px base) ──────────────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 48px;
+  --s-10: 64px;
+  --s-11: 80px;
+  --s-12: 120px;
+
+  /* ── Shadows (soft, neutral — fits clean SaaS aesthetic) ── */
+  --shadow-xs: 0 1px 2px rgba(13, 13, 13, 0.05);
+  --shadow-sm: 0 2px 6px rgba(13, 13, 13, 0.06), 0 1px 2px rgba(13, 13, 13, 0.04);
+  --shadow-md: 0 8px 24px rgba(13, 13, 13, 0.08), 0 2px 6px rgba(13, 13, 13, 0.04);
+  --shadow-lg: 0 24px 48px rgba(13, 13, 13, 0.12), 0 4px 12px rgba(13, 13, 13, 0.06);
+  --shadow-glow: 0 0 0 6px rgba(29, 175, 41, 0.18);
+
+  /* Rings (focus / selection) */
+  --ring: 0 0 0 3px rgba(29, 175, 41, 0.35);
+  --ring-danger: 0 0 0 3px rgba(229, 72, 77, 0.35);
+
+  /* Motion */
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Semantic typography styles — apply to elements directly
+   ───────────────────────────────────────────────────────────── */
+html, body { font-family: var(--font-sans); color: var(--fg-1); background: var(--bg-page); }
+
+.h1, h1 {
+  font-family: var(--font-display);
+  font-weight: var(--w-extrabold);
+  font-size: var(--t-h1);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--track-tight);
+  color: var(--fg-1);
+  margin: 0;
+}
+.h2, h2 {
+  font-family: var(--font-display);
+  font-weight: var(--w-bold);
+  font-size: var(--t-h2);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--track-tight);
+  color: var(--fg-1);
+  margin: 0;
+}
+.sh1, h3 {
+  font-family: var(--font-display);
+  font-weight: var(--w-semibold);
+  font-size: var(--t-sh1);
+  line-height: var(--lh-snug);
+  color: var(--fg-1);
+  margin: 0;
+}
+.sh2, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--w-semibold);
+  font-size: var(--t-sh2);
+  line-height: var(--lh-normal);
+  color: var(--fg-1);
+  margin: 0;
+}
+.p1, p {
+  font-size: var(--t-p1);
+  line-height: var(--lh-loose);
+  color: var(--fg-2);
+  margin: 0;
+}
+.p2 {
+  font-size: var(--t-p2);
+  line-height: var(--lh-loose);
+  color: var(--fg-2);
+}
+.caption, small {
+  font-size: var(--t-cap);
+  line-height: var(--lh-normal);
+  color: var(--fg-3);
+}
+.eyebrow {
+  font-size: var(--t-micro);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--graphite);
+}
+code, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+/* Selection */
+::selection { background: var(--green-bright); color: var(--parcyl-ink); }
