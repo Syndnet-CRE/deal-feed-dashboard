@@ -1,11 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+
+function aerialUrl(lat, lng, large) {
+  const size = large ? '600x400' : '400x400';
+  return `https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${lng},${lat},16/${size}@2x?access_token=${MAPBOX_TOKEN}&logo=false&attribution=false`;
+}
 
 function rand(seed) {
   let s = seed;
   return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
 }
 
-export function AerialThumb({ id = 0, large = false, showParcel = true }) {
+function SvgFallback({ id, large, showParcel }) {
   const patches = useMemo(() => {
     const r2 = rand((typeof id === "string" ? id.charCodeAt(0) * 31 + id.length * 7 : id) || 11);
     const out = [];
@@ -48,4 +55,23 @@ export function AerialThumb({ id = 0, large = false, showParcel = true }) {
       )}
     </svg>
   );
+}
+
+export function AerialThumb({ id = 0, lat, lng, large = false, showParcel = true }) {
+  const [imgError, setImgError] = useState(false);
+  const hasCoords = lat && lng && MAPBOX_TOKEN;
+
+  if (hasCoords && !imgError) {
+    return (
+      <img
+        src={aerialUrl(lat, lng, large)}
+        onError={() => setImgError(true)}
+        style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
+        alt=""
+        loading="lazy"
+      />
+    );
+  }
+
+  return <SvgFallback id={id} large={large} showParcel={showParcel}/>;
 }

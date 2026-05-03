@@ -128,7 +128,7 @@ function SectionOverview({ subject }) {
     <>
       <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 20, marginBottom: 20 }}>
         <div style={{ borderRadius: 8, overflow: "hidden", aspectRatio: "1 / 1" }}>
-          <AerialThumb id={subject.id} style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
+          <AerialThumb id={subject.id} lat={subject.lat} lng={subject.lng}/>
         </div>
         <div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>

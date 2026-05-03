@@ -108,7 +108,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
             <div key={d.id} className={`deal-row-card ${hover === d.id || selectedId === d.id ? "selected" : ""}`}
               onClick={() => onOpenDeal(d)}
               onMouseEnter={() => setHover(d.id)} onMouseLeave={() => setHover(null)}>
-              <div className="row-thumb"><AerialThumb id={d.id}/></div>
+              <div className="row-thumb"><AerialThumb id={d.id} lat={d.lat} lng={d.lng}/></div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
                   <span className="row-num" style={{ width: 22, height: 22, fontSize: 11, borderRadius: 4 }}>{i + 1}</span>

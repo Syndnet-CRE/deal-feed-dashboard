@@ -4,10 +4,17 @@ import { DEALS as MOCK_DEALS, BUY_BOXES as MOCK_BUY_BOXES } from '../data/mockDa
 import { DealMap } from '../components/DealMap';
 import { I } from '../components/Icons';
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const THUMB_REF = '-97.742,30.266,10'; // Austin, TX — fixed reference for style previews
+
+function styleThumbUrl(style) {
+  return `https://api.mapbox.com/styles/v1/mapbox/${style}/static/${THUMB_REF}/160x90@2x?access_token=${MAPBOX_TOKEN}&logo=false&attribution=false`;
+}
+
 const STYLE_THUMBS = {
-  dark:      { label: 'Dark',      bg: 'linear-gradient(135deg,#12131A 0%,#1E202C 60%,#252730 100%)', road: '#2A2C38', water: '#1A2030' },
-  satellite: { label: 'Satellite', bg: 'linear-gradient(135deg,#2D4A1E 0%,#3A5C28 40%,#4A3020 70%,#5A4A30 100%)', road: '#8B7355', water: '#1A3A5C' },
-  standard:  { label: 'Standard',  bg: 'linear-gradient(135deg,#E8E0D0 0%,#F0EBE0 50%,#D8E8D0 100%)', road: '#B8A898', water: '#C8D8E8' },
+  dark:      { label: 'Dark',      styleId: 'dark-v11' },
+  satellite: { label: 'Satellite', styleId: 'satellite-streets-v12' },
+  standard:  { label: 'Standard',  styleId: 'streets-v12' },
 };
 
 const STYLE_KEY    = 'parcyl-map-style';
@@ -132,9 +139,8 @@ export function MapView({ onOpenDeal }) {
               <div className="mt-style-grid">
                 {Object.entries(STYLE_THUMBS).map(([key, thumb]) => (
                   <button key={key} className={`mt-style-opt ${mapStyle === key ? 'active' : ''}`} onClick={() => handleStyleChange(key)}>
-                    <div className="mt-thumb" style={{ background: thumb.bg }}>
-                      <div className="mt-thumb-road"  style={{ background: thumb.road }}/>
-                      <div className="mt-thumb-water" style={{ background: thumb.water }}/>
+                    <div className="mt-thumb">
+                      <img src={styleThumbUrl(thumb.styleId)} alt={thumb.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 4 }}/>
                     </div>
                     <span>{thumb.label}</span>
                   </button>
