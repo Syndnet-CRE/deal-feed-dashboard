@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { COMPS } from '../data/mockData';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
@@ -158,29 +157,32 @@ export function DealDrawer({ deal, onClose }) {
         <div className="comps">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div className="col-title" style={{ marginBottom: 0 }}><I.Pin size={11}/> Comparable Sales</div>
-            <span className="caption" style={{ color: "#9DA2B3", fontSize: 11 }}>4 sales · trailing 18 mo</span>
+            <span className="caption" style={{ color: "#9DA2B3", fontSize: 11 }}>{(deal.briefJson?.comps || []).length} comps</span>
           </div>
           <CompsMap deal={deal}/>
           <table className="comps-table">
             <thead><tr><th>Address</th><th>Type</th><th>Sale Date</th><th style={{ textAlign: "right" }}>Price</th><th style={{ textAlign: "right" }}>SF</th><th style={{ textAlign: "right" }}>Distance</th><th style={{ textAlign: "right" }}>Similarity</th></tr></thead>
             <tbody>
-              {COMPS.map((c, i) => (
-                <tr key={i}>
-                  <td className="addr">{c.addr}</td>
-                  <td>{c.type}</td>
-                  <td>{c.date}</td>
-                  <td style={{ textAlign: "right", color: "#FFFFFF", fontWeight: 600 }}>{c.price}</td>
-                  <td style={{ textAlign: "right" }}>{c.sf || "—"}</td>
-                  <td style={{ textAlign: "right" }}>{c.dist}</td>
-                  <td style={{ textAlign: "right" }}>
-                    <span className="sim" style={{
-                      background: c.sim >= 85 ? "rgba(29,175,41,0.14)" : c.sim >= 75 ? "rgba(244,183,62,0.13)" : "rgba(157,162,179,0.12)",
-                      color: c.sim >= 85 ? "#5BCC48" : c.sim >= 75 ? "#F4B73E" : "#9DA2B3",
-                      border: `1px solid ${c.sim >= 85 ? "rgba(29,175,41,0.4)" : c.sim >= 75 ? "rgba(244,183,62,0.4)" : "rgba(157,162,179,0.3)"}`
-                    }}>{c.sim}</span>
-                  </td>
-                </tr>
-              ))}
+              {(deal.briefJson?.comps || []).length === 0
+                ? <tr><td colSpan={7} style={{ textAlign: "center", padding: "20px 0", color: "#9DA2B3" }}>No comparable sales in deal data.</td></tr>
+                : (deal.briefJson.comps).map((c, i) => (
+                  <tr key={i}>
+                    <td className="addr">{c.addr}</td>
+                    <td>{c.type}</td>
+                    <td>{c.date}</td>
+                    <td style={{ textAlign: "right", color: "#FFFFFF", fontWeight: 600 }}>{fmtMoney(c.price)}</td>
+                    <td style={{ textAlign: "right" }}>{c.sf ? Number(c.sf).toLocaleString() : "—"}</td>
+                    <td style={{ textAlign: "right" }}>{c.dist || "—"}</td>
+                    <td style={{ textAlign: "right" }}>
+                      {c.sim != null ? <span className="sim" style={{
+                        background: c.sim >= 85 ? "rgba(29,175,41,0.14)" : c.sim >= 75 ? "rgba(244,183,62,0.13)" : "rgba(157,162,179,0.12)",
+                        color: c.sim >= 85 ? "#5BCC48" : c.sim >= 75 ? "#F4B73E" : "#9DA2B3",
+                        border: `1px solid ${c.sim >= 85 ? "rgba(29,175,41,0.4)" : c.sim >= 75 ? "rgba(244,183,62,0.4)" : "rgba(157,162,179,0.3)"}`
+                      }}>{c.sim}</span> : "—"}
+                    </td>
+                  </tr>
+                ))
+              }
             </tbody>
           </table>
         </div>

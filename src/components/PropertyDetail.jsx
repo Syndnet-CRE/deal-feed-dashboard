@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
 import { fmtMoney, scoreClass, fmt, hasVal } from '../lib/format';
-import { COMPS } from '../data/mockData';
+import { useDeals } from '../contexts/DealsContext';
 
 const TABS = [
   { id: "overview",   label: "Overview" },
@@ -183,7 +183,7 @@ function SectionOwnership({ subject }) {
         )}
       </div>
 
-      {dm && (
+      {dm?.name && (
         <div className="pd-section">
           <div className="pd-sec-head"><h3>Skip Trace — Principal</h3><span className="upd" style={{ color: "#5BCC48" }}>Auto-enriched</span></div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, padding: "10px 12px", background: "var(--panel-2)", borderRadius: 8 }}>
@@ -360,24 +360,27 @@ function SectionMarket({ subject }) {
         </div>
       </div>
       <div className="pd-section">
-        <div className="pd-sec-head"><h3>Comparable Sales</h3><span className="upd">Sample data</span></div>
+        <div className="pd-sec-head"><h3>Comparable Sales</h3><span className="upd">{(subject.briefJson?.comps || []).length > 0 ? `${subject.briefJson.comps.length} comps` : "No comps"}</span></div>
         <div style={{ overflowX: "auto" }}>
           <table className="data-table">
             <thead>
               <tr><th>Address</th><th>Type</th><th>Date</th><th>Price</th><th>Bldg SF</th><th>Dist</th><th>Sim</th></tr>
             </thead>
             <tbody>
-              {COMPS.map((c, i) => (
-                <tr key={i}>
-                  <td>{c.addr}</td>
-                  <td><span className="tag" style={{ fontSize: 10.5 }}>{c.type}</span></td>
-                  <td style={{ color: "var(--ink-3)" }}>{c.date}</td>
-                  <td style={{ fontWeight: 600 }}>{c.price}</td>
-                  <td style={{ color: "var(--ink-3)" }}>{c.sf === "0" ? "—" : c.sf}</td>
-                  <td style={{ color: "var(--ink-3)" }}>{c.dist}</td>
-                  <td><span className={`pill ${c.sim >= 85 ? "green" : c.sim >= 75 ? "amber" : "gray"}`} style={{ fontSize: 10 }}>{c.sim}%</span></td>
-                </tr>
-              ))}
+              {(subject.briefJson?.comps || []).length === 0
+                ? <tr><td colSpan={7} style={{ textAlign: "center", padding: "24px 0", color: "var(--ink-3)" }}>No comparable sales in deal data.</td></tr>
+                : (subject.briefJson.comps).map((c, i) => (
+                  <tr key={i}>
+                    <td>{c.addr}</td>
+                    <td><span className="tag" style={{ fontSize: 10.5 }}>{c.type}</span></td>
+                    <td style={{ color: "var(--ink-3)" }}>{c.date}</td>
+                    <td style={{ fontWeight: 600 }}>{fmtMoney(c.price)}</td>
+                    <td style={{ color: "var(--ink-3)" }}>{c.sf ? Number(c.sf).toLocaleString() : "—"}</td>
+                    <td style={{ color: "var(--ink-3)" }}>{c.dist || "—"}</td>
+                    <td>{c.sim != null ? <span className={`pill ${c.sim >= 85 ? "green" : c.sim >= 75 ? "amber" : "gray"}`} style={{ fontSize: 10 }}>{c.sim}%</span> : "—"}</td>
+                  </tr>
+                ))
+              }
             </tbody>
           </table>
         </div>
@@ -462,7 +465,23 @@ function SectionDocs() {
 }
 
 function SectionNotes({ subject }) {
+  const { saveNote } = useDeals();
   const [note, setNote] = useState(subject.notes || "");
+  const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
+
+  async function handleSave() {
+    setSaving(true);
+    setSavedOk(false);
+    try {
+      await saveNote(subject.id, note);
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="pd-section">
       <div className="pd-sec-head">
@@ -476,7 +495,9 @@ function SectionNotes({ subject }) {
         onChange={e => setNote(e.target.value)}
       />
       <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-        <button className="btn sm primary" disabled={!note.trim()}>Save Note</button>
+        <button className="btn sm primary" disabled={!note.trim() || saving} onClick={handleSave}>
+          {saving ? "Saving…" : savedOk ? "Saved" : "Save Note"}
+        </button>
         {note.length > 0 && <button className="btn sm" onClick={() => setNote("")}>Clear</button>}
       </div>
     </div>
