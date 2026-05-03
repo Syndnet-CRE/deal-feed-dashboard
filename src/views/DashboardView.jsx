@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDeals } from '../contexts/DealsContext';
+import { DEALS as MOCK_DEALS } from '../data/mockData';
 import { I } from '../components/Icons';
 import { DealCard, MapPin } from '../components/DealComponents';
 import { MapBackground } from '../components/MapBackground';
@@ -31,7 +32,8 @@ function StatCard({ label, num, trend, trendLabel, spark, sparkColor }) {
 }
 
 export function DashboardView({ onOpenDeal, selectedId }) {
-  const { deals, loading } = useDeals();
+  const { deals: apiDeals, loading } = useDeals();
+  const deals = (!loading && apiDeals.length === 0) ? MOCK_DEALS : apiDeals;
   const [pinHover, setPinHover] = useState(null);
 
   const recentDeals = deals.slice(0, 8);

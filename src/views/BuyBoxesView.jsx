@@ -1,8 +1,10 @@
 import { useDeals } from '../contexts/DealsContext';
+import { BUY_BOXES as MOCK_BUY_BOXES } from '../data/mockData';
 import { I } from '../components/Icons';
 
 export function BuyBoxesView({ onCreate }) {
-  const { buyBoxes, loading } = useDeals();
+  const { buyBoxes: apiBuyBoxes, loading } = useDeals();
+  const buyBoxes = (!loading && apiBuyBoxes.length === 0) ? MOCK_BUY_BOXES : apiBuyBoxes;
   const failed = buyBoxes.filter(b => b.status === "Coverage Failed");
   const activeCount = buyBoxes.filter(b => b.status === "Active").length;
 
