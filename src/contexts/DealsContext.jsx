@@ -67,8 +67,13 @@ export function DealsProvider({ children }) {
     }
   }, []);
 
+  const saveNote = useCallback(async (dealId, text) => {
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, notes: text } : d));
+    await api.patch(`/api/dealfeed/deals/${dealId}/notes`, { notes: text });
+  }, []);
+
   return (
-    <DealsCtx.Provider value={{ deals, buyBoxes, loading, error, refetch: fetchAll, postFeedback }}>
+    <DealsCtx.Provider value={{ deals, buyBoxes, loading, error, refetch: fetchAll, postFeedback, saveNote }}>
       {children}
     </DealsCtx.Provider>
   );
