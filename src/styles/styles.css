@@ -1932,3 +1932,94 @@ button { font-family: inherit; }
 [data-theme="light"] .mt-style-opt { color: #5A5F72; }
 [data-theme="light"] .mt-style-opt:hover { border-color: #C0C4D0; color: #2A2D3A; }
 [data-theme="light"] .mt-style-opt.active { border-color: #1E7A18; color: #1E7A18; }
+
+/* ── PropertyDetail Tab Content ─────────────────────────────── */
+.kv-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 9px 16px;
+  font-size: 13px;
+}
+.kv-grid .k {
+  color: var(--ink-3);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  align-self: start;
+  padding-top: 2px;
+}
+.kv-grid .v { color: var(--ink-1); font-weight: 500; word-break: break-word; }
+
+.conf-badge {
+  margin-left: 6px;
+  font-size: 10px;
+  background: var(--panel-3);
+  color: var(--ink-3);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-weight: 700;
+}
+
+.data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.data-table th {
+  text-align: left;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  padding: 0 14px 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.data-table td {
+  padding: 8px 14px 8px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+  color: var(--ink-1);
+  vertical-align: top;
+}
+
+.signal-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+.signal-row:last-child { border-bottom: none; }
+.signal-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.signal-icon.hot   { background: rgba(244,183,62,0.15); color: #F4B73E; }
+.signal-icon.warn  { background: rgba(229,72,77,0.12);  color: #E5484D; }
+.signal-icon.info  { background: rgba(93,139,245,0.12); color: #5D8BF5; }
+.signal-icon.green { background: rgba(91,204,72,0.12);  color: #5BCC48; }
+
+.note-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--panel-2);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-1);
+  resize: vertical;
+  box-sizing: border-box;
+}
+.note-textarea:focus { outline: none; border-color: var(--green); }
+
+.doc-empty {
+  border: 1.5px dashed var(--hairline);
+  border-radius: 10px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--ink-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
