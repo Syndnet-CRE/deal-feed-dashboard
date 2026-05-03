@@ -48,12 +48,23 @@ function AppShell() {
   const [showWizard, setShowWizard] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('parcyl-theme') || 'dark');
 
+  const isOnDeal = location.pathname.startsWith('/deal/');
+
   const toggleTheme = useCallback(() => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     localStorage.setItem('parcyl-theme', next);
     document.documentElement.setAttribute('data-theme', next);
   }, [theme]);
+
+  const handleSetView = useCallback((v) => {
+    setView(v);
+    if (isOnDeal) navigate('/');
+  }, [isOnDeal, navigate]);
+
+  const handleOpenDeal = useCallback((deal) => {
+    navigate('/deal/' + deal.id);
+  }, [navigate]);
 
   useEffect(() => {
     if (!loading && !subscriber) navigate('/login');
@@ -80,17 +91,7 @@ function AppShell() {
 
   if (!subscriber) return null;
 
-  const isOnDeal = location.pathname.startsWith('/deal/');
   const noScroll = view === 'deals' || view === 'map';
-
-  const handleSetView = useCallback((v) => {
-    setView(v);
-    if (isOnDeal) navigate('/');
-  }, [isOnDeal, navigate]);
-
-  const handleOpenDeal = useCallback((deal) => {
-    navigate('/deal/' + deal.id);
-  }, [navigate]);
 
   return (
     <DealsProvider>
