@@ -594,18 +594,18 @@ export function PropertyDetail({ deal, onClose }) {
           </button>
         ))}
       </div>
-      <div className="pd-body" ref={bodyRef}>
-        <div className="pd-content">
+      <div className="pd-body">
+        <div className="pd-scroll" ref={bodyRef}>
           <div className="pd-main"><TabContent tab={tab} subject={subject}/></div>
-          <aside className="pd-rail">
-            <RailFit subject={subject}/>
-            <RailDataQuality/>
-            <RailNextSteps/>
-          </aside>
+          <div className="pd-footer">
+            <span>Parcyl Deal Feed · All public records</span>
+          </div>
         </div>
-        <div className="pd-footer">
-          <span>Parcyl Deal Feed · All public records</span>
-        </div>
+        <aside className="pd-rail">
+          <RailFit subject={subject}/>
+          <RailDataQuality/>
+          <RailNextSteps/>
+        </aside>
       </div>
     </div>
   );

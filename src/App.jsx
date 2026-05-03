@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import { DealsProvider } from './contexts/DealsContext';
+import { useDeals, DealsProvider } from './contexts/DealsContext';
 import { ParcylBar } from './components/ParcylBar';
 import { PropertyDetail } from './components/PropertyDetail';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -18,21 +18,42 @@ import { LoginView } from './views/LoginView';
   document.documentElement.setAttribute('data-theme', t);
 })();
 
-function ProtectedLayout() {
+function DealDetailRoute() {
+  const { dealId } = useParams();
+  const { deals, loading } = useDeals();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') navigate(-1); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
+  if (loading) return null;
+
+  const deal = deals.find(d => String(d.id) === dealId);
+  if (!deal) {
+    navigate('/', { replace: true });
+    return null;
+  }
+  return <PropertyDetail deal={deal} onClose={() => navigate(-1)}/>;
+}
+
+function AppShell() {
   const { subscriber, loading } = useAuth();
   const navigate = useNavigate();
-  const [view, setView] = useState("dashboard");
-  const [openDeal, setOpenDeal] = useState(null);
+  const location = useLocation();
+  const [view, setView] = useState('dashboard');
   const [confirmDanger, setConfirmDanger] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem('parcyl-theme') || 'dark');
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     localStorage.setItem('parcyl-theme', next);
     document.documentElement.setAttribute('data-theme', next);
-  };
+  }, [theme]);
 
   useEffect(() => {
     if (!loading && !subscriber) navigate('/login');
@@ -40,19 +61,18 @@ function ProtectedLayout() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === "Escape") {
-        if (openDeal) setOpenDeal(null);
-        else if (showWizard) setShowWizard(false);
+      if (e.key === 'Escape') {
+        if (showWizard) setShowWizard(false);
         else if (confirmDanger) setConfirmDanger(null);
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [openDeal, showWizard, confirmDanger]);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showWizard, confirmDanger]);
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "var(--bg)", color: "#9DA2B3", fontSize: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', color: '#9DA2B3', fontSize: 14 }}>
         Loading…
       </div>
     );
@@ -60,26 +80,42 @@ function ProtectedLayout() {
 
   if (!subscriber) return null;
 
-  const noScroll = view === "deals" || view === "map";
+  const isOnDeal = location.pathname.startsWith('/deal/');
+  const noScroll = view === 'deals' || view === 'map';
+
+  const handleSetView = useCallback((v) => {
+    setView(v);
+    if (isOnDeal) navigate('/');
+  }, [isOnDeal, navigate]);
+
+  const handleOpenDeal = useCallback((deal) => {
+    navigate('/deal/' + deal.id);
+  }, [navigate]);
 
   return (
     <DealsProvider>
-    <div className="app has-topbar">
-      <ParcylBar view={view} setView={setView} theme={theme} onToggleTheme={toggleTheme} />
-      {openDeal ? (
-        <PropertyDetail deal={openDeal} onClose={() => setOpenDeal(null)}/>
-      ) : (
-        <div className={`content${noScroll ? " no-scroll" : ""}`} data-screen-label={view}>
-          {view === "dashboard" && <DashboardView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
-          {view === "deals" && <MyDealsView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
-          {view === "map" && <MapView onOpenDeal={setOpenDeal}/>}
-          {view === "boxes" && <BuyBoxesView onCreate={() => setShowWizard(true)}/>}
-          {view === "settings" && <SettingsView onConfirmDanger={setConfirmDanger}/>}
-        </div>
-      )}
-      {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
-      {showWizard && <NewBoxWizard onClose={() => setShowWizard(false)}/>}
-    </div>
+      <div className="app has-topbar">
+        <ParcylBar
+          view={isOnDeal ? null : view}
+          setView={handleSetView}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
+        <Routes>
+          <Route path="/deal/:dealId" element={<DealDetailRoute/>}/>
+          <Route path="/*" element={
+            <div className={`content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
+              {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal}/>}
+              {view === 'deals'     && <MyDealsView   onOpenDeal={handleOpenDeal}/>}
+              {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
+              {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)}/>}
+              {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
+            </div>
+          }/>
+        </Routes>
+        {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
+        {showWizard && <NewBoxWizard onClose={() => setShowWizard(false)}/>}
+      </div>
     </DealsProvider>
   );
 }
@@ -88,7 +124,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginView/>}/>
-      <Route path="/*" element={<ProtectedLayout/>}/>
+      <Route path="/*" element={<AppShell/>}/>
     </Routes>
   );
 }

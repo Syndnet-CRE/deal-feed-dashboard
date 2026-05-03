@@ -35,7 +35,7 @@ export function DealCard({ deal, onClick, selected }) {
         </div>
         <FactRow deal={deal}/>
       </div>
-      <div className="deal-thumb"><AerialThumb id={deal.id} /></div>
+      <div className="deal-thumb"><AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng}/></div>
     </div>
   );
 }

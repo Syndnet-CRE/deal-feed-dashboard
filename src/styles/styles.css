@@ -1532,22 +1532,27 @@ button { font-family: inherit; }
 [data-theme="dark"] .pd-tab.active { color: var(--green); }
 
 .pd-body {
-  flex: 1; overflow-y: auto;
-  background: var(--app-bg);
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
   min-height: 0;
+  background: var(--app-bg);
 }
-.pd-content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 20px;
-  padding: 20px 22px 60px;
-  max-width: 1500px;
+.pd-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 20px 20px 0 22px;
 }
-.pd-main { min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.pd-main { min-width: 0; display: flex; flex-direction: column; gap: 22px; padding-bottom: 20px; }
 .pd-rail {
-  display: flex; flex-direction: column; gap: 14px; min-width: 0;
-  position: sticky; top: 0; align-self: start;
-  max-height: calc(100vh - 180px); overflow-y: auto;
+  width: 320px;
+  flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  overflow-y: auto;
+  padding: 20px 22px 20px 0;
 }
 
 .pd-section {
@@ -1794,16 +1799,17 @@ button { font-family: inherit; }
   font-size: 10.5px; color: var(--ink-3);
 }
 
-/* responsive — collapse rail below 1024px */
+/* responsive — stack rail below 1024px */
 @media (max-width: 1024px) {
-  .pd-content { grid-template-columns: 1fr; }
-  .pd-rail { position: static; max-height: none; overflow-y: visible; }
+  .pd-body { flex-direction: column; overflow-y: auto; }
+  .pd-scroll { padding: 16px 16px 0; overflow: visible; }
+  .pd-rail { width: 100%; padding: 0 16px 20px; overflow-y: visible; }
 }
 
 /* print */
 @media print {
   .pb-tabs, .topbar, .pd-tabs, .pd-back-bar, .pd-footer, .pd-actions, .map-controls, .map-style-toggle, .scale-bar, .map-attribution { display: none !important; }
-  .pd-content { grid-template-columns: 1fr !important; }
+  .pd-body { flex-direction: column !important; }
   .pd-section { break-inside: avoid; box-shadow: none; }
   body { background: #FFF; }
 }
