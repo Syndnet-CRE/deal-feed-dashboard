@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { DealsProvider } from './contexts/DealsContext';
 import { ParcylBar } from './components/ParcylBar';
+import { PropertyDetail } from './components/PropertyDetail';
 import { ConfirmModal } from './components/ConfirmModal';
 import { NewBoxWizard } from './components/NewBoxWizard';
 import { DashboardView } from './views/DashboardView';
@@ -65,13 +66,17 @@ function ProtectedLayout() {
     <DealsProvider>
     <div className="app has-topbar">
       <ParcylBar view={view} setView={setView} theme={theme} onToggleTheme={toggleTheme} />
-      <div className={`content${noScroll ? " no-scroll" : ""}`} data-screen-label={view}>
-        {view === "dashboard" && <DashboardView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
-        {view === "deals" && <MyDealsView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
-        {view === "map" && <MapView onOpenDeal={setOpenDeal}/>}
-        {view === "boxes" && <BuyBoxesView onCreate={() => setShowWizard(true)}/>}
-        {view === "settings" && <SettingsView onConfirmDanger={setConfirmDanger}/>}
-      </div>
+      {openDeal ? (
+        <PropertyDetail deal={openDeal} onClose={() => setOpenDeal(null)}/>
+      ) : (
+        <div className={`content${noScroll ? " no-scroll" : ""}`} data-screen-label={view}>
+          {view === "dashboard" && <DashboardView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
+          {view === "deals" && <MyDealsView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
+          {view === "map" && <MapView onOpenDeal={setOpenDeal}/>}
+          {view === "boxes" && <BuyBoxesView onCreate={() => setShowWizard(true)}/>}
+          {view === "settings" && <SettingsView onConfirmDanger={setConfirmDanger}/>}
+        </div>
+      )}
       {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
       {showWizard && <NewBoxWizard onClose={() => setShowWizard(false)}/>}
     </div>
