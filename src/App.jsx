@@ -29,13 +29,15 @@ function DealDetailRoute() {
     return () => window.removeEventListener('keydown', onKey);
   }, [navigate]);
 
-  if (loading) return null;
+  useEffect(() => {
+    if (loading) return;
+    const found = deals.find(d => String(d.id) === dealId);
+    if (!found) navigate('/', { replace: true });
+  }, [loading, deals, dealId, navigate]);
 
+  if (loading) return null;
   const deal = deals.find(d => String(d.id) === dealId);
-  if (!deal) {
-    navigate('/', { replace: true });
-    return null;
-  }
+  if (!deal) return null;
   return <PropertyDetail deal={deal} onClose={() => navigate(-1)}/>;
 }
 
@@ -51,11 +53,13 @@ function AppShell() {
   const isOnDeal = location.pathname.startsWith('/deal/');
 
   const toggleTheme = useCallback(() => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    localStorage.setItem('parcyl-theme', next);
-    document.documentElement.setAttribute('data-theme', next);
-  }, [theme]);
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('parcyl-theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      return next;
+    });
+  }, []);
 
   const handleSetView = useCallback((v) => {
     setView(v);
@@ -72,14 +76,13 @@ function AppShell() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') {
-        if (showWizard) setShowWizard(false);
-        else if (confirmDanger) setConfirmDanger(null);
-      }
+      if (e.key !== 'Escape') return;
+      setShowWizard(prev => (prev ? false : prev));
+      setConfirmDanger(prev => (prev ? null : prev));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [showWizard, confirmDanger]);
+  }, []);
 
   if (loading) {
     return (

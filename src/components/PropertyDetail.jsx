@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
-import { fmtMoney, scoreClass } from '../lib/format';
+import { fmtMoney, scoreClass, fmt, hasVal } from '../lib/format';
 import { COMPS } from '../data/mockData';
 
 const TABS = [
@@ -39,14 +39,14 @@ function ConfidenceGauge({ level }) {
 function enrichDeal(deal) {
   return {
     ...deal,
-    apn:           deal.apn          || "—",
-    censusTract:   deal.censusTract  || "—",
-    submarket:     deal.submarket    || deal.city || "—",
-    sf:            deal.sf           || null,
-    yearBuilt:     deal.yearBuilt    || null,
-    zoning:        deal.zoning       || "—",
+    apn:           fmt(deal.apn),
+    censusTract:   fmt(deal.censusTract),
+    submarket:     hasVal(deal.submarket) ? fmt(deal.submarket) : fmt(deal.city),
+    sf:            hasVal(deal.sf)        ? Number(deal.sf)        : null,
+    yearBuilt:     hasVal(deal.yearBuilt) ? Number(deal.yearBuilt) : null,
+    zoning:        fmt(deal.zoning),
     totalAssessed: deal.value,
-    parcelOwner:   deal.owner        || "—",
+    parcelOwner:   fmt(deal.owner),
   };
 }
 

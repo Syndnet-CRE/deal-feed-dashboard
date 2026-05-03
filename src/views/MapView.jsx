@@ -140,7 +140,7 @@ export function MapView({ onOpenDeal }) {
                 {Object.entries(STYLE_THUMBS).map(([key, thumb]) => (
                   <button key={key} className={`mt-style-opt ${mapStyle === key ? 'active' : ''}`} onClick={() => handleStyleChange(key)}>
                     <div className="mt-thumb">
-                      <img src={styleThumbUrl(thumb.styleId)} alt={thumb.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 4 }}/>
+                      <img src={styleThumbUrl(thumb.styleId)} alt={thumb.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 4 }} onError={e => { e.currentTarget.style.display = 'none'; }}/>
                     </div>
                     <span>{thumb.label}</span>
                   </button>

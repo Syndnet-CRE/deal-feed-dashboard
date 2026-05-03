@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Map, Marker, Popup, NavigationControl } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPinSVG, ScoreBubble } from './DealComponents';
-import { fmtMoney } from '../lib/format';
+import { fmtMoney, fmt, hasVal } from '../lib/format';
 import { I } from './Icons';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -100,7 +100,7 @@ export function DealMap({
             onClick={(e) => handleMarkerClick(e, d)}
           >
             <div style={{ cursor: 'pointer', transform: active ? 'scale(1.25)' : 'scale(1)', transition: 'transform 0.15s', zIndex: active ? 10 : 1, position: 'relative' }}>
-              <MapPinSVG score={d.score} num={i + 1} selected={active} asset={d.asset}/>
+              <MapPinSVG score={d.score} num={i + 1} selected={active}/>
             </div>
           </Marker>
         );
@@ -125,9 +125,9 @@ export function DealMap({
               <ScoreBubble score={popup.score} size="sm"/>
             </div>
             <div style={{ marginTop: 8, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <span className="tag">{popup.asset}</span>
-              <span className="tag">{popup.acres?.toFixed(2)} ac</span>
-              <span className="tag">{fmtMoney(popup.value)}</span>
+              {hasVal(popup.asset) && <span className="tag">{fmt(popup.asset)}</span>}
+              {popup.acres != null && <span className="tag">{popup.acres.toFixed(2)} ac</span>}
+              {hasVal(popup.value) && <span className="tag">{fmtMoney(popup.value)}</span>}
             </div>
             <button className="btn primary sm" style={{ marginTop: 10, width: '100%' }}
               onClick={() => { onClickDeal?.(popup); setPopup(null); }}>

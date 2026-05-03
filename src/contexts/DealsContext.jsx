@@ -62,8 +62,8 @@ export function DealsProvider({ children }) {
     setDeals(prev => prev.map(d => d.id === dealId ? { ...d, fb } : d));
     try {
       await api.post(`/api/dealfeed/deals/${dealId}/feedback`, { feedback: fb });
-    } catch (err) {
-      console.error('[postFeedback]', err.message);
+    } catch {
+      // optimistic update stays; feedback sync will retry on next load
     }
   }, []);
 
