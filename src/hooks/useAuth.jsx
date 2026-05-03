@@ -11,7 +11,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('df_token');
     if (!token) { setLoading(false); return; }
     api.get('/api/dealfeed/auth/me')
-      .then(setSubscriber)
+      .then(data => setSubscriber(data.subscriber))
       .catch(() => clearToken())
       .finally(() => setLoading(false));
   }, []);

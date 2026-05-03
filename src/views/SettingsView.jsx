@@ -1,6 +1,9 @@
 import { I } from '../components/Icons';
+import { useAuth } from '../hooks/useAuth';
 
 export function SettingsView({ onConfirmDanger }) {
+  const { subscriber } = useAuth();
+  const s = subscriber || {};
   return (
     <div className="page">
       <div className="page-head">
@@ -14,10 +17,10 @@ export function SettingsView({ onConfirmDanger }) {
         <div className="settings-section">
           <h3>Profile</h3>
           <div className="field-row">
-            <div className="field"><label>Full Name</label><input className="input" defaultValue="Marcus Pell"/></div>
-            <div className="field"><label>Email</label><input className="input" defaultValue="marcus@aurelian.partners" type="email"/></div>
+            <div className="field"><label>Full Name</label><input className="input" defaultValue={s.full_name || ''}/></div>
+            <div className="field"><label>Email</label><input className="input" defaultValue={s.email || ''} type="email"/></div>
           </div>
-          <div className="field"><label>Firm</label><input className="input" defaultValue="Aurelian Partners — Acquisitions"/></div>
+          <div className="field"><label>Firm</label><input className="input" defaultValue={s.company || ''}/></div>
           <div style={{ marginTop: 6 }}><button className="btn primary"><I.Check size={13}/> Save Changes</button></div>
         </div>
 
