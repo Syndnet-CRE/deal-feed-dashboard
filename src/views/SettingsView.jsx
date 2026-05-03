@@ -10,9 +10,32 @@ export function SettingsView({ onConfirmDanger }) {
   const [company, setCompany] = useState('');
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwToast, setPwToast] = useState(null);
 
   const profileFullName = fullName || s.full_name || '';
   const profileCompany = company || s.company || '';
+
+  async function handleChangePassword(e) {
+    e.preventDefault();
+    if (pwNew.length < 12) { setPwToast({ ok: false, msg: 'New password must be at least 12 characters.' }); return; }
+    if (pwNew !== pwConfirm) { setPwToast({ ok: false, msg: 'Passwords do not match.' }); return; }
+    setPwSaving(true);
+    setPwToast(null);
+    try {
+      await api.post('/api/dealfeed/auth/change-password', { current_password: pwCurrent, new_password: pwNew });
+      setPwCurrent(''); setPwNew(''); setPwConfirm('');
+      setPwToast({ ok: true, msg: 'Password updated.' });
+    } catch (err) {
+      setPwToast({ ok: false, msg: err.message || 'Failed to update password.' });
+    } finally {
+      setPwSaving(false);
+      setTimeout(() => setPwToast(null), 3000);
+    }
+  }
 
   async function handleSaveProfile(e) {
     e.preventDefault();
@@ -61,12 +84,17 @@ export function SettingsView({ onConfirmDanger }) {
 
         <div className="settings-section">
           <h3>Password</h3>
-          <div className="field"><label>Current Password</label><input className="input" type="password" defaultValue="••••••••••"/></div>
+          <form onSubmit={handleChangePassword}>
+          <div className="field"><label>Current Password</label><input className="input" type="password" value={pwCurrent} onChange={e => setPwCurrent(e.target.value)} required/></div>
           <div className="field-row">
-            <div className="field"><label>New Password</label><input className="input" type="password" placeholder="At least 12 characters"/></div>
-            <div className="field"><label>Confirm Password</label><input className="input" type="password"/></div>
+            <div className="field"><label>New Password</label><input className="input" type="password" value={pwNew} onChange={e => setPwNew(e.target.value)} placeholder="At least 12 characters" required/></div>
+            <div className="field"><label>Confirm Password</label><input className="input" type="password" value={pwConfirm} onChange={e => setPwConfirm(e.target.value)} required/></div>
           </div>
-          <div style={{ marginTop: 6 }}><button className="btn">Update Password</button></div>
+          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="btn" type="submit" disabled={pwSaving}>{pwSaving ? 'Updating…' : 'Update Password'}</button>
+            {pwToast && <span style={{ fontSize: 12, color: pwToast.ok ? '#4CAF50' : '#FF7378' }}>{pwToast.msg}</span>}
+          </div>
+          </form>
         </div>
 
         <div className="settings-section">
