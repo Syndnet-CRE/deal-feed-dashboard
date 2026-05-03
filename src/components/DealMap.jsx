@@ -29,10 +29,10 @@ function fitDeals(mapRef, deals, padding = 80) {
   const map = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
   if (!map.loaded()) return;
   if (result.pts.length === 1) {
-    mapRef.current.flyTo({ center: [result.pts[0].lng, result.pts[0].lat], zoom: 13, duration: 800 });
+    mapRef.current.flyTo({ center: [result.pts[0].lng, result.pts[0].lat], zoom: 13, duration: 0 });
     return;
   }
-  mapRef.current.fitBounds(result.bounds, { padding, duration: 800 });
+  mapRef.current.fitBounds(result.bounds, { padding, duration: 0 });
 }
 
 export function DealMap({
@@ -43,21 +43,28 @@ export function DealMap({
   mapStyle = 'dark',
   withPopup = false,
   padding = 80,
+  initialViewState = null,
+  onViewStateChange = null,
 }) {
   const mapRef = useRef(null);
-  const [viewState, setViewState] = useState(DEFAULT_VIEW);
+  const [viewState, setViewState] = useState(initialViewState || DEFAULT_VIEW);
   const [popup, setPopup] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
-    fitDeals(mapRef, deals, padding);
-  }, [deals, padding]);
+    if (!initialViewState) fitDeals(mapRef, deals, padding);
+  }, [deals, padding, initialViewState]);
 
   useEffect(() => {
-    if (!mapLoaded) return;
+    if (!mapLoaded || initialViewState) return;
     fitDeals(mapRef, deals, padding);
-  }, [deals, padding, mapLoaded]);
+  }, [deals, padding, mapLoaded, initialViewState]);
+
+  const handleMove = useCallback((evt) => {
+    setViewState(evt.viewState);
+    onViewStateChange?.(evt.viewState);
+  }, [onViewStateChange]);
 
   const handleMarkerClick = useCallback((e, deal) => {
     e.originalEvent?.stopPropagation();
@@ -72,7 +79,7 @@ export function DealMap({
     <Map
       ref={mapRef}
       {...viewState}
-      onMove={(evt) => setViewState(evt.viewState)}
+      onMove={handleMove}
       onLoad={handleMapLoad}
       mapStyle={STYLES[mapStyle] || STYLES.dark}
       mapboxAccessToken={MAPBOX_TOKEN}
