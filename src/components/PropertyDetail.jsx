@@ -16,6 +16,16 @@ const TABS = [
   { id: "notes",      label: "Notes" },
 ];
 
+function isValidHttpUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 const SIGNAL_META = {
   "Absentee Owner":     { icon: <I.Pin size={13}/>,      cls: "warn",  desc: "Owner mailing address differs from the property address." },
   "Out-of-State Owner": { icon: <I.External size={13}/>, cls: "warn",  desc: "Owner mail is outside the property state — indicates remote control." },
@@ -392,7 +402,7 @@ function SectionSite({ subject }) {
           {bj.bldg_has_canopy           && <><span className="k">Canopy</span><span className="v">{bj.bldg_canopy_area ? `${bj.bldg_canopy_area} SF` : "Yes"}</span></>}
           {hasVal(bj.bldg_view_description)  && <><span className="k">View</span><span className="v">{fmt(bj.bldg_view_description)}</span></>}
           {hasVal(bj.bldg_topography_code)   && <><span className="k">Topography</span><span className="v">{fmt(bj.bldg_topography_code)}</span></>}
-          {hasVal(bj.intel_website_url) && <><span className="k">Website</span><span className="v"><a href={bj.intel_website_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--green)" }}>{bj.intel_website_url}</a></span></>}
+          {isValidHttpUrl(bj.intel_website_url) && <><span className="k">Website</span><span className="v"><a href={bj.intel_website_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--green)" }}>{bj.intel_website_url}</a></span></>}
         </div>
       </div>
 
@@ -536,7 +546,7 @@ function SectionMarket({ subject }) {
                     <td><span className="tag" style={{ fontSize: 10.5 }}>{c.type}</span></td>
                     <td style={{ color: "var(--ink-3)" }}>{c.date}</td>
                     <td style={{ fontWeight: 600 }}>{fmtMoney(c.price)}</td>
-                    <td style={{ color: "var(--ink-3)" }}>{c.sf ? Number(c.sf).toLocaleString() : "—"}</td>
+                    <td style={{ color: "var(--ink-3)" }}>{c.sf != null && isFinite(Number(c.sf)) ? Number(c.sf).toLocaleString() : "—"}</td>
                     <td style={{ color: "var(--ink-3)" }}>{c.dist || "—"}</td>
                     <td>{c.sim != null ? <span className={`pill ${c.sim >= 85 ? "green" : c.sim >= 75 ? "amber" : "gray"}`} style={{ fontSize: 10 }}>{c.sim}%</span> : "—"}</td>
                   </tr>
@@ -738,7 +748,7 @@ function RailFit({ subject }) {
   const items = [
     ["Asset Class", subject.asset,                     true],
     ["Geography",   subject.city,                      true],
-    ["Lot Size",    `${subject.acres?.toFixed(2)} ac`, subject.acres >= 1],
+    ["Lot Size",    subject.acres != null ? `${subject.acres.toFixed(2)} ac` : "—", subject.acres != null && subject.acres >= 1],
     ["Score",       `${subject.score} / 100`,          subject.score >= 75],
     ["Box",         subject.box,                       true],
   ];
