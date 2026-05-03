@@ -1,20 +1,25 @@
 import { useState, useMemo } from 'react';
-import { DEALS, BUY_BOXES } from '../data/mockData';
+import { useDeals } from '../contexts/DealsContext';
 import { I } from '../components/Icons';
-import { ScoreBubble, MapPin } from '../components/DealComponents';
+import { ScoreBubble } from '../components/DealComponents';
 import { AerialThumb } from '../components/AerialThumb';
-import { MapBackground } from '../components/MapBackground';
+import { DealMap } from '../components/DealMap';
 import { fmtMoney } from '../lib/format';
 
 export function MyDealsView({ onOpenDeal, selectedId }) {
+  const { deals, buyBoxes, loading } = useDeals();
   const [box, setBox] = useState("all");
   const [range, setRange] = useState("month");
   const [klass, setKlass] = useState("all");
   const [sort, setSort] = useState("recent");
   const [hover, setHover] = useState(null);
+  const [mapStyle, setMapStyle] = useState("dark");
+
+  const assetClasses = useMemo(() => [...new Set(deals.map(d => d.asset))].filter(Boolean).sort(), [deals]);
+  const activeBoxes = useMemo(() => buyBoxes.filter(b => b.status === "Active"), [buyBoxes]);
 
   const filtered = useMemo(() => {
-    let out = DEALS;
+    let out = deals;
     if (box !== "all") out = out.filter(d => d.box === box);
     if (klass !== "all") out = out.filter(d => d.asset === klass);
     const days = range === "week" ? 7 : range === "month" ? 31 : range === "quarter" ? 92 : 9999;
@@ -23,29 +28,23 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
     else if (sort === "value") out = [...out].sort((a, b) => b.value - a.value);
     else out = [...out].sort((a, b) => a.days - b.days);
     return out;
-  }, [box, range, klass, sort]);
+  }, [deals, box, range, klass, sort]);
 
   return (
     <div className="split-deals" style={{ height: "100%" }}>
-      <div className="map-wrap" style={{ height: "100%" }}>
-        <MapBackground density={1.4}/>
-        {filtered.map((d, i) => (
-          <div key={d.id} onMouseEnter={() => setHover(d.id)} onMouseLeave={() => setHover(null)}>
-            <MapPin deal={d} x={d.x * 100} y={d.y * 100} num={i + 1} selected={hover === d.id || selectedId === d.id} onClick={() => onOpenDeal(d)}/>
-          </div>
-        ))}
-        <div className="map-controls">
-          <button className="map-ctl-btn">+</button>
-          <button className="map-ctl-btn">−</button>
-          <button className="map-ctl-btn" title="My Location"><I.Pin size={14}/></button>
+      <div className="map-wrap" style={{ height: "100%", position: "relative" }}>
+        <DealMap
+          deals={filtered}
+          selectedId={selectedId}
+          hoverId={hover}
+          onClickDeal={onOpenDeal}
+          mapStyle={mapStyle}
+        />
+        <div className="map-style-toggle seg" style={{ position: "absolute", bottom: 32, left: 16, zIndex: 10 }}>
+          <button className={`seg-btn ${mapStyle === "dark" ? "active" : ""}`} onClick={() => setMapStyle("dark")}>Dark</button>
+          <button className={`seg-btn ${mapStyle === "satellite" ? "active" : ""}`} onClick={() => setMapStyle("satellite")}>Satellite</button>
+          <button className={`seg-btn ${mapStyle === "standard" ? "active" : ""}`} onClick={() => setMapStyle("standard")}>Standard</button>
         </div>
-        <div className="map-style-toggle seg">
-          <button className="seg-btn active">Dark</button>
-          <button className="seg-btn">Satellite</button>
-          <button className="seg-btn">Standard</button>
-        </div>
-        <div className="scale-bar"><span className="bar"/>2 mi</div>
-        <div className="map-attribution">© Parcyl GIS · Public Records</div>
       </div>
 
       <div className="list-pane">
@@ -53,7 +52,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
           <span className="select-label">Box</span>
           <select className="select" value={box} onChange={(e) => setBox(e.target.value)}>
             <option value="all">All Buy Boxes</option>
-            {BUY_BOXES.filter(b => b.status === "Active").map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+            {activeBoxes.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
           </select>
           <span className="select-label" style={{ marginLeft: 4 }}>Range</span>
           <select className="select" value={range} onChange={(e) => setRange(e.target.value)}>
@@ -65,7 +64,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
           <span className="select-label" style={{ marginLeft: 4 }}>Class</span>
           <select className="select" value={klass} onChange={(e) => setKlass(e.target.value)}>
             <option value="all">All</option>
-            {[...new Set(DEALS.map(d => d.asset))].map(a => <option key={a} value={a}>{a}</option>)}
+            {assetClasses.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
           <div style={{ flex: 1 }}/>
           <span className="select-label">Sort</span>
@@ -82,7 +81,9 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
         </div>
 
         <div className="list-scroll">
-          {filtered.map((d, i) => (
+          {loading ? (
+            <div style={{ padding: 24, color: "#9DA2B3", fontSize: 13 }}>Loading deals…</div>
+          ) : filtered.map((d, i) => (
             <div key={d.id} className={`deal-row-card ${hover === d.id || selectedId === d.id ? "selected" : ""}`}
               onClick={() => onOpenDeal(d)}
               onMouseEnter={() => setHover(d.id)} onMouseLeave={() => setHover(null)}>
@@ -95,7 +96,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
                 <div className="deal-loc" style={{ marginBottom: 6 }}>{d.city}</div>
                 <div className="row-meta">
                   <span className="tag">{d.asset}</span>
-                  <span><b>{d.acres.toFixed(2)}</b> ac</span>
+                  <span><b>{d.acres?.toFixed(2)}</b> ac</span>
                   <span><b>{fmtMoney(d.value)}</b></span>
                   <span>{d.days === 0 ? "Today" : `${d.days}d ago`}</span>
                   {d.fb === "hot" && <span className="fb hot"><I.Hot size={10}/> Hot</span>}
@@ -108,7 +109,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
               </div>
             </div>
           ))}
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="empty">
               <div className="empty-ico"><I.Filter size={22}/></div>
               <div style={{ fontSize: 14, fontWeight: 700 }}>No deals match these filters</div>

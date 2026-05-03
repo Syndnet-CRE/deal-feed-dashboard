@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { DealsProvider } from './contexts/DealsContext';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -50,6 +51,7 @@ function ProtectedLayout() {
   const noScroll = view === "deals" || view === "map";
 
   return (
+    <DealsProvider>
     <div className="app">
       <Sidebar view={view} setView={setView}/>
       <div className="main">
@@ -66,6 +68,7 @@ function ProtectedLayout() {
       {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
       {showWizard && <NewBoxWizard onClose={() => setShowWizard(false)}/>}
     </div>
+    </DealsProvider>
   );
 }
 

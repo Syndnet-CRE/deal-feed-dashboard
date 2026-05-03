@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { COMPS } from '../data/mockData';
+import { useDeals } from '../contexts/DealsContext';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
 import { ScoreBubble, MapPinSVG } from './DealComponents';
@@ -56,10 +57,27 @@ function CompsMap({ deal }) {
 }
 
 export function DealDrawer({ deal, onClose }) {
-  const [feedback, setFeedback] = useState(deal.fb);
+  const { postFeedback } = useDeals();
+  const [feedback, setFeedback] = useState(deal?.fb || null);
   if (!deal) return null;
 
-  const yearsHeld = 27;
+  const brief = deal.briefJson || {};
+  const yearsHeld = brief.years_held ?? brief.yearsHeld ?? "—";
+  const zoning = brief.zoning ?? "—";
+  const floodZone = brief.flood_zone ?? brief.floodZone ?? "—";
+  const sewer = brief.sewer ?? brief.sewer_status ?? "—";
+  const lastSale = brief.last_sale_date && brief.last_sale_price
+    ? `${brief.last_sale_date} · ${fmtMoney(brief.last_sale_price)}`
+    : (brief.lastSale ?? "—");
+  const landValue = brief.land_value ?? brief.landValue ?? Math.round((deal.value || 0) * 0.62);
+  const improvementValue = brief.improvement_value ?? brief.improvementValue ?? Math.round((deal.value || 0) * 0.18);
+
+  const handleFeedback = (fb) => {
+    const next = feedback === fb ? null : fb;
+    setFeedback(next);
+    postFeedback(deal.id, next);
+  };
+
   return (
     <>
       <div className="drawer-backdrop" onClick={onClose}/>
@@ -80,7 +98,7 @@ export function DealDrawer({ deal, onClose }) {
         </div>
 
         <div className="signal-row">
-          {deal.signals.map((s) => <SignalPill key={s} label={s} intent={SIGNAL_INTENT[s] || "gray"}/>)}
+          {(deal.signals || []).map((s) => <SignalPill key={s} label={s} intent={SIGNAL_INTENT[s] || "gray"}/>)}
           {deal.score >= 80 && <SignalPill label={`Top ${100 - deal.score + 5}% Distress`} intent="green"/>}
         </div>
 
@@ -88,50 +106,54 @@ export function DealDrawer({ deal, onClose }) {
           <div className="col">
             <div className="col-title"><I.Building size={11}/> Property Facts</div>
             <div className="kv-list">
-              <div className="kv"><span className="k">Lot Size</span><span className="v">{deal.acres.toFixed(2)} ac</span></div>
-              <div className="kv"><span className="k">GIS Verified</span><span className="v">{deal.gisAcres.toFixed(2)} ac</span></div>
+              <div className="kv"><span className="k">Lot Size</span><span className="v">{deal.acres ? `${deal.acres.toFixed(2)} ac` : "—"}</span></div>
+              <div className="kv"><span className="k">GIS Verified</span><span className="v">{deal.gisAcres ? `${deal.gisAcres.toFixed(2)} ac` : "—"}</span></div>
               <div className="kv"><span className="k">Property Use</span><span className="v">{deal.asset}</span></div>
-              <div className="kv"><span className="k">Zoning</span><span className="v">M-2 Heavy Ind.</span></div>
-              <div className="kv"><span className="k">Last Sale</span><span className="v">Mar 1999 · $410K</span></div>
-              <div className="kv"><span className="k">Years Held</span><span className="v">{yearsHeld} yr</span></div>
+              <div className="kv"><span className="k">Zoning</span><span className="v">{zoning}</span></div>
+              <div className="kv"><span className="k">Last Sale</span><span className="v">{lastSale}</span></div>
+              <div className="kv"><span className="k">Years Held</span><span className="v">{yearsHeld === "—" ? "—" : `${yearsHeld} yr`}</span></div>
             </div>
           </div>
           <div className="col">
             <div className="col-title"><I.Doc size={11}/> Assessed Value & GIS</div>
             <div className="kv-list">
-              <div className="kv"><span className="k">Land Value</span><span className="v">{fmtMoney(Math.round(deal.value * 0.62))}</span></div>
-              <div className="kv"><span className="k">Improvement</span><span className="v">{fmtMoney(Math.round(deal.value * 0.18))}</span></div>
+              <div className="kv"><span className="k">Land Value</span><span className="v">{fmtMoney(landValue)}</span></div>
+              <div className="kv"><span className="k">Improvement</span><span className="v">{fmtMoney(improvementValue)}</span></div>
               <div className="kv"><span className="k">Total Assessed</span><span className="v" style={{ color: "#5BCC48" }}>{fmtMoney(deal.value)}</span></div>
-              <div className="kv"><span className="k">Land : Imp Ratio</span><span className="v">{(0.62 / 0.18).toFixed(1)}x</span></div>
-              <div className="kv"><span className="k">Flood Zone</span><span className="v">X (min)</span></div>
-              <div className="kv"><span className="k">Opp Zone</span><span className="v" style={{ color: deal.signals.includes("Opportunity Zone") ? "#5BCC48" : "#9DA2B3" }}>{deal.signals.includes("Opportunity Zone") ? "Yes" : "No"}</span></div>
-              <div className="kv"><span className="k">Sewer</span><span className="v">At Property Line</span></div>
+              <div className="kv"><span className="k">Land : Imp Ratio</span><span className="v">{improvementValue > 0 ? `${(landValue / improvementValue).toFixed(1)}x` : "—"}</span></div>
+              <div className="kv"><span className="k">Flood Zone</span><span className="v">{floodZone}</span></div>
+              <div className="kv"><span className="k">Opp Zone</span><span className="v" style={{ color: (deal.signals || []).includes("Opportunity Zone") ? "#5BCC48" : "#9DA2B3" }}>{(deal.signals || []).includes("Opportunity Zone") ? "Yes" : "No"}</span></div>
+              <div className="kv"><span className="k">Sewer</span><span className="v">{sewer}</span></div>
             </div>
           </div>
           <div className="col">
             <div className="col-title"><I.Pin size={11}/> Owner & Skip Trace</div>
             <div className="entity-card">
-              <div className="ent-name">{deal.owner}</div>
+              <div className="ent-name">{deal.owner || "—"}</div>
               <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                <span className="tag">{deal.entityType}</span>
+                {deal.entityType && <span className="tag">{deal.entityType}</span>}
                 {deal.absentee && <span className="tag" style={{ background: "rgba(244,183,62,0.10)", color: "#F4B73E", borderColor: "rgba(244,183,62,0.4)" }}>Absentee</span>}
               </div>
-              <div className="ent-line" style={{ marginTop: 8 }}>{deal.mailing}</div>
+              {deal.mailing && <div className="ent-line" style={{ marginTop: 8 }}>{deal.mailing}</div>}
             </div>
-            <div className="kv-list">
-              <div className="dm-row"><span className="k">Decision Maker</span><span className="v">{deal.dm.name} <Confidence pct={deal.dm.conf}/></span></div>
-              <div className="dm-row"><span className="k"><I.Phone size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}/>Phone</span><span className="v" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11.5 }}>{deal.dm.phone} <Confidence pct={deal.dm.phoneConf}/></span></div>
-              <div className="dm-row"><span className="k"><I.Mail size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}/>Email</span><span className="v" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11.5 }}>{deal.dm.email} <Confidence pct={deal.dm.emailConf}/></span></div>
-            </div>
+            {deal.dm && (
+              <div className="kv-list">
+                <div className="dm-row"><span className="k">Decision Maker</span><span className="v">{deal.dm.name} {deal.dm.conf != null && <Confidence pct={deal.dm.conf}/>}</span></div>
+                {deal.dm.phone && <div className="dm-row"><span className="k"><I.Phone size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}/>Phone</span><span className="v" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11.5 }}>{deal.dm.phone} {deal.dm.phoneConf != null && <Confidence pct={deal.dm.phoneConf}/>}</span></div>}
+                {deal.dm.email && <div className="dm-row"><span className="k"><I.Mail size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}/>Email</span><span className="v" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11.5 }}>{deal.dm.email} {deal.dm.emailConf != null && <Confidence pct={deal.dm.emailConf}/>}</span></div>}
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="narrative">
-          <div className="narrative-card">
-            <h4><I.Sparkle size={11}/> Parcyl Data Analysis</h4>
-            {deal.narrative.split("\n\n").map((para, i) => <p key={i}>{para}</p>)}
+        {deal.narrative && (
+          <div className="narrative">
+            <div className="narrative-card">
+              <h4><I.Sparkle size={11}/> Parcyl Data Analysis</h4>
+              {deal.narrative.split("\n\n").map((para, i) => <p key={i}>{para}</p>)}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="comps">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -164,10 +186,10 @@ export function DealDrawer({ deal, onClose }) {
         </div>
 
         <div className="drawer-actions">
-          <button className={`btn ${feedback === "hot" ? "primary" : "outline-green"}`} onClick={() => setFeedback("hot")}>
+          <button className={`btn ${feedback === "hot" ? "primary" : "outline-green"}`} onClick={() => handleFeedback("hot")}>
             <I.Hot size={14}/>{feedback === "hot" ? "Marked Hot" : "Mark as Hot"}
           </button>
-          <button className={`btn ${feedback === "no" ? "danger" : ""}`} style={feedback === "no" ? { background: "rgba(229,72,77,0.10)", borderColor: "rgba(229,72,77,0.4)", color: "#FF7378" } : null} onClick={() => setFeedback("no")}>
+          <button className={`btn ${feedback === "no" ? "danger" : ""}`} style={feedback === "no" ? { background: "rgba(229,72,77,0.10)", borderColor: "rgba(229,72,77,0.4)", color: "#FF7378" } : null} onClick={() => handleFeedback("no")}>
             <I.Close size={14}/>{feedback === "no" ? "Marked Not Relevant" : "Not Relevant"}
           </button>
           <button className="btn"><I.External size={13}/> Public Record</button>

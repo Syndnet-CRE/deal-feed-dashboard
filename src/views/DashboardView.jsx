@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DEALS } from '../data/mockData';
+import { useDeals } from '../contexts/DealsContext';
 import { I } from '../components/Icons';
 import { DealCard, MapPin } from '../components/DealComponents';
 import { MapBackground } from '../components/MapBackground';
@@ -31,16 +31,23 @@ function StatCard({ label, num, trend, trendLabel, spark, sparkColor }) {
 }
 
 export function DashboardView({ onOpenDeal, selectedId }) {
-  const recentDeals = DEALS.slice(0, 8);
-  const last7 = DEALS.filter(d => d.days <= 7);
+  const { deals, loading } = useDeals();
   const [pinHover, setPinHover] = useState(null);
+
+  const recentDeals = deals.slice(0, 8);
+  const last7 = deals.filter(d => d.days <= 7);
+  const hotCount = deals.filter(d => d.fb === 'hot').length;
+  const topScore = deals.length > 0 ? Math.max(...deals.map(d => d.score)) : 0;
+  const topDeal = deals.find(d => d.score === topScore);
 
   return (
     <div className="page">
       <div className="page-head">
         <div>
           <h1 className="page-title">Dashboard</h1>
-          <div className="page-sub">Last nightly run completed Apr 30, 2026 at 02:14 EDT · 12 new deals across 4 buy boxes</div>
+          <div className="page-sub">
+            {loading ? 'Loading…' : `${deals.length} total deals across all buy boxes`}
+          </div>
         </div>
         <div className="spaced">
           <span className="pill green"><span className="pip"/>Run Healthy</span>
@@ -49,10 +56,36 @@ export function DashboardView({ onOpenDeal, selectedId }) {
       </div>
 
       <div className="stat-grid">
-        <StatCard label="Total Deals · All Time" num="412" trend="up" trendLabel="+12 this run" spark={[200, 220, 250, 290, 320, 360, 388, 412]}/>
-        <StatCard label="Deals · This Week" num="34" trend="up" trendLabel="+27% vs last week" spark={[6, 8, 5, 9, 4, 12, 8]} sparkColor="#5BCC48"/>
-        <StatCard label="Active Buy Boxes" num="4" trend="flat" trendLabel="2 slots remaining" spark={[3, 3, 4, 4, 4, 4, 4]} sparkColor="#9DA2B3"/>
-        <StatCard label="Top Distress · Tonight" num="91" trend="up" trendLabel="Hamlin Industrial Blvd" spark={[72, 78, 81, 84, 82, 88, 91]}/>
+        <StatCard
+          label="Total Deals · All Time"
+          num={loading ? '…' : deals.length}
+          trend="up"
+          trendLabel="across all buy boxes"
+          spark={[200, 220, 250, 290, 320, 360, 388, Math.max(deals.length, 412)]}
+        />
+        <StatCard
+          label="Deals · Last 7 Days"
+          num={loading ? '…' : last7.length}
+          trend="up"
+          trendLabel="delivered this week"
+          spark={[6, 8, 5, 9, 4, 12, Math.max(last7.length, 8)]}
+          sparkColor="#5BCC48"
+        />
+        <StatCard
+          label="Hot Deals"
+          num={loading ? '…' : hotCount}
+          trend="flat"
+          trendLabel="marked hot by you"
+          spark={[0, 1, 1, 2, 2, 3, Math.max(hotCount, 3)]}
+          sparkColor="#9DA2B3"
+        />
+        <StatCard
+          label="Top Distress Score"
+          num={loading ? '…' : topScore}
+          trend="up"
+          trendLabel={topDeal ? topDeal.addr.split(' ').slice(0, 3).join(' ') : '—'}
+          spark={[72, 78, 81, 84, 82, 88, Math.max(topScore, 91)]}
+        />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 16, alignItems: "start" }}>
@@ -62,18 +95,18 @@ export function DashboardView({ onOpenDeal, selectedId }) {
               <div className="panel-title">Recent Deals</div>
               <div className="panel-sub">Most recent across all buy boxes · click to open detail</div>
             </div>
-            <div className="seg">
-              <button className="seg-btn active">All Boxes</button>
-              <button className="seg-btn">IOS</button>
-              <button className="seg-btn">Storage</button>
-              <button className="seg-btn">Land</button>
+          </div>
+          {loading ? (
+            <div style={{ padding: 24, color: "#9DA2B3", fontSize: 13 }}>Loading deals…</div>
+          ) : recentDeals.length === 0 ? (
+            <div style={{ padding: 24, color: "#9DA2B3", fontSize: 13 }}>No deals delivered yet. Your first nightly run will populate this.</div>
+          ) : (
+            <div>
+              {recentDeals.map(d => (
+                <DealCard key={d.id} deal={d} selected={pinHover === d.id || selectedId === d.id} onClick={() => onOpenDeal(d)}/>
+              ))}
             </div>
-          </div>
-          <div>
-            {recentDeals.map(d => (
-              <DealCard key={d.id} deal={d} selected={pinHover === d.id || selectedId === d.id} onClick={() => onOpenDeal(d)}/>
-            ))}
-          </div>
+          )}
         </div>
 
         <div className="panel-card" style={{ position: "sticky", top: 0 }}>
@@ -88,7 +121,7 @@ export function DashboardView({ onOpenDeal, selectedId }) {
             <MapBackground/>
             {last7.map((d, i) => (
               <div key={d.id} onMouseEnter={() => setPinHover(d.id)} onMouseLeave={() => setPinHover(null)}>
-                <MapPin deal={d} x={d.x * 100} y={d.y * 100} num={i + 1} selected={pinHover === d.id} onClick={() => onOpenDeal(d)}/>
+                <MapPin deal={d} x={(d.x || 0.5) * 100} y={(d.y || 0.5) * 100} num={i + 1} selected={pinHover === d.id} onClick={() => onOpenDeal(d)}/>
               </div>
             ))}
             <div className="scale-bar"><span className="bar"/>5 mi</div>
