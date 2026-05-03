@@ -1799,6 +1799,17 @@ button { font-family: inherit; }
   font-size: 10.5px; color: var(--ink-3);
 }
 
+/* responsive — narrow rail at 1280px */
+@media (max-width: 1280px) {
+  .pd-rail { width: 260px; }
+}
+
+/* responsive — narrower rail + tighter scroll padding at 1100px */
+@media (max-width: 1100px) {
+  .pd-rail { width: 220px; }
+  .pd-scroll { padding: 16px 14px 0 16px; }
+}
+
 /* responsive — stack rail below 1024px */
 @media (max-width: 1024px) {
   .pd-body { flex-direction: column; overflow-y: auto; }
