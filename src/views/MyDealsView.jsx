@@ -5,6 +5,7 @@ import { ScoreBubble } from '../components/DealComponents';
 import { AerialThumb } from '../components/AerialThumb';
 import { DealMap } from '../components/DealMap';
 import { fmtMoney } from '../lib/format';
+import { LEGEND_ITEMS } from '../lib/assetColors';
 
 export function MyDealsView({ onOpenDeal, selectedId }) {
   const { deals, buyBoxes, loading } = useDeals();
@@ -14,6 +15,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
   const [sort, setSort] = useState("recent");
   const [hover, setHover] = useState(null);
   const [mapStyle, setMapStyle] = useState("dark");
+  const [showLegend, setShowLegend] = useState(false);
 
   const assetClasses = useMemo(() => [...new Set(deals.map(d => d.asset))].filter(Boolean).sort(), [deals]);
   const activeBoxes = useMemo(() => buyBoxes.filter(b => b.status === "Active"), [buyBoxes]);
@@ -44,6 +46,22 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
           <button className={`seg-btn ${mapStyle === "dark" ? "active" : ""}`} onClick={() => setMapStyle("dark")}>Dark</button>
           <button className={`seg-btn ${mapStyle === "satellite" ? "active" : ""}`} onClick={() => setMapStyle("satellite")}>Satellite</button>
           <button className={`seg-btn ${mapStyle === "standard" ? "active" : ""}`} onClick={() => setMapStyle("standard")}>Standard</button>
+        </div>
+        <div style={{ position: "absolute", bottom: 32, right: 52, zIndex: 10 }}>
+          <button className="seg-btn" onClick={() => setShowLegend(v => !v)}
+            style={{ background: "#1A1B22CC", border: "1px solid #2A2B34", borderRadius: 6, padding: "5px 10px", fontSize: 12, color: "#CDD1E0", cursor: "pointer" }}>
+            {showLegend ? "Hide Legend" : "Legend"}
+          </button>
+          {showLegend && (
+            <div style={{ position: "absolute", bottom: 36, right: 0, background: "#1A1B22EE", border: "1px solid #2A2B34", borderRadius: 8, padding: "10px 14px", minWidth: 170 }}>
+              {LEGEND_ITEMS.map(item => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ width: 12, height: 12, borderRadius: "50%", background: item.color, flexShrink: 0 }}/>
+                  <span style={{ fontSize: 12, color: "#CDD1E0" }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

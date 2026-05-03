@@ -1,5 +1,6 @@
 import { AerialThumb } from './AerialThumb';
 import { fmtMoney, scoreClass } from '../lib/format';
+import { getPinColor } from '../lib/assetColors';
 
 export function ScoreBubble({ score, size = "md" }) {
   return (
@@ -40,9 +41,8 @@ export function DealCard({ deal, onClick, selected }) {
   );
 }
 
-export function MapPinSVG({ score, num, selected }) {
-  const cls = scoreClass(score);
-  const fill = cls === "hi" ? "#1DAF29" : cls === "md" ? "#F4B73E" : "#9DA2B3";
+export function MapPinSVG({ score, num, selected, asset }) {
+  const fill = asset ? getPinColor(asset) : (scoreClass(score) === "hi" ? "#1DAF29" : scoreClass(score) === "md" ? "#F4B73E" : "#9DA2B3");
   const stroke = "#06270A";
   return (
     <svg width="26" height="32" viewBox="0 0 26 32" style={{ filter: `drop-shadow(0 ${selected ? 4 : 2}px ${selected ? 8 : 4}px rgba(0,0,0,0.55))` }}>
@@ -59,7 +59,7 @@ export function MapPin({ deal, x, y, num, selected, onClick }) {
     <div className={`map-pin numbered ${selected ? "selected" : ""}`}
       style={{ left: `${x}%`, top: `${y}%` }}
       onClick={(e) => { e.stopPropagation(); onClick && onClick(deal); }}>
-      <MapPinSVG score={deal.score} num={num} selected={selected}/>
+      <MapPinSVG score={deal.score} num={num} selected={selected} asset={deal.asset}/>
     </div>
   );
 }

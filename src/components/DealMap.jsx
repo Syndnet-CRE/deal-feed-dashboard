@@ -80,7 +80,7 @@ export function DealMap({
             onClick={(e) => handleMarkerClick(e, d)}
           >
             <div style={{ cursor: 'pointer', transform: active ? 'scale(1.25)' : 'scale(1)', transition: 'transform 0.15s', zIndex: active ? 10 : 1, position: 'relative' }}>
-              <MapPinSVG score={d.score} num={i + 1} selected={active}/>
+              <MapPinSVG score={d.score} num={i + 1} selected={active} asset={d.asset}/>
             </div>
           </Marker>
         );
