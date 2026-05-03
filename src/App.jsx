@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { DealsProvider } from './contexts/DealsContext';
-import { Sidebar } from './components/Sidebar';
-import { Topbar } from './components/Topbar';
+import { ParcylBar } from './components/ParcylBar';
 import { ConfirmModal } from './components/ConfirmModal';
 import { NewBoxWizard } from './components/NewBoxWizard';
-import { DealDrawer } from './components/DealDrawer';
 import { DashboardView } from './views/DashboardView';
 import { MyDealsView } from './views/MyDealsView';
 import { BuyBoxesView } from './views/BuyBoxesView';
@@ -26,6 +24,14 @@ function ProtectedLayout() {
   const [openDeal, setOpenDeal] = useState(null);
   const [confirmDanger, setConfirmDanger] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('parcyl-theme') || 'dark');
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('parcyl-theme', next);
+    document.documentElement.setAttribute('data-theme', next);
+  };
 
   useEffect(() => {
     if (!loading && !subscriber) navigate('/login');
@@ -57,18 +63,14 @@ function ProtectedLayout() {
 
   return (
     <DealsProvider>
-    <div className="app">
-      <Sidebar view={view} setView={setView}/>
-      <div className="main">
-        <Topbar view={view} onCreateBox={() => setShowWizard(true)}/>
-        <div className={`content ${noScroll ? "no-scroll" : ""}`} data-screen-label={view}>
-          {view === "dashboard" && <DashboardView onOpenDeal={setOpenDeal} selectedId={openDeal && openDeal.id}/>}
-          {view === "deals" && <MyDealsView onOpenDeal={setOpenDeal} selectedId={openDeal && openDeal.id}/>}
-          {view === "map" && <MapView onOpenDeal={setOpenDeal}/>}
-          {view === "boxes" && <BuyBoxesView onCreate={() => setShowWizard(true)}/>}
-          {view === "settings" && <SettingsView onConfirmDanger={setConfirmDanger}/>}
-          {openDeal && <DealDrawer deal={openDeal} onClose={() => setOpenDeal(null)}/>}
-        </div>
+    <div className="app has-topbar">
+      <ParcylBar view={view} setView={setView} theme={theme} onToggleTheme={toggleTheme} />
+      <div className={`content${noScroll ? " no-scroll" : ""}`} data-screen-label={view}>
+        {view === "dashboard" && <DashboardView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
+        {view === "deals" && <MyDealsView onOpenDeal={setOpenDeal} selectedId={openDeal?.id}/>}
+        {view === "map" && <MapView onOpenDeal={setOpenDeal}/>}
+        {view === "boxes" && <BuyBoxesView onCreate={() => setShowWizard(true)}/>}
+        {view === "settings" && <SettingsView onConfirmDanger={setConfirmDanger}/>}
       </div>
       {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
       {showWizard && <NewBoxWizard onClose={() => setShowWizard(false)}/>}
