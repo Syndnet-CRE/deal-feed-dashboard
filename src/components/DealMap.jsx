@@ -13,21 +13,26 @@ const STYLES = {
   standard: 'mapbox://styles/mapbox/streets-v12',
 };
 
-const ATL_DEFAULT = { latitude: 33.85, longitude: -84.4, zoom: 9 };
+const DEFAULT_VIEW = { latitude: 30.25, longitude: -97.75, zoom: 4 };
 
-function fitDeals(mapRef, deals, padding = 80) {
+function boundsFromDeals(deals) {
   const pts = deals.filter(d => d.lat && d.lng);
-  if (!mapRef.current || pts.length === 0) return;
-  if (pts.length === 1) {
-    mapRef.current.flyTo({ center: [pts[0].lng, pts[0].lat], zoom: 13, duration: 800 });
-    return;
-  }
+  if (pts.length === 0) return null;
   const lngs = pts.map(d => d.lng);
   const lats = pts.map(d => d.lat);
-  mapRef.current.fitBounds(
-    [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]],
-    { padding, duration: 800 }
-  );
+  return { pts, bounds: [[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]] };
+}
+
+function fitDeals(mapRef, deals, padding = 80) {
+  const result = boundsFromDeals(deals);
+  if (!mapRef.current || !result) return;
+  const map = mapRef.current.getMap ? mapRef.current.getMap() : mapRef.current;
+  if (!map.loaded()) return;
+  if (result.pts.length === 1) {
+    mapRef.current.flyTo({ center: [result.pts[0].lng, result.pts[0].lat], zoom: 13, duration: 800 });
+    return;
+  }
+  mapRef.current.fitBounds(result.bounds, { padding, duration: 800 });
 }
 
 export function DealMap({
@@ -40,12 +45,19 @@ export function DealMap({
   padding = 80,
 }) {
   const mapRef = useRef(null);
-  const [viewState, setViewState] = useState(ATL_DEFAULT);
+  const [viewState, setViewState] = useState(DEFAULT_VIEW);
   const [popup, setPopup] = useState(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  useEffect(() => {
+  const handleMapLoad = useCallback(() => {
+    setMapLoaded(true);
     fitDeals(mapRef, deals, padding);
   }, [deals, padding]);
+
+  useEffect(() => {
+    if (!mapLoaded) return;
+    fitDeals(mapRef, deals, padding);
+  }, [deals, padding, mapLoaded]);
 
   const handleMarkerClick = useCallback((e, deal) => {
     e.originalEvent?.stopPropagation();
@@ -61,6 +73,7 @@ export function DealMap({
       ref={mapRef}
       {...viewState}
       onMove={(evt) => setViewState(evt.viewState)}
+      onLoad={handleMapLoad}
       mapStyle={STYLES[mapStyle] || STYLES.dark}
       mapboxAccessToken={MAPBOX_TOKEN}
       style={{ width: '100%', height: '100%' }}
