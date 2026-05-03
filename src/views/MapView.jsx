@@ -4,9 +4,9 @@ import { DEALS as MOCK_DEALS, BUY_BOXES as MOCK_BUY_BOXES } from '../data/mockDa
 import { DealMap } from '../components/DealMap';
 
 export function MapView({ onOpenDeal }) {
-  const { deals: apiDeals, buyBoxes: apiBuyBoxes } = useDeals();
-  const deals = (apiDeals.length === 0) ? MOCK_DEALS : apiDeals;
-  const buyBoxes = (apiBuyBoxes.length === 0) ? MOCK_BUY_BOXES : apiBuyBoxes;
+  const { deals: apiDeals, buyBoxes: apiBuyBoxes, loading } = useDeals();
+  const deals = (!loading && apiDeals.length === 0) ? MOCK_DEALS : apiDeals;
+  const buyBoxes = (!loading && apiBuyBoxes.length === 0) ? MOCK_BUY_BOXES : apiBuyBoxes;
   const [box, setBox] = useState("all");
   const [range, setRange] = useState("all");
   const [klass, setKlass] = useState("all");

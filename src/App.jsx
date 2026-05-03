@@ -13,7 +13,7 @@ import { MapView } from './views/MapView';
 import { SettingsView } from './views/SettingsView';
 import { LoginView } from './views/LoginView';
 
-const _initTheme = (() => {
+(() => {
   const t = localStorage.getItem('parcyl-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
