@@ -1,9 +1,39 @@
+import { useState } from 'react';
 import { I } from '../components/Icons';
 import { useAuth } from '../hooks/useAuth';
+import { api } from '../lib/api';
 
 export function SettingsView({ onConfirmDanger }) {
   const { subscriber } = useAuth();
   const s = subscriber || {};
+  const [fullName, setFullName] = useState('');
+  const [company, setCompany] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const profileFullName = fullName || s.full_name || '';
+  const profileCompany = company || s.company || '';
+
+  async function handleSaveProfile(e) {
+    e.preventDefault();
+    setSaving(true);
+    setToast(null);
+    try {
+      await api.patch('/api/dealfeed/auth/me', {
+        full_name: profileFullName,
+        company: profileCompany,
+        role: s.role || '',
+        phone: s.phone || '',
+      });
+      setToast({ ok: true, msg: 'Profile saved.' });
+    } catch (err) {
+      setToast({ ok: false, msg: err.message || 'Save failed.' });
+    } finally {
+      setSaving(false);
+      setTimeout(() => setToast(null), 3000);
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-head">
@@ -16,12 +46,17 @@ export function SettingsView({ onConfirmDanger }) {
       <div className="settings-form">
         <div className="settings-section">
           <h3>Profile</h3>
+          <form onSubmit={handleSaveProfile}>
           <div className="field-row">
-            <div className="field"><label>Full Name</label><input className="input" defaultValue={s.full_name || ''}/></div>
-            <div className="field"><label>Email</label><input className="input" defaultValue={s.email || ''} type="email"/></div>
+            <div className="field"><label>Full Name</label><input className="input" value={profileFullName} onChange={e => setFullName(e.target.value)} required/></div>
+            <div className="field"><label>Email</label><input className="input" value={s.email || ''} type="email" readOnly style={{ opacity: 0.6 }}/></div>
           </div>
-          <div className="field"><label>Firm</label><input className="input" defaultValue={s.company || ''}/></div>
-          <div style={{ marginTop: 6 }}><button className="btn primary"><I.Check size={13}/> Save Changes</button></div>
+          <div className="field"><label>Firm</label><input className="input" value={profileCompany} onChange={e => setCompany(e.target.value)}/></div>
+          <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <button className="btn primary" type="submit" disabled={saving}><I.Check size={13}/> {saving ? 'Saving…' : 'Save Changes'}</button>
+            {toast && <span style={{ fontSize: 12, color: toast.ok ? '#4CAF50' : '#FF7378' }}>{toast.msg}</span>}
+          </div>
+          </form>
         </div>
 
         <div className="settings-section">
