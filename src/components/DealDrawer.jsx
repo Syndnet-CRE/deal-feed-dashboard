@@ -4,7 +4,7 @@ import { useDeals } from '../contexts/DealsContext';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
 import { ScoreBubble, MapPinSVG } from './DealComponents';
-import { fmtMoney } from '../lib/format';
+import { fmtMoney, fmt, hasVal } from '../lib/format';
 
 function SignalPill({ label, intent = "gray" }) {
   return <span className={`pill ${intent}`}><span className="pip"/>{label}</span>;
@@ -86,7 +86,7 @@ export function DealDrawer({ deal, onClose }) {
           <button className="drawer-close" onClick={onClose} aria-label="Close"><I.Close size={14}/></button>
           <div className="drawer-headline">
             <h2>{deal.addr}</h2>
-            <div className="drawer-sub">{deal.city} · FIPS {deal.fips} · Delivered {deal.days === 0 ? "today" : `${deal.days} day${deal.days > 1 ? "s" : ""} ago`}</div>
+            <div className="drawer-sub">{fmt(deal.city)} · FIPS {fmt(deal.fips)} · Delivered {deal.days === 0 ? "today" : `${deal.days} day${deal.days > 1 ? "s" : ""} ago`}</div>
           </div>
           <ScoreBubble score={deal.score} size="lg"/>
         </div>
@@ -108,7 +108,7 @@ export function DealDrawer({ deal, onClose }) {
             <div className="kv-list">
               <div className="kv"><span className="k">Lot Size</span><span className="v">{deal.acres ? `${deal.acres.toFixed(2)} ac` : "—"}</span></div>
               <div className="kv"><span className="k">GIS Verified</span><span className="v">{deal.gisAcres ? `${deal.gisAcres.toFixed(2)} ac` : "—"}</span></div>
-              <div className="kv"><span className="k">Property Use</span><span className="v">{deal.asset}</span></div>
+              <div className="kv"><span className="k">Property Use</span><span className="v">{fmt(deal.asset)}</span></div>
               <div className="kv"><span className="k">Zoning</span><span className="v">{zoning}</span></div>
               <div className="kv"><span className="k">Last Sale</span><span className="v">{lastSale}</span></div>
               <div className="kv"><span className="k">Years Held</span><span className="v">{yearsHeld === "—" ? "—" : `${yearsHeld} yr`}</span></div>
@@ -129,16 +129,16 @@ export function DealDrawer({ deal, onClose }) {
           <div className="col">
             <div className="col-title"><I.Pin size={11}/> Owner & Skip Trace</div>
             <div className="entity-card">
-              <div className="ent-name">{deal.owner || "—"}</div>
+              <div className="ent-name">{fmt(deal.owner)}</div>
               <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                {deal.entityType && <span className="tag">{deal.entityType}</span>}
+                {hasVal(deal.entityType) && <span className="tag">{fmt(deal.entityType)}</span>}
                 {deal.absentee && <span className="tag" style={{ background: "rgba(244,183,62,0.10)", color: "#F4B73E", borderColor: "rgba(244,183,62,0.4)" }}>Absentee</span>}
               </div>
-              {deal.mailing && <div className="ent-line" style={{ marginTop: 8 }}>{deal.mailing}</div>}
+              {hasVal(deal.mailing) && <div className="ent-line" style={{ marginTop: 8 }}>{fmt(deal.mailing)}</div>}
             </div>
             {deal.dm && (
               <div className="kv-list">
-                <div className="dm-row"><span className="k">Decision Maker</span><span className="v">{deal.dm.name} {deal.dm.conf != null && <Confidence pct={deal.dm.conf}/>}</span></div>
+                <div className="dm-row"><span className="k">Decision Maker</span><span className="v">{fmt(deal.dm.name)} {deal.dm.conf != null && <Confidence pct={deal.dm.conf}/>}</span></div>
                 {deal.dm.phone && <div className="dm-row"><span className="k"><I.Phone size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}/>Phone</span><span className="v" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11.5 }}>{deal.dm.phone} {deal.dm.phoneConf != null && <Confidence pct={deal.dm.phoneConf}/>}</span></div>}
                 {deal.dm.email && <div className="dm-row"><span className="k"><I.Mail size={11} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}/>Email</span><span className="v" style={{ fontFamily: "JetBrains Mono, monospace", fontSize: 11.5 }}>{deal.dm.email} {deal.dm.emailConf != null && <Confidence pct={deal.dm.emailConf}/>}</span></div>}
               </div>

@@ -9,3 +9,12 @@ export function scoreClass(s) {
   if (s >= 60) return "md";
   return "lo";
 }
+
+export function fmt(val) {
+  if (val == null || val === '' || val === 'null' || val === 'undefined') return '—';
+  return String(val);
+}
+
+export function hasVal(val) {
+  return val != null && val !== '' && val !== 'null' && val !== 'undefined';
+}
