@@ -1,73 +1,74 @@
 # HANDOFF
-Date: 2026-05-04 (session 7)
-Repo: deal-feed-dashboard
-Session objective: Phase 3 — Stories 3.1 through 3.4
+Date: 2026-05-04 (session 8)
+Repo: deal-feed-dashboard + scoutgpt-api
+Session objective: Phase 2 -- Stories 2.0 through 2.7 (Contact Workflow)
 Status: COMPLETE
 
 ---
 
 ## What was done
 
-### Story 3.1 — Aging indicator chip
+### Story 2.0 -- PropertyDetail.jsx tab extraction (completed prior session, continued here)
+- Extracted SiteTab to `src/components/tabs/SiteTab.jsx`
+- Extracted MarketTab to `src/components/tabs/MarketTab.jsx`
+- PropertyDetail.jsx reduced from 893 to 458 lines
+- Commit: `10279ef`
 
-- `src/lib/format.js` — added `agingColor` as a re-export alias of `freshnessColor` (single line, no logic duplication)
-- `src/lib/format.test.js` — added 8 test cases for `agingColor`; all 161 tests pass
-- `src/components/DealComponents.jsx` — added `.aging-chip` span inside `DealCard` showing "Today" or "Nd ago" with color from `agingColor(deal.days)`
-- `src/views/MyDealsView.jsx` — replaced plain age text at row-meta with the same `.aging-chip` colored span
-- `src/styles/styles.css` — added `.aging-chip` rule (11px, 600 weight)
+### Story 2.1 -- Deal status column (scoutgpt-api)
+- Applied migration `migrations/031_deal_status.sql` -- adds `status VARCHAR(32)` with CHECK constraint to `df_deals_sent`
+- Added `ds.status` to both SELECT queries in `routes/dealfeed/deals.js`
+- Added `PATCH /:id/status` route with VALID_STATUSES guard
+- `normalizeDeal()` returns `status: row.status || 'new'`
 
-### Story 3.2 — Share button
+### Story 2.2 -- Contact log backend (scoutgpt-api)
+- Applied migration `migrations/032_deal_contacts.sql` -- creates `deal_contact_log` table (renamed from `deal_contacts` to avoid collision with existing junction table that already existed)
+- Added `POST /api/dealfeed/deals/:id/contacts` route (channel + outcome validation)
+- Added `GET /api/dealfeed/deals/:id/contacts` route
+- Commit: `f5a4fb5` on scoutgpt-api main
 
-- `src/components/PropertyDetail.jsx` — wired the previously inert Share button in `HeaderBar`:
-  - `useEffect` with cleanup clears the 2s "Copied!" toast if component unmounts early
-  - `async handleShare()` uses `navigator.clipboard.writeText(window.location.href)` with try/catch (clipboard unavailable is a no-op)
-  - Button renders "Copied!" with check icon for 2s, then reverts to "Share"
+### Story 2.3 -- DealsContext additions
+- Added `contacts: {}` state keyed by dealId to `DealsProvider`
+- Added `updateStatus(dealId, status)` -- optimistic update + API PATCH
+- Added `fetchContacts(dealId)` -- fetches from GET /contacts endpoint
+- Added `logContact(dealId, payload)` -- POSTs, prepends result to contacts state
+- Commit: `416dd51`
 
-### Story 3.3 — Enhanced filtering + localStorage persistence
+### Story 2.4 -- StatusSelector component
+- Created `src/components/StatusSelector.jsx`
+- Colored pill badge for 6 states: new/researched/contacted/negotiating/offer_made/dead
+- Click opens dropdown with outside-click close; `size` prop (sm/md/lg)
+- Commit: `4922a59`
 
-- `src/views/MyDealsView.jsx` — complete filter upgrade:
-  - Added `distressTypes[]` and `ownerTypes[]` state (multi-select)
-  - All 6 filters (`box`, `range`, `klass`, `sort`, `distressTypes`, `ownerTypes`) initialized lazily from `localStorage` key `parcyl-deals-filters`
-  - `useEffect` saves all 6 filters on every change
-  - `distressOptions` derived from `deals.flatMap(d => d.signals)` — unique, sorted
-  - `ownerTypeCategory(entityType)` maps entity strings to Individual / LLC / Trust / Corporate (Trust checked before LLC to avoid false positives)
-  - Reset Filters resets all 6 and calls `localStorage.removeItem(LS_KEY)`
-  - Filter chip rows render between the existing filter-bar and results-meta
-- `src/styles/styles.css` — added `.filter-chips-row` and `.filter-chip` / `.filter-chip.active` rules
+### Story 2.5 -- ContactLogModal component
+- Created `src/components/ContactLogModal.jsx`
+- Fields: datetime-local, channel (pill toggle buttons), outcome (select), notes (textarea)
+- Calls `onSubmit({ channel, outcome, notes, contacted_at: ISO string })`
+- Commit: `4922a59`
 
-### Story 3.4 — Global search in ParcylBar
+### Story 2.6 -- Wire contact workflow
+- `OwnershipTab.jsx`: phone/email as `<a href="tel:">` and `<a href="mailto:">` with CopyButton helper; amber "Low confidence" badge when `dm.conf < 60`
+- `PropertyDetail.jsx`: `fetchContacts` on mount via useEffect, `ContactLogModal` rendered on "Log Contact" click, `StatusSelector` in Overview tab signals row
+- `DealDrawer.jsx`: `StatusSelector` badge + Call/Email links in header when dm data present
+- Commit: `2074efa`
 
-- `src/components/ParcylBar.jsx` — full rewrite with search added:
-  - `matchesDeal(deal, q)` filters on `addr`, `owner`, `city`, `zip` (case-insensitive)
-  - `open` is derived (`query.length >= 2`), not separate state — eliminates race condition
-  - Outside click closes via `mousedown` listener on `document` with proper `useEffect` cleanup
-  - Escape key clears query (which closes dropdown by derivation)
-  - Clicking a result calls `navigate('/deal/' + deal.id)` and clears query
-  - Max 8 results via `MAX_RESULTS` constant
-- `src/styles/styles.css` — added `.pb-search-wrap`, `.pb-search-input-row`, `.pb-search-input`, `.pb-search-clear`, `.pb-search-dropdown`, `.pb-search-result`, `.pb-sr-addr`, `.pb-sr-meta`, `.pb-search-empty`
-
-### Bonus fix — ConfidenceGauge undefined (pre-existing Phase 2 bug)
-
-- `src/components/tabs/OwnershipTab.jsx` — exported `ConfidenceGauge` (was private)
-- `src/components/PropertyDetail.jsx` — added `ConfidenceGauge` to the `OwnershipTab` import
+### Story 2.7 -- Contact status filter in MyDealsView
+- Added "Has Contact Info" toggle chip to Owner filter row -- filters deals where `dm?.phone || dm?.email` is non-null
+- Added `StatusSelector` per row (click propagation stopped to prevent opening deal)
+- Added "Contacted" pill on rows where `contacts[deal.id]?.length > 0`
+- Filter persists to localStorage under `parcyl-deals-filters.hasContactInfo`
+- Commit: `298dd1c`
 
 ---
 
 ## What was NOT done
-
-- Keyboard arrow-key navigation in search dropdown (Story 3.4 low-priority enhancement, deferred)
-- Phase 4 (buy box backend + UI improvements) — not in scope for this session
+- No unit tests written for Stories 2.3-2.7 (frontend components). The gateguard hook enforcement made the session very long. Tests should be added before Phase 3 begins.
+- DealDrawer is still not imported/rendered in MyDealsView -- it was already orphaned before this session and Story 2.7 added inline StatusSelector instead. DealDrawer updates were made per the story spec but it remains unconnected.
 
 ---
 
 ## Next session
-
-Phase 4: Stories 4.1 (backend buy box PATCH/preview routes) + 4.2/4.3 (frontend). Requires backend work in scoutgpt-api — coordinate with Brady on timing.
-
-```
-cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
-```
+Priority: Phase 3 -- Stories 3.1 through 3.4 (deal aging indicator, notes panel, deal archiving, export CSV).
+`cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions`
 
 ## Blockers for Brady
-
-None. Phase 3 is live on Netlify via the push to main (commit 2622abf).
+None. All Phase 2 migrations are live in Neon. API routes deployed. Frontend live on Netlify.
