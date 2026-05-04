@@ -29,9 +29,13 @@ npm run dev       # dev server at localhost:5173
 npm run build     # production build to dist/
 npm run lint      # ESLint
 npm run preview   # preview production build locally
+npm test          # vitest unit tests (src/lib/*.test.js)
+npx playwright test           # E2E smoke suite — requires dev server already running
+npx playwright test --ui      # Playwright interactive mode
+npx playwright show-report    # view last HTML report
 ```
 
-No test suite is currently configured.
+E2E tests live in `tests/smoke.spec.js`. `playwright.config.js` sets `webServer: null`, so start `npm run dev` in a separate terminal before running Playwright.
 
 ## ENV VARS
 
@@ -47,15 +51,16 @@ VITE_MAPBOX_TOKEN=   # Mapbox public token
 ```
 BrowserRouter
   AuthProvider        (src/hooks/useAuth.jsx)
-    App
+    App               (src/App.jsx — also defines AppShell and DealDetailRoute inline)
       AppShell        (holds view state + DealsProvider)
         ParcylBar
         Views (DashboardView / MyDealsView / BuyBoxesView / MapView / SettingsView)
-        PropertyDetail (via /deal/:dealId URL route)
-        DealDrawer     (slide-over, used within feed views)
+        DealDetailRoute  (/deal/:dealId → PropertyDetail)
 ```
 
-`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `DealsProvider` fetches `/api/dealfeed/deals` and `/api/dealfeed/buy-boxes` in parallel on mount and exposes `{ deals, buyBoxes, loading, error, refetch, postFeedback, saveNote }`.
+`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `DealsProvider` is mounted inside `AppShell` (not at app root) and exposes `{ deals, buyBoxes, loading, error, refetch, postFeedback, saveNote }`.
+
+`AppShell` and `DealDetailRoute` are both defined in `src/App.jsx` — there are no separate files for them.
 
 ### Navigation model — hybrid
 
@@ -67,6 +72,21 @@ BrowserRouter
 
 All requests go through a single `request()` function that injects the Bearer token and handles 401 (clear token + redirect to `/login`). Use `api.get/post/patch` everywhere; never call `fetch` directly.
 
+### File layout
+
+```
+src/
+  App.jsx               — root component; also contains AppShell and DealDetailRoute
+  main.jsx              — mounts BrowserRouter + AuthProvider
+  views/                — full-page view components (one per nav item)
+  components/           — shared/reusable UI components
+  contexts/             — React context providers
+  hooks/                — custom hooks (useAuth)
+  lib/                  — pure utilities (api, format, assetColors, wizardHelpers)
+  data/                 — static mock data
+  styles/               — global CSS and design tokens
+```
+
 ### Key components
 
 | File | Role |
@@ -77,12 +97,19 @@ All requests go through a single `request()` function that injects the Bearer to
 | `src/components/DealComponents.jsx` | Shared atoms: `ScoreBubble`, `MapPinSVG`, `DealCard`. `MapPinSVG` uses `getPinColor` from `assetColors.js`. |
 | `src/components/Icons.jsx` | Central icon library — exports `I` object with named icons (e.g. `I.Pin`, `I.Alert`, `I.Trend`). Always import icons from here. |
 | `src/components/ParcylBar.jsx` | Top nav bar with sidebar links and theme toggle. |
-| `src/components/NewBoxWizard.jsx` | Multi-step modal wizard for creating a buy box. |
+| `src/components/NewBoxWizard.jsx` | Multi-step modal wizard for creating a buy box. 7 steps: Name, Geography, Asset Classes, Property Criteria, Ownership, Distress Signals, Review. Uses wizardHelpers.js for validation and payload building. |
 | `src/components/ConfirmModal.jsx` | Generic danger-confirm modal; `kind` prop selects copy. |
-| `src/components/AerialThumb.jsx` | Aerial/satellite thumbnail image for a property. |
-| `src/components/MapBackground.jsx` | Static decorative map background used in DashboardView. |
+| `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
+| `src/components/MapBackground.jsx` | Static Mapbox background used decoratively inside the wizard geography step. |
+| `src/views/DashboardView.jsx` | Stats + recent deals + map background. Falls back to `MOCK_DEALS` when API returns empty. |
+| `src/views/MyDealsView.jsx` | Full deal list with filtering and DealDrawer integration. |
+| `src/views/MapView.jsx` | Full-screen Mapbox map view. |
+| `src/views/BuyBoxesView.jsx` | Buy box management table. |
+| `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |
 | `src/lib/assetColors.js` | `getPinColor(assetClass)` → hex; exports `LEGEND_ITEMS`. |
+| `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Not yet connected to `NewBoxWizard.jsx`. |
+| `src/views/LoginView.jsx` | Unauthenticated login page; submits to `POST /api/dealfeed/auth/login`. |
 | `src/data/mockData.js` | Static fallback data: `DEALS`, `BUY_BOXES`, `COMPS`, `ASSET_CLASSES`. |
 
 ### Design system
@@ -96,6 +123,7 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `src/components/DealDrawer.jsx` — slide-over detail panel; complex layout with comps table, owner card, feedback
 - `src/components/DealMap.jsx` — Mapbox integration; `fitDeals()` must fire after `onLoad`, not before
 - `src/styles/tokens.css` — source of truth for all colors, spacing, typography
+- `src/lib/wizardHelpers.js` — pure helper functions for the wizard: `canProceed(step, form)` step gate logic, `buildPayload(form)` API payload builder, `toNum(v)` null-safe numeric converter
 
 ## KNOWN LANDMINES
 
@@ -104,6 +132,7 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `COMPS` in `DealDrawer` is still static mock data from `mockData.js` — not yet wired to the API.
 - `DashboardView` silently falls back to `MOCK_DEALS` when the API returns an empty array. A subscriber with zero real deals will see fake data.
 - `saveNote` in `DealsContext` does an optimistic update but does NOT catch errors — a failed PATCH leaves stale UI state with no user feedback.
+- `NewBoxWizard` backdrop has no onClick close handler — intentional to prevent accidental dismissal mid-flow.
 
 ## BACKEND CONTRACT
 
