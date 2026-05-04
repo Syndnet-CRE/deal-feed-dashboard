@@ -1,44 +1,62 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from '../components/Icons';
-import { DealCard, MapPin } from '../components/DealComponents';
-import { MapBackground } from '../components/MapBackground';
+import { DealCard } from '../components/DealComponents';
+import { DealMap } from '../components/DealMap';
+import { fmtRelativeTime } from '../lib/format';
 
-function Sparkline({ data, color = "#1DAF29" }) {
-  const w = 80, h = 32;
-  const max = Math.max(...data), min = Math.min(...data);
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / (max - min || 1)) * (h - 4) - 2}`).join(" ");
-  return (
-    <svg className="spark" viewBox={`0 0 ${w} ${h}`}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5"/>
-      <polyline points={`${pts} ${w},${h} 0,${h}`} fill={color} opacity="0.12"/>
-    </svg>
-  );
-}
-
-function StatCard({ label, num, trend, trendLabel, spark, sparkColor }) {
+function StatCard({ label, num, trend, sub }) {
   return (
     <div className="stat-card">
       <div className="label">{label}</div>
       <div className="num">{num}</div>
-      <div className={`trend ${trend}`}>
-        {trend === "up" && <I.Trend size={12}/>}
-        <span>{trendLabel}</span>
+      <div className={`trend ${trend || 'flat'}`}>
+        {trend === 'up' && <I.Trend size={12}/>}
+        <span>{sub}</span>
       </div>
-      {spark && <Sparkline data={spark} color={sparkColor}/>}
     </div>
   );
 }
 
 export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
-  const { deals, loading } = useDeals();
-  const [pinHover, setPinHover] = useState(null);
+  const { deals, contacts, loading } = useDeals();
 
   const recentDeals = deals.slice(0, 8);
-  const last7 = deals.filter(d => d.days <= 7);
-  const hotCount = deals.filter(d => d.fb === 'hot').length;
-  const topScore = deals.length > 0 ? Math.max(...deals.map(d => d.score)) : 0;
-  const topDeal = deals.find(d => d.score === topScore);
+
+  const newThisWeek = deals.filter(d => d.days != null && d.days <= 7).length;
+  const contactedCount = deals.filter(d => (contacts[d.id] || []).length > 0).length;
+  const hotMatchCount = deals.filter(d => (d.score || 0) >= 80).length;
+  const awaitingCount = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now();
+    return deals.filter(d => {
+      if (d.status !== 'Contacted') return false;
+      const dc = contacts[d.id] || [];
+      if (dc.length === 0) return true;
+      return Math.floor((now - new Date(dc[0].contacted_at).getTime()) / 86400000) >= 7;
+    }).length;
+  }, [deals, contacts]);
+
+  const mapDeals = useMemo(() => (
+    [...deals]
+      .filter(d => d.lat && d.lng)
+      .sort((a, b) => (b.score || 0) - (a.score || 0))
+      .slice(0, 15)
+  ), [deals]);
+
+  const activityFeed = useMemo(() => {
+    const entries = [];
+    for (const [dealId, dealContacts] of Object.entries(contacts)) {
+      const deal = deals.find(d => String(d.id) === dealId);
+      if (!deal) continue;
+      for (const c of dealContacts) {
+        entries.push({ ...c, dealId, dealAddr: deal.addr });
+      }
+    }
+    return entries
+      .sort((a, b) => new Date(b.contacted_at) - new Date(a.contacted_at))
+      .slice(0, 5);
+  }, [contacts, deals]);
 
   return (
     <div className="page">
@@ -57,38 +75,74 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
 
       <div className="stat-grid">
         <StatCard
-          label="Total Deals · All Time"
-          num={loading ? '…' : deals.length}
+          label="New This Week"
+          num={loading ? '…' : newThisWeek}
           trend="up"
-          trendLabel="across all buy boxes"
-          spark={[200, 220, 250, 290, 320, 360, 388, Math.max(deals.length, 412)]}
+          sub="deals delivered ≤ 7 days"
         />
         <StatCard
-          label="Deals · Last 7 Days"
-          num={loading ? '…' : last7.length}
-          trend="up"
-          trendLabel="delivered this week"
-          spark={[6, 8, 5, 9, 4, 12, Math.max(last7.length, 8)]}
-          sparkColor="#5BCC48"
-        />
-        <StatCard
-          label="Hot Deals"
-          num={loading ? '…' : hotCount}
+          label="Contacted"
+          num={loading ? '…' : contactedCount}
           trend="flat"
-          trendLabel="marked hot by you"
-          spark={[0, 1, 1, 2, 2, 3, Math.max(hotCount, 3)]}
-          sparkColor="#9DA2B3"
+          sub="deals with contact log"
         />
         <StatCard
-          label="Top Distress Score"
-          num={loading ? '…' : topScore}
+          label="Hot Matches"
+          num={loading ? '…' : hotMatchCount}
           trend="up"
-          trendLabel={topDeal ? topDeal.addr.split(' ').slice(0, 3).join(' ') : '—'}
-          spark={[72, 78, 81, 84, 82, 88, Math.max(topScore, 91)]}
+          sub="distress score ≥ 80"
+        />
+        <StatCard
+          label="Awaiting Response"
+          num={loading ? '…' : awaitingCount}
+          trend="flat"
+          sub="contacted, no reply 7+ days"
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 16, alignItems: "start" }}>
+      {activityFeed.length > 0 && (
+        <div className="panel-card" style={{ marginBottom: 16 }}>
+          <div className="panel-head">
+            <div>
+              <div className="panel-title">Recent Activity</div>
+              <div className="panel-sub">Your last contact log entries</div>
+            </div>
+          </div>
+          <div>
+            {activityFeed.map((entry, i) => {
+              const rel = fmtRelativeTime(entry.contacted_at);
+              return (
+                <button
+                  key={i}
+                  onClick={() => onOpenDeal({ id: entry.dealId })}
+                  style={{
+                    display: 'grid', gridTemplateColumns: '1fr auto',
+                    gap: 8, padding: '10px 16px', width: '100%',
+                    borderTop: i === 0 ? 'none' : '1px solid var(--hairline-soft)',
+                    background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-1)', marginBottom: 2 }}>
+                      {entry.dealAddr}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--ink-3)', display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <span className="tag" style={{ fontSize: 10 }}>{entry.channel}</span>
+                      {entry.outcome}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--ink-4)', whiteSpace: 'nowrap' }}>
+                    {rel ? rel.label : '—'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16, alignItems: 'start' }}>
         <div className="panel-card">
           <div className="panel-head">
             <div>
@@ -97,10 +151,12 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
             </div>
           </div>
           {loading ? (
-            <div style={{ padding: 24, color: "var(--ink-4)", fontSize: 13 }}>Loading deals…</div>
+            <div style={{ padding: 24, color: 'var(--ink-4)', fontSize: 13 }}>Loading deals…</div>
           ) : recentDeals.length === 0 ? (
-            <div style={{ padding: "28px 24px", textAlign: "center" }}>
-              <div style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 10 }}>No deals delivered yet. Your first nightly run will populate this.</div>
+            <div style={{ padding: '28px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 10 }}>
+                No deals delivered yet. Your first nightly run will populate this.
+              </div>
               {onNavigateBoxes && (
                 <button className="btn sm" onClick={onNavigateBoxes}><I.Boxes size={12}/> View Buy Boxes</button>
               )}
@@ -108,28 +164,30 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
           ) : (
             <div>
               {recentDeals.map(d => (
-                <DealCard key={d.id} deal={d} selected={pinHover === d.id || selectedId === d.id} onClick={() => onOpenDeal(d)}/>
+                <DealCard key={d.id} deal={d} selected={selectedId === d.id} onClick={() => onOpenDeal(d)}/>
               ))}
             </div>
           )}
         </div>
 
-        <div className="panel-card" style={{ position: "sticky", top: 0 }}>
+        <div className="panel-card" style={{ position: 'sticky', top: 0 }}>
           <div className="panel-head">
             <div>
-              <div className="panel-title">Last 7 Days · Map</div>
-              <div className="panel-sub">{last7.length} deals delivered</div>
+              <div className="panel-title">Deal Map · Top Matches</div>
+              <div className="panel-sub">{mapDeals.length} deals mapped by score</div>
             </div>
             <button className="btn sm"><I.External size={11}/> Open Map</button>
           </div>
-          <div className="mini-map">
-            <MapBackground/>
-            {last7.map((d, i) => (
-              <div key={d.id} onMouseEnter={() => setPinHover(d.id)} onMouseLeave={() => setPinHover(null)}>
-                <MapPin deal={d} x={(d.x || 0.5) * 100} y={(d.y || 0.5) * 100} num={i + 1} selected={pinHover === d.id} onClick={() => onOpenDeal(d)}/>
-              </div>
-            ))}
-            <div className="scale-bar"><span className="bar"/>5 mi</div>
+          <div style={{ height: 280, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+            {!loading && (
+              <DealMap
+                deals={mapDeals}
+                selectedId={selectedId}
+                withPopup={true}
+                onClickDeal={onOpenDeal}
+                mapStyle="dark"
+              />
+            )}
           </div>
         </div>
       </div>

@@ -115,26 +115,38 @@ function HeaderBar({ subject, isSaved, onSave, onBack }) {
   );
 }
 
+const SIGNAL_TIER_CLS = {
+  "Tax Delinquency": "danger", "Tax Delinquent": "danger",
+  "Foreclosure": "danger", "Foreclosure Active": "danger", "Pre-Foreclosure": "danger",
+  "Long-Term Hold": "amber", "No Permits 5yr": "amber", "No Permits Filed": "amber", "Inactive Entity": "amber",
+};
+
 function SectionOverview({ subject }) {
   const { updateStatus } = useDeals();
   const [localStatus, setLocalStatus] = useState(subject.status || 'new');
+  const [lightbox, setLightbox] = useState(false);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    function onKey(e) { if (e.key === 'Escape') setLightbox(false); }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightbox]);
 
   function handleStatusChange(s) {
     setLocalStatus(s);
     updateStatus(subject.id, s);
   }
 
-  const signals = [
-    subject.score >= 80 && { label: "High Distress", cls: "green" },
-    subject.fb === "hot" && { label: "Hot", cls: "amber" },
-    subject.days === 0 && { label: "New Today", cls: "green" },
-    subject.days > 0 && subject.days <= 7 && { label: "New This Week", cls: "green" },
-    subject.asset && { label: subject.asset, cls: "gray" },
-  ].filter(Boolean);
+  const cls = scoreClass(subject.score);
+  const bj = subject.briefJson || {};
+  const topSignals = (subject.signals || []).slice(0, 3);
+  const dmPhone = bj.dm?.phone || bj.dm_phone;
+  const dmEmail = bj.dm?.email || bj.dm_email;
+  const holdYears = bj.hold_years ?? bj.ownership_length_years ?? bj.ownership_hold_years;
+  const ownerName = subject.parcelOwner !== '—' ? subject.parcelOwner : null;
 
   const facts = [
-    ["Address",    `${subject.addr}, ${subject.city}`],
-    ["Asset",      subject.asset],
     ["Lot",        `${subject.acres?.toFixed(2)} ac`],
     ["Assessed",   fmtMoney(subject.value)],
     ["Box",        subject.box],
@@ -146,23 +158,91 @@ function SectionOverview({ subject }) {
 
   return (
     <>
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 20, marginBottom: 20 }}>
-        <div style={{ borderRadius: 8, overflow: "hidden", aspectRatio: "1 / 1" }}>
-          <AerialThumb id={subject.id} lat={subject.lat} lng={subject.lng}/>
+      {lightbox && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }}
+          onClick={() => setLightbox(false)}
+        >
+          <div
+            style={{ position: "relative", maxWidth: "88vw", maxHeight: "88vh", borderRadius: 10, overflow: "hidden", boxShadow: "0 24px 60px rgba(0,0,0,0.7)" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <AerialThumb id={subject.id} lat={subject.lat} lng={subject.lng} large={true}/>
+            <button
+              style={{ position: "absolute", top: 10, right: 10, background: "rgba(0,0,0,0.7)", border: "none", color: "#fff", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}
+              onClick={() => setLightbox(false)}
+            >
+              <I.Close size={12}/> Close
+            </button>
+          </div>
         </div>
-        <div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 16 }}>
-            {signals.map((s, i) => <span key={i} className={`pill ${s.cls}`}>{s.label}</span>)}
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 20, marginBottom: 20 }}>
+        <div style={{ position: "relative", borderRadius: 10, overflow: "hidden", aspectRatio: "4 / 3", flexShrink: 0 }}>
+          <AerialThumb id={subject.id} lat={subject.lat} lng={subject.lng}/>
+          <button
+            style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(0,0,0,0.65)", border: "none", color: "#fff", borderRadius: 6, padding: "5px 10px", cursor: "pointer", fontSize: 11, fontWeight: 600, backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: 5 }}
+            onClick={() => setLightbox(true)}
+          >
+            <I.External size={11}/> Full Screen
+          </button>
+        </div>
+
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+            <div style={{ lineHeight: 1 }}>
+              <span style={{ fontSize: 32, fontWeight: 900, color: cls === "hi" ? "var(--green)" : cls === "md" ? "var(--warning)" : "var(--ink-3)" }}>
+                {subject.score}
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-4)", marginLeft: 3 }}>/100</span>
+            </div>
+            <div style={{ width: 1, height: 24, background: "var(--hairline)", flexShrink: 0 }}/>
+            {subject.asset && <span className="pill gray" style={{ fontSize: 10 }}>{subject.asset}</span>}
             <StatusSelector status={localStatus} onChangeStatus={handleStatusChange} size="sm"/>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px 24px" }}>
-            {facts.map(([k, v]) => (
-              <div key={k} style={{ borderBottom: "1px solid var(--hairline-soft)", paddingBottom: 8 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>{k}</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-1)" }}>{v}</div>
+
+          {topSignals.length > 0 && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+              {topSignals.map((s, i) => {
+                const tierCls = SIGNAL_TIER_CLS[s];
+                const color = tierCls === "danger" ? "var(--danger)" : "var(--warning)";
+                return (
+                  <span key={i} style={{ fontSize: 10.5, fontWeight: 700, padding: "3px 8px 3px 10px", borderRadius: 4, background: "var(--panel-3)", color, borderLeft: `3px solid ${color}` }}>
+                    {s}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-1)" }}>{subject.addr}, {subject.city}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 12, color: "var(--ink-2)" }}>
+              <span>Assessed: <strong style={{ color: "var(--ink-1)" }}>{fmtMoney(subject.value)}</strong></span>
+              {holdYears != null && <span>Hold: <strong style={{ color: "var(--ink-1)" }}>{holdYears}yr</strong></span>}
+            </div>
+            {ownerName && (
+              <div style={{ fontSize: 12, color: "var(--ink-2)" }}>
+                Owner: <strong style={{ color: "var(--ink-1)" }}>{ownerName}</strong>
               </div>
-            ))}
+            )}
           </div>
+
+          {(dmPhone || dmEmail) && (
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {dmPhone && (
+                <a href={`tel:${dmPhone}`} className="btn sm" style={{ textDecoration: "none" }}>
+                  <I.Phone size={11}/> {dmPhone}
+                </a>
+              )}
+              {dmEmail && (
+                <a href={`mailto:${dmEmail}`} className="btn sm" style={{ textDecoration: "none" }}>
+                  <I.Mail size={11}/> {dmEmail}
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -174,6 +254,15 @@ function SectionOverview({ subject }) {
           <div className="ai-body"><p style={{ whiteSpace: "pre-line" }}>{subject.narrative}</p></div>
         </div>
       )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px 24px" }}>
+        {facts.map(([k, v]) => (
+          <div key={k} style={{ borderBottom: "1px solid var(--hairline-soft)", paddingBottom: 8 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "var(--ink-3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 2 }}>{k}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-1)" }}>{v}</div>
+          </div>
+        ))}
+      </div>
     </>
   );
 }

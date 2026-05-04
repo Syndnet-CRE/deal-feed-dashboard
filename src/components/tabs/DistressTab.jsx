@@ -2,12 +2,57 @@ import { I } from '../Icons';
 import { fmt, hasVal, fmtMoney } from '../../lib/format';
 
 const SIGNAL_META = {
-  "Absentee Owner":     { icon: <I.Pin size={13}/>,      cls: "warn",  desc: "Owner mailing address differs from the property address." },
-  "Out-of-State Owner": { icon: <I.External size={13}/>, cls: "warn",  desc: "Owner mail is outside the property state — indicates remote control." },
-  "Entity Owner":       { icon: <I.Building size={13}/>, cls: "info",  desc: "Title held in LLC, LP, trust, or other entity structure." },
-  "No Permits 5yr":     { icon: <I.Alert size={13}/>,    cls: "hot",   desc: "No building permits pulled in 5+ years — deferred capex signal." },
-  "Opportunity Zone":   { icon: <I.Sparkle size={13}/>,  cls: "green", desc: "Parcel is within a federally designated Opportunity Zone." },
+  "Absentee Owner":     { icon: <I.Pin size={13}/>,      desc: "Owner mailing address differs from the property address." },
+  "Out-of-State Owner": { icon: <I.External size={13}/>, desc: "Owner mail is outside the property state — indicates remote control." },
+  "Entity Owner":       { icon: <I.Building size={13}/>, desc: "Title held in LLC, LP, trust, or other entity structure." },
+  "No Permits 5yr":     { icon: <I.Alert size={13}/>,    desc: "No building permits pulled in 5+ years — deferred capex signal." },
+  "No Permits Filed":   { icon: <I.Alert size={13}/>,    desc: "No permits on file — potential deferred maintenance or inactive ownership." },
+  "Opportunity Zone":   { icon: <I.Sparkle size={13}/>,  desc: "Parcel is within a federally designated Opportunity Zone." },
+  "Tax Delinquency":    { icon: <I.Alert size={13}/>,    desc: "Property taxes past due — indicates financial distress or absentee management." },
+  "Tax Delinquent":     { icon: <I.Alert size={13}/>,    desc: "Property taxes past due — indicates financial distress or absentee management." },
+  "Foreclosure":        { icon: <I.Alert size={13}/>,    desc: "Active foreclosure proceeding on record." },
+  "Foreclosure Active": { icon: <I.Alert size={13}/>,    desc: "Active foreclosure proceeding on record." },
+  "Pre-Foreclosure":    { icon: <I.Alert size={13}/>,    desc: "Notice of default or lis pendens filed — pre-foreclosure stage." },
+  "Long-Term Hold":     { icon: <I.Calendar size={13}/>, desc: "Property held 10+ years with minimal capital activity." },
+  "Inactive Entity":    { icon: <I.Building size={13}/>, desc: "Owning entity shows no recent business filings or activity." },
 };
+
+const SIGNAL_TIER = {
+  "Tax Delinquency":    "critical",
+  "Tax Delinquent":     "critical",
+  "Foreclosure":        "critical",
+  "Foreclosure Active": "critical",
+  "Pre-Foreclosure":    "critical",
+  "Long-Term Hold":     "moderate",
+  "No Permits 5yr":     "moderate",
+  "No Permits Filed":   "moderate",
+  "Inactive Entity":    "moderate",
+};
+
+const TIERS = [
+  { id: "critical",      label: "Critical",      borderColor: "var(--danger)",   emptyMsg: "No critical distress signals detected." },
+  { id: "moderate",      label: "Moderate",      borderColor: "var(--warning)",  emptyMsg: "No moderate distress signals detected." },
+  { id: "informational", label: "Informational", borderColor: "var(--hairline)", emptyMsg: "No informational signals detected." },
+];
+
+function SignalRow({ signal, borderColor }) {
+  const meta = SIGNAL_META[signal] || { icon: <I.Alert size={13}/>, desc: "Distress indicator flagged for this parcel." };
+  return (
+    <div style={{
+      display: "flex", alignItems: "flex-start", gap: 10,
+      padding: "10px 12px", marginBottom: 2,
+      borderLeft: `3px solid ${borderColor}`,
+      background: "var(--panel-2)",
+      borderRadius: "0 4px 4px 0",
+    }}>
+      <div style={{ color: borderColor, flexShrink: 0, marginTop: 1 }}>{meta.icon}</div>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-1)" }}>{signal}</div>
+        <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{meta.desc}</div>
+      </div>
+    </div>
+  );
+}
 
 export function DistressTab({ deal }) {
   const bj = deal.briefJson || {};
@@ -15,6 +60,13 @@ export function DistressTab({ deal }) {
   const ddFlags = bj.dd_flags || [];
   const permits = bj.permit_history || [];
   const hasForeclosure = hasVal(bj.foreclosure_status);
+
+  const byTier = {
+    critical:      signals.filter(s => SIGNAL_TIER[s] === "critical"),
+    moderate:      signals.filter(s => SIGNAL_TIER[s] === "moderate"),
+    informational: signals.filter(s => !SIGNAL_TIER[s]),
+  };
+
   return (
     <>
       <div className="pd-section">
@@ -34,21 +86,29 @@ export function DistressTab({ deal }) {
 
       <div className="pd-section">
         <div className="pd-sec-head"><h3>Active Signals</h3><span className="upd">{signals.length} flagged</span></div>
-        {signals.length === 0
-          ? <div style={{ padding: "16px 0", color: "var(--ink-3)", fontSize: 13 }}>No distress signals detected for this parcel.</div>
-          : signals.map(s => {
-            const meta = SIGNAL_META[s] || { icon: <I.Alert size={13}/>, cls: "warn", desc: "Distress indicator flagged for this parcel." };
-            return (
-              <div key={s} className="signal-row">
-                <div className={`signal-icon ${meta.cls}`}>{meta.icon}</div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-1)" }}>{s}</div>
-                  <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>{meta.desc}</div>
+        {TIERS.map(tier => (
+          <div key={tier.id} style={{ marginBottom: 14 }}>
+            <div style={{
+              fontSize: 10, fontWeight: 800, textTransform: "uppercase",
+              letterSpacing: "0.1em", color: tier.borderColor,
+              marginBottom: 6, marginTop: 4,
+            }}>
+              {tier.label}
+            </div>
+            {byTier[tier.id].length === 0
+              ? (
+                <div style={{
+                  fontSize: 12, color: "var(--ink-4)",
+                  padding: "8px 12px",
+                  borderLeft: "3px solid var(--hairline-soft)",
+                }}>
+                  {tier.emptyMsg}
                 </div>
-              </div>
-            );
-          })
-        }
+              )
+              : byTier[tier.id].map(s => <SignalRow key={s} signal={s} borderColor={tier.borderColor}/>)
+            }
+          </div>
+        ))}
       </div>
 
       {ddFlags.length > 0 && (
@@ -73,16 +133,16 @@ export function DistressTab({ deal }) {
             <div className="kv-grid">
               <span className="k">Status</span>
               <span className="v"><span className="pill amber" style={{ fontSize: 10 }}>{bj.foreclosure_status}</span></span>
-              {hasVal(bj.foreclosure_case_number)   && <><span className="k">Case #</span><span className="v">{fmt(bj.foreclosure_case_number)}</span></>}
-              {hasVal(bj.foreclosure_borrower)      && <><span className="k">Borrower</span><span className="v">{fmt(bj.foreclosure_borrower)}</span></>}
-              {hasVal(bj.foreclosure_lender)        && <><span className="k">Lender</span><span className="v">{fmt(bj.foreclosure_lender)}</span></>}
+              {hasVal(bj.foreclosure_case_number)    && <><span className="k">Case #</span><span className="v">{fmt(bj.foreclosure_case_number)}</span></>}
+              {hasVal(bj.foreclosure_borrower)       && <><span className="k">Borrower</span><span className="v">{fmt(bj.foreclosure_borrower)}</span></>}
+              {hasVal(bj.foreclosure_lender)         && <><span className="k">Lender</span><span className="v">{fmt(bj.foreclosure_lender)}</span></>}
               {bj.foreclosure_original_loan  != null && <><span className="k">Original Loan</span><span className="v">{fmtMoney(bj.foreclosure_original_loan)}</span></>}
               {bj.foreclosure_loan_balance   != null && <><span className="k">Loan Balance</span><span className="v">{fmtMoney(bj.foreclosure_loan_balance)}</span></>}
               {bj.foreclosure_default_amount != null && <><span className="k">Default Amount</span><span className="v" style={{ color: "var(--danger)", fontWeight: 600 }}>{fmtMoney(bj.foreclosure_default_amount)}</span></>}
               {bj.foreclosure_opening_bid    != null && <><span className="k">Opening Bid</span><span className="v">{fmtMoney(bj.foreclosure_opening_bid)}</span></>}
-              {hasVal(bj.foreclosure_nod_date)      && <><span className="k">NOD Filed</span><span className="v">{fmt(bj.foreclosure_nod_date)}</span></>}
-              {hasVal(bj.foreclosure_nos_date)      && <><span className="k">NOS Filed</span><span className="v">{fmt(bj.foreclosure_nos_date)}</span></>}
-              {hasVal(bj.foreclosure_auction_date)  && <><span className="k">Auction Date</span><span className="v" style={{ color: "var(--warning)", fontWeight: 600 }}>{fmt(bj.foreclosure_auction_date)}</span></>}
+              {hasVal(bj.foreclosure_nod_date)       && <><span className="k">NOD Filed</span><span className="v">{fmt(bj.foreclosure_nod_date)}</span></>}
+              {hasVal(bj.foreclosure_nos_date)       && <><span className="k">NOS Filed</span><span className="v">{fmt(bj.foreclosure_nos_date)}</span></>}
+              {hasVal(bj.foreclosure_auction_date)   && <><span className="k">Auction Date</span><span className="v" style={{ color: "var(--warning)", fontWeight: 600 }}>{fmt(bj.foreclosure_auction_date)}</span></>}
             </div>
           )
         }
