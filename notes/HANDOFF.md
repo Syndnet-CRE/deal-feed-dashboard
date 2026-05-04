@@ -1,137 +1,73 @@
 # HANDOFF
-Date: 2026-05-03 (session 5)
-Repo: deal-feed-dashboard + scoutgpt-api
-Session objective: UI/UX postmortem + full B+ product roadmap
-Status: COMPLETE — planning only, zero code written this session
+Date: 2026-05-04 (session 7)
+Repo: deal-feed-dashboard
+Session objective: Phase 3 — Stories 3.1 through 3.4
+Status: COMPLETE
 
 ---
 
 ## What was done
 
-### Bug fixes committed earlier this session (b3ba81d)
-- ConfigurationOverlay.jsx: dark theme, wider shell (860→1100px), icon rendering, dropdown double-toggle fix, progress bar fix
-- Icons.jsx: added User, Tag, Sliders, Users icons
+### Story 3.1 — Aging indicator chip
 
-### Full UI/UX postmortem
-Graded the product from the perspective of a CRE investor, land developer, and wholesaler. See conversation transcript for full analysis.
+- `src/lib/format.js` — added `agingColor` as a re-export alias of `freshnessColor` (single line, no logic duplication)
+- `src/lib/format.test.js` — added 8 test cases for `agingColor`; all 161 tests pass
+- `src/components/DealComponents.jsx` — added `.aging-chip` span inside `DealCard` showing "Today" or "Nd ago" with color from `agingColor(deal.days)`
+- `src/views/MyDealsView.jsx` — replaced plain age text at row-meta with the same `.aging-chip` colored span
+- `src/styles/styles.css` — added `.aging-chip` rule (11px, 600 weight)
 
-### B+ product roadmap
-6 phases, 14 estimated days, ordered by impact-to-effort ratio. Full roadmap written to:
-`notes/bmad/b-plus-roadmap/requirements.md`
+### Story 3.2 — Share button
 
----
+- `src/components/PropertyDetail.jsx` — wired the previously inert Share button in `HeaderBar`:
+  - `useEffect` with cleanup clears the 2s "Copied!" toast if component unmounts early
+  - `async handleShare()` uses `navigator.clipboard.writeText(window.location.href)` with try/catch (clipboard unavailable is a no-op)
+  - Button renders "Copied!" with check icon for 2s, then reverts to "Share"
 
-## Current grade scorecard
+### Story 3.3 — Enhanced filtering + localStorage persistence
 
-| Area | Current | Target |
-|---|---|---|
-| Onboarding | D | B+ |
-| Dashboard | C- | B |
-| Deal Feed | C | B+ |
-| Property Detail | C+ | B+ |
-| Skip Trace / Contact | F | C+ |
-| Buy Box Management | C | B+ |
-| Navigation / IA | C- | B |
-| Data Quality | D+ | B |
+- `src/views/MyDealsView.jsx` — complete filter upgrade:
+  - Added `distressTypes[]` and `ownerTypes[]` state (multi-select)
+  - All 6 filters (`box`, `range`, `klass`, `sort`, `distressTypes`, `ownerTypes`) initialized lazily from `localStorage` key `parcyl-deals-filters`
+  - `useEffect` saves all 6 filters on every change
+  - `distressOptions` derived from `deals.flatMap(d => d.signals)` — unique, sorted
+  - `ownerTypeCategory(entityType)` maps entity strings to Individual / LLC / Trust / Corporate (Trust checked before LLC to avoid false positives)
+  - Reset Filters resets all 6 and calls `localStorage.removeItem(LS_KEY)`
+  - Filter chip rows render between the existing filter-bar and results-meta
+- `src/styles/styles.css` — added `.filter-chips-row` and `.filter-chip` / `.filter-chip.active` rules
+
+### Story 3.4 — Global search in ParcylBar
+
+- `src/components/ParcylBar.jsx` — full rewrite with search added:
+  - `matchesDeal(deal, q)` filters on `addr`, `owner`, `city`, `zip` (case-insensitive)
+  - `open` is derived (`query.length >= 2`), not separate state — eliminates race condition
+  - Outside click closes via `mousedown` listener on `document` with proper `useEffect` cleanup
+  - Escape key clears query (which closes dropdown by derivation)
+  - Clicking a result calls `navigate('/deal/' + deal.id)` and clears query
+  - Max 8 results via `MAX_RESULTS` constant
+- `src/styles/styles.css` — added `.pb-search-wrap`, `.pb-search-input-row`, `.pb-search-input`, `.pb-search-clear`, `.pb-search-dropdown`, `.pb-search-result`, `.pb-sr-addr`, `.pb-sr-meta`, `.pb-search-empty`
+
+### Bonus fix — ConfidenceGauge undefined (pre-existing Phase 2 bug)
+
+- `src/components/tabs/OwnershipTab.jsx` — exported `ConfidenceGauge` (was private)
+- `src/components/PropertyDetail.jsx` — added `ConfidenceGauge` to the `OwnershipTab` import
 
 ---
 
 ## What was NOT done
 
-- No code written toward the B+ roadmap
-- BMAD phases 2-6 (PRD, Architecture, Stories, Dev, QA) not yet written
-- Migration 030 (first_name/last_name/phone on df_subscribers) status unknown — Brady to confirm applied
+- Keyboard arrow-key navigation in search dropdown (Story 3.4 low-priority enhancement, deferred)
+- Phase 4 (buy box backend + UI improvements) — not in scope for this session
 
 ---
 
-## Next session objective
+## Next session
 
-Run full BMAD for the B+ roadmap. Generate PRD, architecture doc, and stories. Confirm stories with Brady. Begin Phase 1 implementation (trust repair — frontend only).
+Phase 4: Stories 4.1 (backend buy box PATCH/preview routes) + 4.2/4.3 (frontend). Requires backend work in scoutgpt-api — coordinate with Brady on timing.
 
 ```
 cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
 ```
 
-### Instructions for next Claude session
-
-1. Read `notes/bmad/b-plus-roadmap/requirements.md` in full before doing anything
-2. Read `CLAUDE.md` in full
-3. Run /harness-audit to get current project health baseline
-4. Run BMAD phases in order: PRD → Architecture → Stories (write each to notes/bmad/b-plus-roadmap/)
-5. After stories are written, STOP and surface them to Brady for confirmation
-6. After Brady confirms, begin Phase 1 stories only — no code before confirmation
-7. Run /quality-gate before every commit
-8. Push to main after each phase (Netlify auto-deploys)
-
----
-
 ## Blockers for Brady
 
-1. **Migration 030 confirmation** — Verify `030_subscriber_name_phone.sql` was applied to Neon (adds first_name, last_name, phone to df_subscribers). If not applied, run:
-   ```
-   psql $DATABASE_URL -f ~/parcyl/scoutgpt-api/migrations/030_subscriber_name_phone.sql
-   ```
-
-2. **Skip trace data** — Phase 2 (Contact Workflow) surfaces phone/email from `dm` object as clickable links. Confirm: does `dm.phone` and `dm.email` in `brief_json` contain real skip-traced data for live deals, or is it placeholder? This determines how much Phase 2 matters.
-
-3. **Backend availability for Phase 2 and 4** — Backend routes needed (Brady must be available to review before those phases begin):
-   - `PATCH /api/dealfeed/deals/:id/status`
-   - `POST /api/dealfeed/deals/:id/contacts`
-   - `GET /api/dealfeed/deals/:id/contacts`
-   - `POST /api/dealfeed/buy-boxes/preview`
-   - `PATCH /api/dealfeed/buy-boxes/:id`
-
-4. **Data freshness field** — Phase 1 adds "last updated" badges. Confirm: does `brief_json` contain an enrichment timestamp? If not, which field on the deal record (in df_deals_sent) can serve as a proxy for data age?
-
----
-
-## BMAD folder
-
-`notes/bmad/b-plus-roadmap/`
-- `requirements.md` — WRITTEN
-- `PRD.md` — TO DO (next session)
-- `architecture.md` — TO DO (next session)
-- `stories.md` — TO DO (next session)
-- `qa-plan.md` — TO DO (during implementation)
-
----
-
-## Architecture context for next session
-
-Frontend: `~/deal-feed-dashboard` (React 19 + Vite, plain CSS, no TypeScript)
-Backend: `~/parcyl/scoutgpt-api` (Node/Express, PostgreSQL via Neon)
-
-Key files to read before touching anything:
-- `src/contexts/DealsContext.jsx` — central data fetch; breaking this breaks all views
-- `src/components/PropertyDetail.jsx` — 9-tab property detail, very dense
-- `src/views/DashboardView.jsx` — contains the MOCK_DEALS fallback Phase 1 removes
-- `src/components/DealDrawer.jsx` — contains hardcoded comps SVG Phase 1 fixes
-- `src/views/BuyBoxesView.jsx` — Edit/Pause buttons already rendered, not yet wired
-- `src/views/MyDealsView.jsx` — filter dropdowns live here
-- `src/components/ParcylBar.jsx` — global search goes here (Phase 3)
-
-Design system: `src/styles/tokens.css` — never hardcode hex values, always use CSS custom properties.
-Backend pool: never inline `new Pool()` — always import from the project pool module.
-
----
-
-# Previous HANDOFF (2026-05-03 session 4)
-Repo: deal-feed-dashboard + scoutgpt-api
-Session objective: Replace 7-step NewBoxWizard with full-screen ConfigurationOverlay
-Status: COMPLETE
-
-## Commits
-- b3ba81d: fix(overlay): dark theme, wider shell, icon rendering, dropdown + progress bar
-- 18a3fc5: ConfigurationOverlay full implementation
-- f470620: scoutgpt-api migration 030 + auth.js first/last name support
-
-## What was NOT done
-- Migration 030 NOT yet applied to Neon (Brady must do manually)
-- NewBoxWizard.jsx not deleted (dead code, safe to remove)
-- No E2E tests for the new overlay
-
-## Blockers from that session
-Apply migration 030 to Neon before the overlay can persist Your Info fields:
-```
-psql $DATABASE_URL -f ~/parcyl/scoutgpt-api/migrations/030_subscriber_name_phone.sql
-```
+None. Phase 3 is live on Netlify via the push to main (commit 2622abf).
