@@ -3,6 +3,7 @@ import { useDeals } from '../contexts/DealsContext';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
 import { ScoreBubble } from './DealComponents';
+import { StatusSelector } from './StatusSelector';
 import { fmtMoney, fmt, hasVal, fmtRelativeTime, freshnessColor } from '../lib/format';
 
 function SignalPill({ label, intent = "gray" }) {
@@ -27,9 +28,15 @@ function Confidence({ pct }) {
 }
 
 export function DealDrawer({ deal, onClose }) {
-  const { postFeedback } = useDeals();
+  const { postFeedback, updateStatus } = useDeals();
   const [feedback, setFeedback] = useState(deal?.fb || null);
+  const [status, setStatus] = useState(deal?.status || 'new');
   if (!deal) return null;
+
+  function handleStatusChange(s) {
+    setStatus(s);
+    updateStatus(deal.id, s);
+  }
 
   const brief = deal.briefJson || {};
   const yearsHeld = brief.years_held ?? brief.yearsHeld ?? "—";
@@ -65,6 +72,19 @@ export function DealDrawer({ deal, onClose }) {
             <div className="drawer-sub">
               {fmt(deal.city)} · FIPS {fmt(deal.fips)} · Delivered {deal.days === 0 ? "today" : `${deal.days} day${deal.days > 1 ? "s" : ""} ago`}
               {freshness && <span style={{ marginLeft: 8, color: freshnessColor(freshness.days), fontSize: 11 }}>· Data: {freshness.label}</span>}
+            </div>
+            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <StatusSelector status={status} onChangeStatus={handleStatusChange} size="sm"/>
+              {deal.dm?.phone && (
+                <a href={`tel:${deal.dm.phone}`} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--green)", textDecoration: "none", fontWeight: 600 }}>
+                  <I.Phone size={11}/>{deal.dm.phone}
+                </a>
+              )}
+              {deal.dm?.email && (
+                <a href={`mailto:${deal.dm.email}`} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#60A5FA", textDecoration: "none", fontWeight: 600 }}>
+                  <I.Mail size={11}/>{deal.dm.email}
+                </a>
+              )}
             </div>
           </div>
           <ScoreBubble score={deal.score} size="lg"/>

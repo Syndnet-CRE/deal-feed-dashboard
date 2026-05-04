@@ -1,5 +1,24 @@
+import { useState } from 'react';
 import { I } from '../Icons';
 import { fmt, hasVal } from '../../lib/format';
+
+function CopyButton({ value }) {
+  const [copied, setCopied] = useState(false);
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // clipboard unavailable
+    }
+  }
+  return (
+    <button onClick={handleCopy} style={{ background: "none", border: "none", cursor: "pointer", color: copied ? "var(--green)" : "var(--ink-4)", padding: "0 3px", fontSize: 11 }} title="Copy">
+      {copied ? <I.Check size={10}/> : <I.Doc size={10}/>}
+    </button>
+  );
+}
 
 export function ConfidenceGauge({ level }) {
   const labels = ["Very Low", "Low", "Medium", "High", "Very High"];
@@ -57,12 +76,25 @@ export function OwnershipTab({ deal, contacts, onLogContact }) {
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-1)" }}>{dm.name}</div>
-              <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>Principal · <ConfidenceGauge level={confLevel}/></div>
+              <div style={{ fontSize: 11, color: "var(--ink-3)", marginTop: 1 }}>
+                Principal · <ConfidenceGauge level={confLevel}/>
+                {dm.conf < 60 && <span className="pill amber" style={{ fontSize: 9, marginLeft: 6 }}>Low confidence</span>}
+              </div>
             </div>
           </div>
           <div className="kv-grid">
-            <span className="k">Phone</span><span className="v">{dm.phone} <span className="conf-badge">{dm.phoneConf}%</span></span>
-            <span className="k">Email</span><span className="v">{dm.email} <span className="conf-badge">{dm.emailConf}%</span></span>
+            <span className="k">Phone</span>
+            <span className="v" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {dm.phone
+                ? <><a href={`tel:${dm.phone}`} style={{ color: "var(--green)", fontWeight: 600, textDecoration: "none" }}>{dm.phone}</a><CopyButton value={dm.phone}/><span className="conf-badge">{dm.phoneConf}%</span></>
+                : "—"}
+            </span>
+            <span className="k">Email</span>
+            <span className="v" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {dm.email
+                ? <><a href={`mailto:${dm.email}`} style={{ color: "#60A5FA", fontWeight: 600, textDecoration: "none", wordBreak: "break-all" }}>{dm.email}</a><CopyButton value={dm.email}/><span className="conf-badge">{dm.emailConf}%</span></>
+                : "—"}
+            </span>
             <span className="k">Match Score</span><span className="v">{dm.conf}%</span>
           </div>
         </div>

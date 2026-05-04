@@ -7,6 +7,8 @@ import { OwnershipTab, ConfidenceGauge } from './tabs/OwnershipTab';
 import { DistressTab } from './tabs/DistressTab';
 import { SiteTab } from './tabs/SiteTab';
 import { MarketTab } from './tabs/MarketTab';
+import { ContactLogModal } from './ContactLogModal';
+import { StatusSelector } from './StatusSelector';
 
 const TABS = [
   { id: "overview",   label: "Overview" },
@@ -114,6 +116,14 @@ function HeaderBar({ subject, isSaved, onSave, onBack }) {
 }
 
 function SectionOverview({ subject }) {
+  const { updateStatus } = useDeals();
+  const [localStatus, setLocalStatus] = useState(subject.status || 'new');
+
+  function handleStatusChange(s) {
+    setLocalStatus(s);
+    updateStatus(subject.id, s);
+  }
+
   const signals = [
     subject.score >= 80 && { label: "High Distress", cls: "green" },
     subject.fb === "hot" && { label: "Hot", cls: "amber" },
@@ -141,8 +151,9 @@ function SectionOverview({ subject }) {
           <AerialThumb id={subject.id} lat={subject.lat} lng={subject.lng}/>
         </div>
         <div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 16 }}>
             {signals.map((s, i) => <span key={i} className={`pill ${s.cls}`}>{s.label}</span>)}
+            <StatusSelector status={localStatus} onChangeStatus={handleStatusChange} size="sm"/>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px 24px" }}>
             {facts.map(([k, v]) => (
@@ -405,9 +416,9 @@ function RailNextSteps() {
   );
 }
 
-function TabContent({ tab, subject }) {
+function TabContent({ tab, subject, contacts, onLogContact }) {
   if (tab === "overview")  return <SectionOverview   subject={subject}/>;
-  if (tab === "ownership") return <OwnershipTab       deal={subject}/>;
+  if (tab === "ownership") return <OwnershipTab       deal={subject} contacts={contacts} onLogContact={onLogContact}/>;
   if (tab === "tx")        return <SectionTransactions subject={subject}/>;
   if (tab === "tax")       return <SectionTax         subject={subject}/>;
   if (tab === "site")      return <SiteTab            deal={subject}/>;
@@ -421,17 +432,42 @@ function TabContent({ tab, subject }) {
 export function PropertyDetail({ deal, onClose }) {
   const [tab, setTab] = useState("overview");
   const [saved, setSaved] = useState(deal?.fb === "hot");
+  const [contactModal, setContactModal] = useState(false);
+  const [contactSubmitting, setContactSubmitting] = useState(false);
   const subject = useMemo(() => enrichDeal(deal), [deal]);
   const bodyRef = useRef(null);
+  const { contacts, fetchContacts, logContact } = useDeals();
+  const dealContacts = contacts[deal?.id] || [];
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = 0;
   }, [tab]);
 
+  useEffect(() => {
+    if (deal?.id) fetchContacts(deal.id);
+  }, [deal?.id, fetchContacts]);
+
+  async function handleLogContact(payload) {
+    setContactSubmitting(true);
+    try {
+      await logContact(deal.id, payload);
+      setContactModal(false);
+    } finally {
+      setContactSubmitting(false);
+    }
+  }
+
   if (!deal) return null;
 
   return (
     <div className="pd-shell" data-screen-label="Property Detail">
+      {contactModal && (
+        <ContactLogModal
+          onSubmit={handleLogContact}
+          onClose={() => setContactModal(false)}
+          submitting={contactSubmitting}
+        />
+      )}
       <HeaderBar subject={subject} isSaved={saved} onSave={() => setSaved(s => !s)} onBack={onClose}/>
       <div className="pd-tabs">
         {TABS.map(t => (
@@ -442,7 +478,7 @@ export function PropertyDetail({ deal, onClose }) {
       </div>
       <div className="pd-body">
         <div className="pd-scroll" ref={bodyRef}>
-          <div className="pd-main"><TabContent tab={tab} subject={subject}/></div>
+          <div className="pd-main"><TabContent tab={tab} subject={subject} contacts={dealContacts} onLogContact={() => setContactModal(true)}/></div>
           <div className="pd-footer">
             <span>Parcyl Deal Feed · All public records</span>
           </div>
