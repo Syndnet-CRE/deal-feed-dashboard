@@ -37,9 +37,16 @@ describe('toNum', () => {
       expect(toNum(null)).toBe(null);
     });
 
-    it('converts undefined to null (NaN case)', () => {
-      const result = toNum(undefined);
-      expect(Number.isNaN(result) || result === null).toBe(true);
+    it('converts undefined to null', () => {
+      expect(toNum(undefined)).toBe(null);
+    });
+
+    it('converts Infinity to null', () => {
+      expect(toNum(Infinity)).toBe(null);
+    });
+
+    it('converts NaN string to null', () => {
+      expect(toNum('abc')).toBe(null);
     });
   });
 });
@@ -118,13 +125,14 @@ describe('activeGeoHasData', () => {
   });
 
   describe('radius mode', () => {
-    it('returns true when geo_radius_address is non-empty after trim', () => {
+    it('returns true when address and miles are both set', () => {
       const form = {
         geoMode: 'radius',
         geo_states: [],
         geo_cities: [],
         geo_zips: [],
         geo_radius_address: '123 Main St, Nashville, TN',
+        geo_radius_miles: '35',
       };
       expect(activeGeoHasData(form)).toBe(true);
     });
@@ -136,6 +144,7 @@ describe('activeGeoHasData', () => {
         geo_cities: [],
         geo_zips: [],
         geo_radius_address: '',
+        geo_radius_miles: '35',
       };
       expect(activeGeoHasData(form)).toBe(false);
     });
@@ -147,6 +156,19 @@ describe('activeGeoHasData', () => {
         geo_cities: [],
         geo_zips: [],
         geo_radius_address: '   ',
+        geo_radius_miles: '35',
+      };
+      expect(activeGeoHasData(form)).toBe(false);
+    });
+
+    it('returns false when address is set but miles is empty', () => {
+      const form = {
+        geoMode: 'radius',
+        geo_states: [],
+        geo_cities: [],
+        geo_zips: [],
+        geo_radius_address: '123 Main St, Nashville, TN',
+        geo_radius_miles: '',
       };
       expect(activeGeoHasData(form)).toBe(false);
     });
@@ -249,7 +271,7 @@ describe('canProceed', () => {
       expect(canProceed(2, form)).toBe(false);
     });
 
-    it('returns true for radius mode with address', () => {
+    it('returns true for radius mode with address and miles', () => {
       const form = {
         label: 'Box',
         geoMode: 'radius',
@@ -257,6 +279,7 @@ describe('canProceed', () => {
         geo_cities: [],
         geo_zips: [],
         geo_radius_address: '123 Main St',
+        geo_radius_miles: '35',
       };
       expect(canProceed(2, form)).toBe(true);
     });
@@ -269,6 +292,20 @@ describe('canProceed', () => {
         geo_cities: [],
         geo_zips: [],
         geo_radius_address: '',
+        geo_radius_miles: '35',
+      };
+      expect(canProceed(2, form)).toBe(false);
+    });
+
+    it('returns false for radius mode with address but no miles', () => {
+      const form = {
+        label: 'Box',
+        geoMode: 'radius',
+        geo_states: [],
+        geo_cities: [],
+        geo_zips: [],
+        geo_radius_address: '123 Main St',
+        geo_radius_miles: '',
       };
       expect(canProceed(2, form)).toBe(false);
     });

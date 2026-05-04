@@ -5,13 +5,10 @@
  * @returns {number|null}
  */
 export function toNum(v) {
-  if (v === '' || v === null) {
-    return null;
-  }
-  if (v === undefined) {
-    return Number(v);
-  }
-  return Number(v);
+  if (v === '' || v === null) return null;
+  const n = Number(v);
+  if (!isFinite(n)) return null;
+  return n;
 }
 
 /**
@@ -32,7 +29,7 @@ export function activeGeoHasData(form) {
     return geo_zips.length > 0;
   }
   if (geoMode === 'radius') {
-    return geo_radius_address.trim().length > 0;
+    return geo_radius_address.trim().length > 0 && toNum(form.geo_radius_miles) > 0;
   }
 
   return false;
