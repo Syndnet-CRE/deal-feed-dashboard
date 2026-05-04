@@ -36,6 +36,7 @@ function normalizeBuyBox(b) {
 export function DealsProvider({ children }) {
   const [deals, setDeals] = useState([]);
   const [buyBoxes, setBuyBoxes] = useState([]);
+  const [contacts, setContacts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -72,8 +73,35 @@ export function DealsProvider({ children }) {
     await api.patch(`/api/dealfeed/deals/${dealId}/notes`, { notes: text });
   }, []);
 
+  const updateStatus = useCallback(async (dealId, status) => {
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, status } : d));
+    try {
+      await api.patch(`/api/dealfeed/deals/${dealId}/status`, { status });
+    } catch {
+      // optimistic update stays; status will resync on next refetch
+    }
+  }, []);
+
+  const fetchContacts = useCallback(async (dealId) => {
+    try {
+      const res = await api.get(`/api/dealfeed/deals/${dealId}/contacts`);
+      setContacts(prev => ({ ...prev, [dealId]: res.contacts || [] }));
+    } catch {
+      // leave existing contacts state unchanged on error
+    }
+  }, []);
+
+  const logContact = useCallback(async (dealId, payload) => {
+    const res = await api.post(`/api/dealfeed/deals/${dealId}/contacts`, payload);
+    setContacts(prev => ({
+      ...prev,
+      [dealId]: [res.contact, ...(prev[dealId] || [])],
+    }));
+    return res.contact;
+  }, []);
+
   return (
-    <DealsCtx.Provider value={{ deals, buyBoxes, loading, error, refetch: fetchAll, postFeedback, saveNote }}>
+    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact }}>
       {children}
     </DealsCtx.Provider>
   );
