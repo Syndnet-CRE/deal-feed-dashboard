@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { api } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from './Icons';
-import { buildPayload, activeGeoHasData, toNum } from '../lib/wizardHelpers';
+import { buildPayload, activeGeoHasData } from '../lib/wizardHelpers';
 
 const ROLES = ['Investor/Buyer', 'Broker/Agent', 'Developer', 'Asset Manager', 'Lender', 'Consultant/Advisor', 'Other'];
 
@@ -90,7 +90,7 @@ function geoSummary(form) {
 
 function sectionsFilled(form) {
   let n = 0;
-  if (form.first_name || form.last_name) n++;
+  if (form.first_name || form.last_name || form.company || form.phone || form.role) n++;
   if (form.label.trim()) n++;
   if (form.asset_classes.length) n++;
   if (activeGeoHasData(form)) n++;
@@ -119,6 +119,19 @@ export function ConfigurationOverlay({ onClose }) {
   const [submitting, setSubmitting]   = useState(false);
   const [error, setError]             = useState('');
   const [success, setSuccess]         = useState(false);
+
+  const assetWrapRef  = useRef(null);
+  const statesWrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!assetOpen && !statesOpen) return;
+    function onDown(e) {
+      if (assetOpen  && assetWrapRef.current  && !assetWrapRef.current.contains(e.target))  setAssetOpen(false);
+      if (statesOpen && statesWrapRef.current && !statesWrapRef.current.contains(e.target)) setStatesOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [assetOpen, statesOpen]);
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
@@ -199,7 +212,7 @@ export function ConfigurationOverlay({ onClose }) {
     <div className="co-overlay" onClick={onClose}>
       <div className="co-shell" onClick={e => e.stopPropagation()}>
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="co-header">
           <div className="co-header-left">
             <span className="co-brand">Parcyl</span>
@@ -211,16 +224,16 @@ export function ConfigurationOverlay({ onClose }) {
             </div>
             <span className="co-progress-label">{pct}% configured</span>
           </div>
-          <button className="co-close" onClick={onClose} aria-label="Close">{I.Close}</button>
+          <button className="co-close" onClick={onClose} aria-label="Close"><I.Close size={18} /></button>
         </div>
 
-        {/* ── Body ── */}
+        {/* Body */}
         <div className="co-body">
 
           {/* Your Info */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Settings}</span>
+              <span className="co-section-icon"><I.User size={18} /></span>
               <div>
                 <h3>Your Info</h3>
                 <p>Help us personalize your experience. All fields are optional.</p>
@@ -262,7 +275,7 @@ export function ConfigurationOverlay({ onClose }) {
           {/* Buy Box Name */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Edit}</span>
+              <span className="co-section-icon"><I.Tag size={18} /></span>
               <div>
                 <h3>Buy Box Name</h3>
                 <p>Optional. We'll generate a name from your selections if left blank.</p>
@@ -282,13 +295,13 @@ export function ConfigurationOverlay({ onClose }) {
           {/* Asset Class */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Building}</span>
+              <span className="co-section-icon"><I.Building size={18} /></span>
               <div>
                 <h3>Asset Class</h3>
                 <p>Which property types should match your buy box? Select all that apply.</p>
               </div>
             </div>
-            <div style={{ position: 'relative' }}>
+            <div ref={assetWrapRef} style={{ position: 'relative' }}>
               <button
                 className="co-dropdown-btn"
                 onClick={() => setAssetOpen(o => !o)}
@@ -297,21 +310,30 @@ export function ConfigurationOverlay({ onClose }) {
                 {form.asset_classes.length
                   ? `${form.asset_classes.length} selected`
                   : 'Select asset classes'}
-                <span className="co-caret">{I.ChevronDown}</span>
+                <span className="co-caret"><I.ChevronDown size={16} /></span>
               </button>
               {assetOpen && (
                 <div className="co-dropdown-panel">
                   {ASSET_CLASS_OPTS.map(({ value, icon }) => (
-                    <label key={value} className="co-check-row">
-                      <input
-                        type="checkbox"
-                        checked={form.asset_classes.includes(value)}
-                        onChange={() => set('asset_classes', toggleArr(form.asset_classes, value))}
-                      />
+                    <div
+                      key={value}
+                      className={`co-check-row${form.asset_classes.includes(value) ? ' co-check-row--selected' : ''}`}
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => set('asset_classes', toggleArr(form.asset_classes, value))}
+                    >
+                      <span className={`co-checkbox${form.asset_classes.includes(value) ? ' co-checkbox--on' : ''}`} />
                       <span className="co-check-icon">{icon}</span>
                       <span>{value}</span>
-                    </label>
+                    </div>
                   ))}
+                  <div className="co-dropdown-done">
+                    <button
+                      type="button"
+                      className="co-dropdown-done-btn"
+                      onMouseDown={e => e.preventDefault()}
+                      onClick={() => setAssetOpen(false)}
+                    >Done</button>
+                  </div>
                 </div>
               )}
             </div>
@@ -330,7 +352,7 @@ export function ConfigurationOverlay({ onClose }) {
           {/* Geography */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Pin}</span>
+              <span className="co-section-icon"><I.Pin size={18} /></span>
               <div>
                 <h3>Geography</h3>
                 <p>Define the market you want to target. Pick one mode.</p>
@@ -359,33 +381,42 @@ export function ConfigurationOverlay({ onClose }) {
             )}
 
             {form.geoMode === 'state' && (
-              <div style={{ position: 'relative' }}>
+              <div ref={statesWrapRef} style={{ position: 'relative' }}>
                 <button className="co-dropdown-btn" onClick={() => setStatesOpen(o => !o)} type="button">
                   {form.geo_states.length
                     ? `${form.geo_states.length} state${form.geo_states.length > 1 ? 's' : ''} selected`
                     : 'Select states'}
-                  <span className="co-caret">{I.ChevronDown}</span>
+                  <span className="co-caret"><I.ChevronDown size={16} /></span>
                 </button>
                 {statesOpen && (
                   <div className="co-dropdown-panel co-states-panel">
                     <input
                       className="co-states-search"
-                      placeholder="Filter..."
+                      placeholder="Filter states..."
                       value={stateSearch}
                       onChange={e => setStateSearch(e.target.value)}
                       autoFocus
                     />
                     <div className="co-states-grid">
                       {filteredStates.map(s => (
-                        <label key={s} className="co-check-row co-check-row--sm">
-                          <input
-                            type="checkbox"
-                            checked={form.geo_states.includes(s)}
-                            onChange={() => set('geo_states', toggleArr(form.geo_states, s))}
-                          />
+                        <div
+                          key={s}
+                          className={`co-check-row co-check-row--sm${form.geo_states.includes(s) ? ' co-check-row--selected' : ''}`}
+                          onMouseDown={e => e.preventDefault()}
+                          onClick={() => set('geo_states', toggleArr(form.geo_states, s))}
+                        >
+                          <span className={`co-checkbox${form.geo_states.includes(s) ? ' co-checkbox--on' : ''}`} />
                           <span>{s}</span>
-                        </label>
+                        </div>
                       ))}
+                    </div>
+                    <div className="co-dropdown-done">
+                      <button
+                        type="button"
+                        className="co-dropdown-done-btn"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => { setStatesOpen(false); setStateSearch(''); }}
+                      >Done</button>
                     </div>
                   </div>
                 )}
@@ -483,7 +514,7 @@ export function ConfigurationOverlay({ onClose }) {
           {/* Property Criteria */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Layers}</span>
+              <span className="co-section-icon"><I.Sliders size={18} /></span>
               <div>
                 <h3>Property Criteria</h3>
                 <p>Filter by size, value, age, and hold period. All ranges are optional.</p>
@@ -521,7 +552,7 @@ export function ConfigurationOverlay({ onClose }) {
           {/* Ownership Profile */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Doc}</span>
+              <span className="co-section-icon"><I.Users size={18} /></span>
               <div>
                 <h3>Ownership Profile</h3>
                 <p>Target specific ownership structures or absentee situations.</p>
@@ -570,7 +601,7 @@ export function ConfigurationOverlay({ onClose }) {
           {/* Distress Signals */}
           <div className="co-section">
             <div className="co-section-head">
-              <span className="co-section-icon">{I.Alert}</span>
+              <span className="co-section-icon"><I.Alert size={18} /></span>
               <div>
                 <h3>Distress Signals</h3>
                 <p>Match only properties that show specific indicators of motivated ownership.</p>
@@ -619,7 +650,7 @@ export function ConfigurationOverlay({ onClose }) {
           <div style={{ height: 120 }} />
         </div>
 
-        {/* ── Sticky Review Bar ── */}
+        {/* Sticky Review Bar */}
         <div className="co-review">
           <div className="co-review-summary">
             {form.asset_classes.length > 0 && (
