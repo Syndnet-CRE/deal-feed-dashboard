@@ -5,7 +5,7 @@ import { useDeals, DealsProvider } from './contexts/DealsContext';
 import { ParcylBar } from './components/ParcylBar';
 import { PropertyDetail } from './components/PropertyDetail';
 import { ConfirmModal } from './components/ConfirmModal';
-import { NewBoxWizard } from './components/NewBoxWizard';
+import { ConfigurationOverlay } from './components/ConfigurationOverlay';
 import { DashboardView } from './views/DashboardView';
 import { MyDealsView } from './views/MyDealsView';
 import { BuyBoxesView } from './views/BuyBoxesView';
@@ -118,7 +118,7 @@ function AppShell() {
           }/>
         </Routes>
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
-        {showWizard && <NewBoxWizard onClose={() => setShowWizard(false)}/>}
+        {showWizard && <ConfigurationOverlay onClose={() => setShowWizard(false)}/>}
       </div>
     </DealsProvider>
   );
