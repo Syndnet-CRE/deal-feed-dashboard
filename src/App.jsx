@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useMatch, useLocation } from 'react-router-
 import { useAuth } from './hooks/useAuth';
 import { useDeals, DealsProvider } from './contexts/DealsContext';
 import { ParcylBar } from './components/ParcylBar';
-import { PropertyDetail } from './components/PropertyDetail';
+import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ConfigurationOverlay } from './components/ConfigurationOverlay';
 import { DashboardView } from './views/DashboardView';
@@ -37,7 +37,7 @@ function DealDetailPage({ dealId }) {
   if (loading) return null;
   const deal = deals.find(d => String(d.id) === dealId);
   if (!deal) return null;
-  return <PropertyDetail deal={deal} onClose={() => navigate(-1)}/>;
+  return <DealDetail deal={deal} onClose={() => navigate(-1)}/>;
 }
 
 // Full-screen modal overlay — opened from map panel via navigate('/deal/:id', { state: { fromMap: true } })
@@ -62,7 +62,7 @@ function DealDetailModal({ dealId }) {
 
   return (
     <div className="deal-modal-overlay">
-      <PropertyDetail deal={deal} onClose={close}/>
+      <DealDetail deal={deal} onClose={close}/>
     </div>
   );
 }
