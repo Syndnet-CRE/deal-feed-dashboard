@@ -6,3 +6,6 @@ playwright-report/
 test-results/
 test-results.json
 SMOKE_TEST_RESULTS.txt
+
+# Local Netlify folder
+.netlify

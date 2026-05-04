@@ -54,7 +54,7 @@ BrowserRouter
     App               (src/App.jsx — also defines AppShell and DealDetailRoute inline)
       AppShell        (holds view state + DealsProvider)
         ParcylBar
-        Views (DashboardView / MyDealsView / BuyBoxesView / MapView / SettingsView)
+        Views (DashboardView / BuyBoxesView / MapView / SettingsView)
         DealDetailRoute  (/deal/:dealId → PropertyDetail)
 ```
 
@@ -64,7 +64,7 @@ BrowserRouter
 
 ### Navigation model — hybrid
 
-- Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Views: `dashboard`, `deals`, `map`, `boxes`, `settings`.
+- Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Views: `dashboard`, `map`, `boxes`, `settings`.
 - Deal detail is **URL-based**: navigating to a deal calls `navigate('/deal/' + deal.id)`. `DealDetailRoute` reads `dealId` from params and renders `PropertyDetail`.
 - Deep-linking to a view is not supported (only `/` and `/deal/:id` are addressable).
 
@@ -94,6 +94,8 @@ src/
 | `src/components/PropertyDetail.jsx` | Full-page deal detail with 9 tabs: Overview, Ownership & Skip, Transactions, Tax & Assessment, Site & Environmental, Market & Comps, Distress Signals, Documents, Notes. Reads `briefJson` and `notes` from deal object. Calls `saveNote` and `postFeedback` from DealsContext. |
 | `src/components/DealDrawer.jsx` | Slide-over panel used within feed/list views for quick deal preview. Distinct from PropertyDetail. |
 | `src/components/DealMap.jsx` | Reusable Mapbox map. Auto-fits to deal markers via `fitDeals()`. Props: `deals`, `selectedId`, `hoverId`, `onClickDeal`, `mapStyle`, `withPopup`. |
+| `src/components/DealPanel.jsx` | Collapsible sidebar inside MapView listing filtered/sorted deals. Owns filter state, sort, owner-type chips, CSV export. Persists collapsed state to `localStorage` key `dealfeed.mapPanel.collapsed`; filters to `parcyl-deals-filters`. |
+| `src/components/DealPanelCard.jsx` | Individual deal card within DealPanel. Expandable inline preview (signals, score, aerial thumb). Calls `onOpenDeal` to navigate to full PropertyDetail. |
 | `src/components/DealComponents.jsx` | Shared atoms: `ScoreBubble`, `MapPinSVG`, `DealCard`. `MapPinSVG` uses `getPinColor` from `assetColors.js`. |
 | `src/components/Icons.jsx` | Central icon library — exports `I` object with named icons (e.g. `I.Pin`, `I.Alert`, `I.Trend`). Always import icons from here. |
 | `src/components/ParcylBar.jsx` | Top nav bar with sidebar links and theme toggle. |
@@ -109,8 +111,7 @@ src/
 | `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
 | `src/components/MapBackground.jsx` | Static Mapbox background used decoratively inside the wizard geography step. |
 | `src/views/DashboardView.jsx` | Stats + recent deals + map background. Falls back to `MOCK_DEALS` when API returns empty. |
-| `src/views/MyDealsView.jsx` | Full deal list with filtering and DealDrawer integration. |
-| `src/views/MapView.jsx` | Full-screen Mapbox map view. |
+| `src/views/MapView.jsx` | Full-screen Mapbox map + collapsible DealPanel sidebar. This is the primary deal browsing surface (My Deals was merged here). Map style persisted to `parcyl-map-style`; viewport to `parcyl-map-viewport`. |
 | `src/views/BuyBoxesView.jsx` | Buy box management table. |
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |

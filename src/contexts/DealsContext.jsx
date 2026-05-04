@@ -3,6 +3,14 @@ import { api } from '../lib/api';
 
 const DealsCtx = createContext(null);
 
+const STATUS_DISPLAY = {
+  active: 'Active',
+  paused: 'Paused',
+  pending: 'Pending',
+  cancelled: 'Cancelled',
+  coverage_failed: 'Coverage Failed',
+};
+
 function normalizeBuyBox(b) {
   const geo = [
     ...(b.geo_cities || []),
@@ -19,9 +27,10 @@ function normalizeBuyBox(b) {
   }
 
   return {
+    ...b,
     id: b.id,
     name: b.label,
-    status: b.status || 'Active',
+    status: STATUS_DISPLAY[b.status] || b.status || 'Active',
     geo: geo || '—',
     classes: b.asset_classes || [],
     hold: b.min_hold_yrs ? `${b.min_hold_yrs} yr` : '—',
@@ -100,8 +109,14 @@ export function DealsProvider({ children }) {
     return res.contact;
   }, []);
 
+  const patchBuyBox = useCallback(async (id, payload) => {
+    const res = await api.patch(`/api/dealfeed/buy-boxes/${id}`, payload);
+    setBuyBoxes(prev => prev.map(b => b.id === id ? normalizeBuyBox(res.buy_box) : b));
+    return res.buy_box;
+  }, []);
+
   return (
-    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact }}>
+    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }}>
       {children}
     </DealsCtx.Provider>
   );
