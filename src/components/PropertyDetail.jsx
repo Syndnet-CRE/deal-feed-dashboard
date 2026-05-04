@@ -3,7 +3,7 @@ import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
 import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, freshnessColor } from '../lib/format';
 import { useDeals } from '../contexts/DealsContext';
-import { OwnershipTab } from './tabs/OwnershipTab';
+import { OwnershipTab, ConfidenceGauge } from './tabs/OwnershipTab';
 import { DistressTab } from './tabs/DistressTab';
 import { SiteTab } from './tabs/SiteTab';
 import { MarketTab } from './tabs/MarketTab';

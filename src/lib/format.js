@@ -44,3 +44,5 @@ export function freshnessColor(days) {
   if (days <= 30) return 'var(--warning)';
   return 'var(--ink-4)';
 }
+
+export const agingColor = freshnessColor;

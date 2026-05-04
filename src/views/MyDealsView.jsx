@@ -1,24 +1,59 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from '../components/Icons';
 import { ScoreBubble } from '../components/DealComponents';
 import { AerialThumb } from '../components/AerialThumb';
 import { DealMap } from '../components/DealMap';
-import { fmtMoney } from '../lib/format';
+import { fmtMoney, agingColor } from '../lib/format';
 import { LEGEND_ITEMS } from '../lib/assetColors';
+
+const LS_KEY = 'parcyl-deals-filters';
+const OWNER_TYPES = ['Individual', 'LLC', 'Trust', 'Corporate'];
+
+function ownerTypeCategory(entityType) {
+  if (!entityType) return 'Individual';
+  if (entityType.includes('Trust')) return 'Trust';
+  if (entityType.includes('LLC')) return 'LLC';
+  return 'Corporate';
+}
+
+function loadFilters() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
 
 export function MyDealsView({ onOpenDeal, selectedId }) {
   const { deals, buyBoxes, loading } = useDeals();
-  const [box, setBox] = useState("all");
-  const [range, setRange] = useState("month");
-  const [klass, setKlass] = useState("all");
-  const [sort, setSort] = useState("recent");
+  const [box, setBox] = useState(() => loadFilters().box || "all");
+  const [range, setRange] = useState(() => loadFilters().range || "month");
+  const [klass, setKlass] = useState(() => loadFilters().klass || "all");
+  const [sort, setSort] = useState(() => loadFilters().sort || "recent");
+  const [distressTypes, setDistressTypes] = useState(() => loadFilters().distressTypes || []);
+  const [ownerTypes, setOwnerTypes] = useState(() => loadFilters().ownerTypes || []);
   const [hover, setHover] = useState(null);
   const [mapStyle, setMapStyle] = useState("dark");
   const [showLegend, setShowLegend] = useState(false);
 
   const assetClasses = useMemo(() => [...new Set(deals.map(d => d.asset))].filter(Boolean).sort(), [deals]);
   const activeBoxes = useMemo(() => buyBoxes.filter(b => b.status === "Active"), [buyBoxes]);
+  const distressOptions = useMemo(() => [...new Set(deals.flatMap(d => d.signals || []))].sort(), [deals]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({ box, range, klass, sort, distressTypes, ownerTypes }));
+    } catch { /* quota exceeded — silently skip */ }
+  }, [box, range, klass, sort, distressTypes, ownerTypes]);
+
+  function toggleDistressType(dt) {
+    setDistressTypes(prev => prev.includes(dt) ? prev.filter(x => x !== dt) : [...prev, dt]);
+  }
+  function toggleOwnerType(ot) {
+    setOwnerTypes(prev => prev.includes(ot) ? prev.filter(x => x !== ot) : [...prev, ot]);
+  }
 
   const filtered = useMemo(() => {
     let out = deals;
@@ -26,11 +61,13 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
     if (klass !== "all") out = out.filter(d => d.asset === klass);
     const days = range === "week" ? 7 : range === "month" ? 31 : range === "quarter" ? 92 : 9999;
     out = out.filter(d => d.days <= days);
+    if (distressTypes.length > 0) out = out.filter(d => distressTypes.some(dt => (d.signals || []).includes(dt)));
+    if (ownerTypes.length > 0) out = out.filter(d => ownerTypes.includes(ownerTypeCategory(d.entityType)));
     if (sort === "score") out = [...out].sort((a, b) => b.score - a.score);
     else if (sort === "value") out = [...out].sort((a, b) => b.value - a.value);
     else out = [...out].sort((a, b) => a.days - b.days);
     return out;
-  }, [deals, box, range, klass, sort]);
+  }, [deals, box, range, klass, sort, distressTypes, ownerTypes]);
 
   return (
     <div className="split-deals" style={{ height: "100%" }}>
@@ -93,6 +130,21 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
           </select>
         </div>
 
+        {distressOptions.length > 0 && (
+          <div className="filter-chips-row">
+            <span className="select-label">Distress</span>
+            {distressOptions.map(dt => (
+              <button key={dt} className={`filter-chip ${distressTypes.includes(dt) ? 'active' : ''}`} onClick={() => toggleDistressType(dt)}>{dt}</button>
+            ))}
+          </div>
+        )}
+        <div className="filter-chips-row">
+          <span className="select-label">Owner</span>
+          {OWNER_TYPES.map(ot => (
+            <button key={ot} className={`filter-chip ${ownerTypes.includes(ot) ? 'active' : ''}`} onClick={() => toggleOwnerType(ot)}>{ot}</button>
+          ))}
+        </div>
+
         <div className="list-results-meta">
           <span>{filtered.length} deals · sorted by {sort === "recent" ? "delivery date" : sort === "score" ? "distress score" : "assessed value"}</span>
           <button className="btn sm"><I.External size={11}/> Export CSV</button>
@@ -116,7 +168,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
                   <span className="tag">{d.asset}</span>
                   <span><b>{d.acres?.toFixed(2)}</b> ac</span>
                   <span><b>{fmtMoney(d.value)}</b></span>
-                  <span>{d.days === 0 ? "Today" : `${d.days}d ago`}</span>
+                  <span className="aging-chip" style={{ color: agingColor(d.days) }}>{d.days === 0 ? "Today" : `${d.days}d ago`}</span>
                   {d.fb === "hot" && <span className="fb hot"><I.Hot size={10}/> Hot</span>}
                   {d.fb === "no" && <span className="fb no">Not Relevant</span>}
                 </div>
@@ -132,7 +184,7 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
               <div className="empty-ico"><I.Filter size={22}/></div>
               <div style={{ fontSize: 14, fontWeight: 700 }}>No deals match these filters</div>
               <div className="empty-msg">Try widening the date range or selecting all buy boxes.</div>
-              <button className="btn primary sm" onClick={() => { setBox("all"); setRange("all"); setKlass("all"); }}>Reset Filters</button>
+              <button className="btn primary sm" onClick={() => { setBox("all"); setRange("month"); setKlass("all"); setSort("recent"); setDistressTypes([]); setOwnerTypes([]); localStorage.removeItem(LS_KEY); }}>Reset Filters</button>
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 import { I } from '../Icons';
 import { fmt, hasVal } from '../../lib/format';
 
-function ConfidenceGauge({ level }) {
+export function ConfidenceGauge({ level }) {
   const labels = ["Very Low", "Low", "Medium", "High", "Very High"];
   return (
     <span className="gauge">

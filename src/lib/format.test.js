@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, freshnessColor } from './format.js';
+import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, freshnessColor, agingColor } from './format.js';
 
 describe('fmtMoney', () => {
   describe('null and undefined handling', () => {
@@ -433,5 +433,39 @@ describe('freshnessColor', () => {
 
   it('returns ink-4 for very old dates', () => {
     expect(freshnessColor(365)).toBe('var(--ink-4)');
+  });
+});
+
+describe('agingColor', () => {
+  it('returns null for null', () => {
+    expect(agingColor(null)).toBeNull();
+  });
+
+  it('returns null for undefined', () => {
+    expect(agingColor(undefined)).toBeNull();
+  });
+
+  it('returns green for 0 days', () => {
+    expect(agingColor(0)).toBe('var(--green)');
+  });
+
+  it('returns green for 7 days (boundary)', () => {
+    expect(agingColor(7)).toBe('var(--green)');
+  });
+
+  it('returns warning for 8 days', () => {
+    expect(agingColor(8)).toBe('var(--warning)');
+  });
+
+  it('returns warning for 30 days (boundary)', () => {
+    expect(agingColor(30)).toBe('var(--warning)');
+  });
+
+  it('returns ink-4 for 31 days', () => {
+    expect(agingColor(31)).toBe('var(--ink-4)');
+  });
+
+  it('returns ink-4 for very old deals', () => {
+    expect(agingColor(365)).toBe('var(--ink-4)');
   });
 });

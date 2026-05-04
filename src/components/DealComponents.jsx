@@ -1,6 +1,6 @@
 import { AerialThumb } from './AerialThumb';
 import { I } from './Icons';
-import { fmtMoney, scoreClass } from '../lib/format';
+import { fmtMoney, scoreClass, agingColor } from '../lib/format';
 
 export function ScoreBubble({ score, size = "md" }) {
   return (
@@ -38,6 +38,11 @@ export function DealCard({ deal, onClick, selected }) {
           <ScoreBubble score={deal.score} size="sm"/>
         </div>
         <FactRow deal={deal}/>
+        {deal.days != null && (
+          <span className="aging-chip" style={{ color: agingColor(deal.days) }}>
+            {deal.days === 0 ? 'Today' : `${deal.days}d ago`}
+          </span>
+        )}
       </div>
       <div className="deal-thumb"><AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng}/></div>
     </div>
