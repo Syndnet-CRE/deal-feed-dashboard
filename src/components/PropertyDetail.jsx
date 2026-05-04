@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
-import { fmtMoney, scoreClass, fmt, hasVal } from '../lib/format';
+import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, freshnessColor } from '../lib/format';
 import { useDeals } from '../contexts/DealsContext';
 
 const TABS = [
@@ -62,6 +62,8 @@ function enrichDeal(deal) {
 
 function HeaderBar({ subject, isSaved, onSave, onBack }) {
   const cls = scoreClass(subject.score);
+  const freshnessDate = subject.briefJson?.enriched_at || subject.updatedAt || subject.created_at;
+  const freshness = fmtRelativeTime(freshnessDate);
   return (
     <>
       <div className="pd-back-bar">
@@ -85,6 +87,12 @@ function HeaderBar({ subject, isSaved, onSave, onBack }) {
               {subject.censusTract !== "—" && <><span>·</span><span>Tract {subject.censusTract}</span></>}
               <span>·</span>
               <span className="bad bad-amber">{subject.box}</span>
+              {freshness && (
+                <>
+                  <span>·</span>
+                  <span style={{ color: freshnessColor(freshness.days), fontSize: 11 }}>Updated {freshness.label}</span>
+                </>
+              )}
             </div>
           </div>
           <div className="pd-actions">
@@ -175,6 +183,7 @@ function SectionOwnership({ subject }) {
     <>
       <div className="pd-section">
         <div className="pd-sec-head"><h3>Entity Profile</h3></div>
+        <div className="source-label">Source: County Tax Roll</div>
         <div className="kv-grid">
           <span className="k">Recorded Owner</span><span className="v">{fmt(bj.own_name)}</span>
           {hasVal(bj.own_name2) && <><span className="k">Owner 2</span><span className="v">{fmt(bj.own_name2)}</span></>}
@@ -202,7 +211,8 @@ function SectionOwnership({ subject }) {
 
       {dm?.name && (
         <div className="pd-section">
-          <div className="pd-sec-head"><h3>Skip Trace — Principal</h3><span className="upd" style={{ color: "#5BCC48" }}>Auto-enriched</span></div>
+          <div className="pd-sec-head"><h3>Skip Trace — Principal</h3><span className="upd" style={{ color: "var(--green)" }}>Auto-enriched</span></div>
+          <div className="source-label">Source: Decision Maker enrichment · confidence shown per field</div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, padding: "10px 12px", background: "var(--panel-2)", borderRadius: 8 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--panel-3)", display: "grid", placeItems: "center", fontSize: 14, fontWeight: 700, color: "var(--ink-2)", flexShrink: 0 }}>
               {dm.name?.charAt(0) || "?"}

@@ -1,4 +1,5 @@
 import { AerialThumb } from './AerialThumb';
+import { I } from './Icons';
 import { fmtMoney, scoreClass } from '../lib/format';
 
 export function ScoreBubble({ score, size = "md" }) {
@@ -28,7 +29,10 @@ export function DealCard({ deal, onClick, selected }) {
       <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, justifyContent: "space-between" }}>
           <div style={{ minWidth: 0 }}>
-            <div className="deal-addr" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{deal.addr}</div>
+            <div className="deal-addr" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {deal.addr}
+              {deal.notes && <I.Doc size={11} style={{ marginLeft: 5, color: "var(--ink-4)", verticalAlign: "middle", flexShrink: 0 }} title="Has notes"/>}
+            </div>
             <div className="deal-loc">{deal.city}</div>
           </div>
           <ScoreBubble score={deal.score} size="sm"/>

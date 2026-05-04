@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from './Icons';
 import { AerialThumb } from './AerialThumb';
-import { ScoreBubble, MapPinSVG } from './DealComponents';
-import { fmtMoney, fmt, hasVal } from '../lib/format';
+import { ScoreBubble } from './DealComponents';
+import { fmtMoney, fmt, hasVal, fmtRelativeTime, freshnessColor } from '../lib/format';
 
 function SignalPill({ label, intent = "gray" }) {
   return <span className={`pill ${intent}`}><span className="pip"/>{label}</span>;
@@ -26,35 +26,6 @@ function Confidence({ pct }) {
   );
 }
 
-function CompsMap({ deal }) {
-  const subjX = 50, subjY = 55;
-  const compPos = [{ x: 28, y: 38 }, { x: 62, y: 28 }, { x: 72, y: 60 }, { x: 36, y: 72 }];
-  return (
-    <div className="comps-map">
-      <svg viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice" style={{ width: "100%", height: "100%", display: "block" }}>
-        <rect width="200" height="100" fill="#0E1014"/>
-        <pattern id="cpg" width="12" height="12" patternUnits="userSpaceOnUse">
-          <path d="M 12 0 L 0 0 0 12" stroke="#1A1B22" strokeWidth="0.4" fill="none"/>
-        </pattern>
-        <rect width="200" height="100" fill="url(#cpg)"/>
-        <path d="M -10 50 C 60 40, 120 70, 220 55" stroke="#2c2f38" strokeWidth="2.5" fill="none"/>
-        <path d="M 80 -10 C 90 40, 100 70, 110 110" stroke="#2c2f38" strokeWidth="2" fill="none"/>
-      </svg>
-      {compPos.map((p, i) => (
-        <div key={i} style={{ position: "absolute", left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -100%)" }}>
-          <svg width="18" height="22" viewBox="0 0 26 32"><path d="M13 0 C 5.8 0 0 5.5 0 12.5 C 0 22 13 32 13 32 S 26 22 26 12.5 C 26 5.5 20.2 0 13 0 Z" fill="#40424D" stroke="#1A1B22" strokeWidth="1.5"/><circle cx="13" cy="12" r="4" fill="#1A1B22"/></svg>
-        </div>
-      ))}
-      <div style={{ position: "absolute", left: `${subjX}%`, top: `${subjY}%`, transform: "translate(-50%, -100%)" }}>
-        <MapPinSVG score={deal.score} num={null} selected={true}/>
-      </div>
-      <div style={{ position: "absolute", left: 10, top: 10, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9DA2B3", background: "rgba(0,0,0,0.5)", padding: "3px 8px", borderRadius: 4, border: "1px solid #40424D" }}>
-        Subject + 4 Comps · 3.6 mi radius
-      </div>
-    </div>
-  );
-}
-
 export function DealDrawer({ deal, onClose }) {
   const { postFeedback } = useDeals();
   const [feedback, setFeedback] = useState(deal?.fb || null);
@@ -71,6 +42,9 @@ export function DealDrawer({ deal, onClose }) {
   const landValue = brief.land_value ?? brief.landValue ?? Math.round((deal.value || 0) * 0.62);
   const improvementValue = brief.improvement_value ?? brief.improvementValue ?? Math.round((deal.value || 0) * 0.18);
 
+  const freshnessDate = brief.enriched_at || deal.updatedAt || deal.created_at;
+  const freshness = fmtRelativeTime(freshnessDate);
+
   const handleFeedback = (fb) => {
     const next = feedback === fb ? null : fb;
     setFeedback(next);
@@ -84,8 +58,14 @@ export function DealDrawer({ deal, onClose }) {
         <div className="drawer-head">
           <button className="drawer-close" onClick={onClose} aria-label="Close"><I.Close size={14}/></button>
           <div className="drawer-headline">
-            <h2>{deal.addr}</h2>
-            <div className="drawer-sub">{fmt(deal.city)} · FIPS {fmt(deal.fips)} · Delivered {deal.days === 0 ? "today" : `${deal.days} day${deal.days > 1 ? "s" : ""} ago`}</div>
+            <h2>
+              {deal.addr}
+              {deal.notes && <I.Doc size={12} style={{ marginLeft: 6, color: "var(--ink-4)", verticalAlign: "middle" }} title="Has notes"/>}
+            </h2>
+            <div className="drawer-sub">
+              {fmt(deal.city)} · FIPS {fmt(deal.fips)} · Delivered {deal.days === 0 ? "today" : `${deal.days} day${deal.days > 1 ? "s" : ""} ago`}
+              {freshness && <span style={{ marginLeft: 8, color: freshnessColor(freshness.days), fontSize: 11 }}>· Data: {freshness.label}</span>}
+            </div>
           </div>
           <ScoreBubble score={deal.score} size="lg"/>
         </div>
@@ -159,7 +139,11 @@ export function DealDrawer({ deal, onClose }) {
             <div className="col-title" style={{ marginBottom: 0 }}><I.Pin size={11}/> Comparable Sales</div>
             <span className="caption" style={{ color: "#9DA2B3", fontSize: 11 }}>{(deal.briefJson?.comps || []).length} comps</span>
           </div>
-          <CompsMap deal={deal}/>
+          {(deal.briefJson?.comps || []).length > 0 && (
+            <div style={{ fontSize: 11, color: "var(--ink-4)", marginBottom: 8 }}>
+              Comparable sales — {deal.briefJson.comps.length} properties within 3.6 mi
+            </div>
+          )}
           <table className="comps-table">
             <thead><tr><th>Address</th><th>Type</th><th>Sale Date</th><th style={{ textAlign: "right" }}>Price</th><th style={{ textAlign: "right" }}>SF</th><th style={{ textAlign: "right" }}>Distance</th><th style={{ textAlign: "right" }}>Similarity</th></tr></thead>
             <tbody>

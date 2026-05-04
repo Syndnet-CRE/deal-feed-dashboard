@@ -109,7 +109,7 @@ function AppShell() {
           <Route path="/deal/:dealId" element={<DealDetailRoute/>}/>
           <Route path="/*" element={
             <div className={`content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
-              {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal}/>}
+              {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal} onNavigateBoxes={() => handleSetView('boxes')}/>}
               {view === 'deals'     && <MyDealsView   onOpenDeal={handleOpenDeal}/>}
               {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
               {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)}/>}

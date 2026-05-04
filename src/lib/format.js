@@ -24,3 +24,23 @@ export function fmt(val) {
 export function hasVal(val) {
   return val != null && val !== '' && val !== 'null' && val !== 'undefined';
 }
+
+export function fmtRelativeTime(dateStr) {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return null;
+  const now = new Date();
+  const diffMs = now - date;
+  if (diffMs < 0) return null;
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return { label: 'Today', days: 0 };
+  if (days === 1) return { label: '1 day ago', days: 1 };
+  return { label: `${days} days ago`, days };
+}
+
+export function freshnessColor(days) {
+  if (days == null) return null;
+  if (days <= 7) return 'var(--green)';
+  if (days <= 30) return 'var(--warning)';
+  return 'var(--ink-4)';
+}

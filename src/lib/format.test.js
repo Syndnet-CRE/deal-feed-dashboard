@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, scoreClass, fmt, hasVal } from './format.js';
+import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, freshnessColor } from './format.js';
 
 describe('fmtMoney', () => {
   describe('null and undefined handling', () => {
@@ -352,5 +352,86 @@ describe('hasVal', () => {
     it('returns true for negative Infinity', () => {
       expect(hasVal(-Infinity)).toBe(true);
     });
+  });
+});
+
+function daysAgoStr(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString();
+}
+
+describe('fmtRelativeTime', () => {
+  it('returns null for null', () => {
+    expect(fmtRelativeTime(null)).toBeNull();
+  });
+
+  it('returns null for empty string', () => {
+    expect(fmtRelativeTime('')).toBeNull();
+  });
+
+  it('returns null for unparseable string', () => {
+    expect(fmtRelativeTime('not-a-date')).toBeNull();
+  });
+
+  it('returns Today for today', () => {
+    const result = fmtRelativeTime(daysAgoStr(0));
+    expect(result).not.toBeNull();
+    expect(result.days).toBe(0);
+    expect(result.label).toBe('Today');
+  });
+
+  it('returns 1 day ago for yesterday', () => {
+    const result = fmtRelativeTime(daysAgoStr(1));
+    expect(result.days).toBe(1);
+    expect(result.label).toBe('1 day ago');
+  });
+
+  it('returns N days ago for 6 days (green zone)', () => {
+    const result = fmtRelativeTime(daysAgoStr(6));
+    expect(result.days).toBe(6);
+    expect(result.label).toBe('6 days ago');
+  });
+
+  it('returns N days ago for 8 days (amber zone)', () => {
+    const result = fmtRelativeTime(daysAgoStr(8));
+    expect(result.days).toBe(8);
+    expect(result.label).toBe('8 days ago');
+  });
+
+  it('returns N days ago for 31 days (muted zone)', () => {
+    const result = fmtRelativeTime(daysAgoStr(31));
+    expect(result.days).toBe(31);
+    expect(result.label).toBe('31 days ago');
+  });
+});
+
+describe('freshnessColor', () => {
+  it('returns null for null', () => {
+    expect(freshnessColor(null)).toBeNull();
+  });
+
+  it('returns green for 0 days', () => {
+    expect(freshnessColor(0)).toBe('var(--green)');
+  });
+
+  it('returns green for 7 days (boundary)', () => {
+    expect(freshnessColor(7)).toBe('var(--green)');
+  });
+
+  it('returns warning for 8 days', () => {
+    expect(freshnessColor(8)).toBe('var(--warning)');
+  });
+
+  it('returns warning for 30 days (boundary)', () => {
+    expect(freshnessColor(30)).toBe('var(--warning)');
+  });
+
+  it('returns ink-4 for 31 days', () => {
+    expect(freshnessColor(31)).toBe('var(--ink-4)');
+  });
+
+  it('returns ink-4 for very old dates', () => {
+    expect(freshnessColor(365)).toBe('var(--ink-4)');
   });
 });

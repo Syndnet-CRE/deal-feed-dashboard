@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { useDeals } from '../contexts/DealsContext';
-import { DEALS as MOCK_DEALS, BUY_BOXES as MOCK_BUY_BOXES } from '../data/mockData';
 import { I } from '../components/Icons';
 import { ScoreBubble } from '../components/DealComponents';
 import { AerialThumb } from '../components/AerialThumb';
@@ -9,9 +8,7 @@ import { fmtMoney } from '../lib/format';
 import { LEGEND_ITEMS } from '../lib/assetColors';
 
 export function MyDealsView({ onOpenDeal, selectedId }) {
-  const { deals: apiDeals, buyBoxes: apiBuyBoxes, loading } = useDeals();
-  const deals = (!loading && apiDeals.length === 0) ? MOCK_DEALS : apiDeals;
-  const buyBoxes = (!loading && apiBuyBoxes.length === 0) ? MOCK_BUY_BOXES : apiBuyBoxes;
+  const { deals, buyBoxes, loading } = useDeals();
   const [box, setBox] = useState("all");
   const [range, setRange] = useState("month");
   const [klass, setKlass] = useState("all");

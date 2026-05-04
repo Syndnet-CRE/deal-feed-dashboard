@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useDeals } from '../contexts/DealsContext';
-import { DEALS as MOCK_DEALS } from '../data/mockData';
 import { I } from '../components/Icons';
 import { DealCard, MapPin } from '../components/DealComponents';
 import { MapBackground } from '../components/MapBackground';
@@ -31,9 +30,8 @@ function StatCard({ label, num, trend, trendLabel, spark, sparkColor }) {
   );
 }
 
-export function DashboardView({ onOpenDeal, selectedId }) {
-  const { deals: apiDeals, loading } = useDeals();
-  const deals = (!loading && apiDeals.length === 0) ? MOCK_DEALS : apiDeals;
+export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
+  const { deals, loading } = useDeals();
   const [pinHover, setPinHover] = useState(null);
 
   const recentDeals = deals.slice(0, 8);
@@ -99,9 +97,14 @@ export function DashboardView({ onOpenDeal, selectedId }) {
             </div>
           </div>
           {loading ? (
-            <div style={{ padding: 24, color: "#9DA2B3", fontSize: 13 }}>Loading deals…</div>
+            <div style={{ padding: 24, color: "var(--ink-4)", fontSize: 13 }}>Loading deals…</div>
           ) : recentDeals.length === 0 ? (
-            <div style={{ padding: 24, color: "#9DA2B3", fontSize: 13 }}>No deals delivered yet. Your first nightly run will populate this.</div>
+            <div style={{ padding: "28px 24px", textAlign: "center" }}>
+              <div style={{ fontSize: 13, color: "var(--ink-3)", marginBottom: 10 }}>No deals delivered yet. Your first nightly run will populate this.</div>
+              {onNavigateBoxes && (
+                <button className="btn sm" onClick={onNavigateBoxes}><I.Boxes size={12}/> View Buy Boxes</button>
+              )}
+            </div>
           ) : (
             <div>
               {recentDeals.map(d => (

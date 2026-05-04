@@ -1581,6 +1581,11 @@ button { font-family: inherit; }
 }
 .pd-sec-head .upd a { color: var(--link); cursor: pointer; }
 
+.source-label {
+  font-size: 10.5px; color: var(--ink-4); margin-bottom: 8px;
+  font-style: italic; letter-spacing: 0.01em;
+}
+
 /* 2-column key/value grid for property records */
 .kv-grid {
   display: grid;
