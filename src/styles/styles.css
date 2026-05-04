@@ -2556,3 +2556,247 @@ button { font-family: inherit; }
   .co-radius-row { flex-direction: column; }
   .co-field--fixed { flex: unset; width: 100%; }
 }
+
+/* ── Map View Wrap ───────────────────────────────────────── */
+.map-view-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Deal Panel ──────────────────────────────────────────── */
+.deal-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  background: var(--panel);
+  border-left: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 200ms ease-out;
+  z-index: 10;
+}
+.deal-panel.collapsed { transform: translateX(420px); }
+
+.deal-panel-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Panel Toggle Button ─────────────────────────────────── */
+.panel-toggle-btn {
+  position: absolute;
+  right: 420px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 48px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-3);
+  z-index: 11;
+  transition: right 200ms ease-out;
+  padding: 0;
+}
+.panel-toggle-btn:hover { color: var(--ink-1); background: var(--panel-2); }
+.panel-toggle-btn.collapsed {
+  right: 0;
+  border-right: 1px solid var(--hairline);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
+
+/* ── Panel Filter Header ─────────────────────────────────── */
+.panel-filter-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--hairline);
+  flex-shrink: 0;
+}
+.filter-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.filter-row:last-of-type { margin-bottom: 0; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--panel-2);
+  border: 1px solid var(--hairline);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: all 100ms;
+  font-family: inherit;
+}
+.chip:hover { border-color: var(--green); color: var(--ink-1); }
+.chip.active {
+  background: color-mix(in srgb, var(--green) 15%, transparent);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.panel-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0 0;
+  font-size: 11px;
+  color: var(--ink-4);
+  gap: 8px;
+}
+
+/* ── Panel Card List ─────────────────────────────────────── */
+.panel-card-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.panel-empty { padding: 32px 20px; text-align: center; font-size: 13px; color: var(--ink-4); }
+
+/* ── Deal Panel Card (dpc) ───────────────────────────────── */
+.dpc { border-bottom: 1px solid var(--hairline-soft); transition: background 100ms; }
+.dpc:hover { background: var(--panel-2); }
+.dpc.expanded { background: var(--panel-2); }
+
+.dpc-header {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  align-items: flex-start;
+}
+.dpc-pin-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.dpc-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.dpc-thumb img,
+.dpc-thumb > * { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.dpc-info { flex: 1; min-width: 0; }
+.dpc-addr1 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.dpc-addr2 { font-size: 11px; color: var(--ink-3); margin-bottom: 5px; }
+.dpc-meta-row { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.dpc-meta-item { font-size: 10.5px; color: var(--ink-3); }
+
+.dpc-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dpc-date { font-size: 10px; color: var(--ink-4); white-space: nowrap; }
+
+/* ── Deal Panel Card Expanded ────────────────────────────── */
+.dpc-expanded { padding: 0 12px 12px; }
+
+.dpc-signals { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.signal-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.signal-pill.hi { background: rgba(229,72,77,0.15); color: #E5484D; border: 1px solid rgba(229,72,77,0.3); }
+.signal-pill.md { background: rgba(244,183,62,0.15); color: #F4B73E; border: 1px solid rgba(244,183,62,0.3); }
+.signal-pill.lo { background: rgba(91,204,72,0.15);  color: var(--green); border: 1px solid rgba(91,204,72,0.3); }
+
+.dpc-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+.dpc-fact-label {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--ink-4);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1px;
+}
+.dpc-fact-value { font-size: 12px; color: var(--ink-2); font-weight: 500; }
+
+.dpc-owner {
+  background: var(--panel-3);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.dpc-owner-name { font-size: 12px; font-weight: 600; color: var(--ink-1); margin-bottom: 2px; }
+.dpc-owner-sub { font-size: 11px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; }
+.dpc-owner-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--warning);
+  background: rgba(244,183,62,0.15);
+  border: 1px solid rgba(244,183,62,0.3);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+/* ── tag.green variant ───────────────────────────────────── */
+.tag.green {
+  background: rgba(91,204,72,0.12);
+  color: var(--green);
+  border-color: rgba(91,204,72,0.3);
+}
+
+/* ── select.xs, btn.xs ───────────────────────────────────── */
+.select.xs { padding: 4px 22px 4px 8px; font-size: 11px; height: unset; }
+.btn.xs { padding: 4px 8px; font-size: 11px; height: unset; gap: 4px; }
+
+/* ── Deal Detail Modal Overlay ───────────────────────────── */
+.deal-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}

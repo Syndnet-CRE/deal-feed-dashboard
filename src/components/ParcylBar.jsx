@@ -6,7 +6,6 @@ import { useDeals } from '../contexts/DealsContext';
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: I.Dashboard },
-  { id: "deals",     label: "My Deals",  icon: I.Deals },
   { id: "map",       label: "Map",       icon: I.Map },
   { id: "boxes",     label: "Buy Boxes", icon: I.Boxes },
   { id: "settings",  label: "Settings",  icon: I.Settings },

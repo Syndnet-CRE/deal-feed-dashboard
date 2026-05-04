@@ -2,10 +2,11 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { DEALS as MOCK_DEALS, BUY_BOXES as MOCK_BUY_BOXES } from '../data/mockData';
 import { DealMap } from '../components/DealMap';
+import { DealPanel } from '../components/DealPanel';
 import { I } from '../components/Icons';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
-const THUMB_REF = '-97.742,30.266,10'; // Austin, TX — fixed reference for style previews
+const THUMB_REF    = '-97.742,30.266,10';
 
 function styleThumbUrl(style) {
   return `https://api.mapbox.com/styles/v1/mapbox/${style}/static/${THUMB_REF}/160x90@2x?access_token=${MAPBOX_TOKEN}&logo=false&attribution=false`;
@@ -19,36 +20,50 @@ const STYLE_THUMBS = {
 
 const STYLE_KEY    = 'parcyl-map-style';
 const VIEWPORT_KEY = 'parcyl-map-viewport';
+const PANEL_KEY    = 'dealfeed.mapPanel.collapsed';
+const FILTERS_KEY  = 'parcyl-deals-filters';
+
+const DEFAULT_FILTERS = {
+  box: 'all', range: 'all', klass: 'all', sort: 'recent',
+  ownerTypes: [], hasContactInfo: false, distressTypes: [],
+};
 
 function loadStyle()    { return localStorage.getItem(STYLE_KEY) || 'satellite'; }
 function loadViewport() {
-  try { const v = localStorage.getItem(VIEWPORT_KEY); return v ? JSON.parse(v) : null; }
-  catch { return null; }
+  try { const v = localStorage.getItem(VIEWPORT_KEY); return v ? JSON.parse(v) : null; } catch { return null; }
+}
+function loadCollapsed() {
+  try { const v = localStorage.getItem(PANEL_KEY); return v ? JSON.parse(v) : false; } catch { return false; }
+}
+function loadFilters() {
+  try { const v = localStorage.getItem(FILTERS_KEY); return v ? { ...DEFAULT_FILTERS, ...JSON.parse(v) } : DEFAULT_FILTERS; }
+  catch { return DEFAULT_FILTERS; }
+}
+
+function sortDeals(deals, sort) {
+  const out = [...deals];
+  if (sort === 'distress') return out.sort((a, b) => (b.score || 0) - (a.score || 0));
+  if (sort === 'value')    return out.sort((a, b) => (b.value || 0) - (a.value || 0));
+  return out.sort((a, b) => (a.days ?? 9999) - (b.days ?? 9999));
 }
 
 export function MapView({ onOpenDeal }) {
   const { deals: apiDeals, buyBoxes: apiBuyBoxes, loading } = useDeals();
-  const deals    = (!loading && apiDeals.length   === 0) ? MOCK_DEALS    : apiDeals;
+  const deals    = (!loading && apiDeals.length    === 0) ? MOCK_DEALS    : apiDeals;
   const buyBoxes = (!loading && apiBuyBoxes.length === 0) ? MOCK_BUY_BOXES : apiBuyBoxes;
 
-  const [box,         setBox]         = useState("all");
-  const [range,       setRange]       = useState("all");
-  const [klass,       setKlass]       = useState("all");
-  const [mapStyle,    setMapStyle]    = useState(loadStyle);
-  const [viewport,    setViewport]    = useState(loadViewport);
-  const [activePanel, setActivePanel] = useState(null);
+  const [filters,        setFilters]        = useState(loadFilters);
+  const [mapStyle,       setMapStyle]       = useState(loadStyle);
+  const [viewport,       setViewport]       = useState(loadViewport);
+  const [collapsed,      setCollapsed]      = useState(loadCollapsed);
+  const [expandedCardId, setExpandedCardId] = useState(null);
+  const [focusDealId,    setFocusDealId]    = useState(null);
+  const [activePanel,    setActivePanel]    = useState(null);
 
-  const assetClasses = useMemo(() => [...new Set(deals.map(d => d.asset))].filter(Boolean).sort(), [deals]);
-  const activeBoxes  = useMemo(() => buyBoxes.filter(b => b.status === "Active"), [buyBoxes]);
-
-  const filtered = useMemo(() => {
-    let out = deals;
-    if (box   !== "all") out = out.filter(d => d.box   === box);
-    if (klass !== "all") out = out.filter(d => d.asset === klass);
-    const days = range === "week" ? 7 : range === "month" ? 31 : 9999;
-    out = out.filter(d => d.days <= days);
-    return out;
-  }, [deals, box, range, klass]);
+  const handleFiltersChange = useCallback((next) => {
+    setFilters(next);
+    localStorage.setItem(FILTERS_KEY, JSON.stringify(next));
+  }, []);
 
   const handleStyleChange = useCallback((style) => {
     setMapStyle(style);
@@ -61,8 +76,27 @@ export function MapView({ onOpenDeal }) {
     localStorage.setItem(VIEWPORT_KEY, JSON.stringify(vp));
   }, []);
 
-  const togglePanel = useCallback((panel) => {
-    setActivePanel(p => p === panel ? null : panel);
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem(PANEL_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  // Card click in panel: expand card + flyTo on map
+  const handleExpandCard = useCallback((id) => {
+    setExpandedCardId(id);
+    if (id) setFocusDealId(id);
+  }, []);
+
+  // Pin click on map: expand card in panel, auto-open panel; no flyTo (user is already viewing pin)
+  const handlePinClick = useCallback((deal) => {
+    setCollapsed(prev => {
+      if (prev) localStorage.setItem(PANEL_KEY, JSON.stringify(false));
+      return false;
+    });
+    setExpandedCardId(deal.id);
   }, []);
 
   const toolbarRef = useRef(null);
@@ -73,74 +107,68 @@ export function MapView({ onOpenDeal }) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [activePanel]);
 
+  const filtered = useMemo(() => {
+    let out = deals;
+    if (filters.box   !== 'all') out = out.filter(d => d.box   === filters.box);
+    if (filters.klass !== 'all') out = out.filter(d => d.asset === filters.klass);
+    if (filters.range !== 'all') {
+      const days = filters.range === 'week' ? 7 : filters.range === 'month' ? 31 : filters.range === 'quarter' ? 91 : 9999;
+      out = out.filter(d => (d.days ?? 9999) <= days);
+    }
+    if (filters.ownerTypes?.length > 0) {
+      out = out.filter(d => filters.ownerTypes.some(t => {
+        const et = d.entityType || '';
+        if (t === 'Individual') return !et || et === 'Individual';
+        if (t === 'LLC')        return et.includes('LLC');
+        if (t === 'Trust')      return et.includes('Trust');
+        if (t === 'Corporate')  return et.includes('Corp') || et.includes('Inc');
+        return false;
+      }));
+    }
+    if (filters.hasContactInfo) out = out.filter(d => d.dm);
+    return sortDeals(out, filters.sort);
+  }, [deals, filters]);
+
   return (
-    <div className="map-wrap" style={{ height: "100%", position: "relative" }}>
+    <div className="map-view-wrap">
       <DealMap
         deals={filtered}
-        onClickDeal={onOpenDeal}
-        withPopup={true}
+        onClickDeal={handlePinClick}
+        withPopup={false}
         mapStyle={mapStyle}
-        padding={120}
+        padding={80}
         initialViewState={viewport}
         onViewStateChange={handleViewportChange}
+        selectedId={expandedCardId}
+        focusDealId={focusDealId}
       />
 
       <div className="map-toolbar" ref={toolbarRef}>
-        {/* Filters */}
         <div className="mt-slot">
-          <button className={`mt-btn ${activePanel === 'filters' ? 'active' : ''}`} onClick={() => togglePanel('filters')} title="Filters">
-            <I.Filter size={16}/>
-            {filtered.length < deals.length && <span className="mt-badge"/>}
-          </button>
-          {activePanel === 'filters' && (
-            <div className="mt-panel">
-              <div className="mt-panel-head">
-                <span>Filters</span>
-                <span className="mt-pin-count">{filtered.length} pins</span>
-              </div>
-              <div className="mt-field">
-                <span className="select-label">Buy Box</span>
-                <select className="select" style={{ width: "100%", marginTop: 4 }} value={box} onChange={(e) => setBox(e.target.value)}>
-                  <option value="all">All Buy Boxes</option>
-                  {activeBoxes.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                </select>
-              </div>
-              <div className="mt-field">
-                <span className="select-label">Date Range</span>
-                <select className="select" style={{ width: "100%", marginTop: 4 }} value={range} onChange={(e) => setRange(e.target.value)}>
-                  <option value="week">This Week</option>
-                  <option value="month">This Month</option>
-                  <option value="all">All Time</option>
-                </select>
-              </div>
-              <div className="mt-field">
-                <span className="select-label">Asset Class</span>
-                <select className="select" style={{ width: "100%", marginTop: 4 }} value={klass} onChange={(e) => setKlass(e.target.value)}>
-                  <option value="all">All Classes</option>
-                  {assetClasses.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
-              <div className="mt-panel-foot">
-                <button className="btn sm" onClick={() => { setBox("all"); setRange("all"); setKlass("all"); }}>Reset</button>
-                <span className="mt-hidden">{deals.length - filtered.length} hidden</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Map Style */}
-        <div className="mt-slot">
-          <button className={`mt-btn ${activePanel === 'style' ? 'active' : ''}`} onClick={() => togglePanel('style')} title="Map Style">
-            <I.Layers size={16}/>
+          <button
+            className={`mt-btn ${activePanel === 'style' ? 'active' : ''}`}
+            onClick={() => setActivePanel(p => p === 'style' ? null : 'style')}
+            title="Map Style"
+          >
+            <I.Layers size={16} />
           </button>
           {activePanel === 'style' && (
             <div className="mt-panel">
               <div className="mt-panel-head"><span>Map Style</span></div>
               <div className="mt-style-grid">
                 {Object.entries(STYLE_THUMBS).map(([key, thumb]) => (
-                  <button key={key} className={`mt-style-opt ${mapStyle === key ? 'active' : ''}`} onClick={() => handleStyleChange(key)}>
+                  <button
+                    key={key}
+                    className={`mt-style-opt ${mapStyle === key ? 'active' : ''}`}
+                    onClick={() => handleStyleChange(key)}
+                  >
                     <div className="mt-thumb">
-                      <img src={styleThumbUrl(thumb.styleId)} alt={thumb.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 4 }} onError={e => { e.currentTarget.style.display = 'none'; }}/>
+                      <img
+                        src={styleThumbUrl(thumb.styleId)}
+                        alt={thumb.label}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', borderRadius: 4 }}
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
                     </div>
                     <span>{thumb.label}</span>
                   </button>
@@ -149,6 +177,29 @@ export function MapView({ onOpenDeal }) {
             </div>
           )}
         </div>
+      </div>
+
+      <button
+        className={`panel-toggle-btn${collapsed ? ' collapsed' : ''}`}
+        onClick={toggleCollapsed}
+        title={collapsed ? 'Show deal panel' : 'Hide deal panel'}
+      >
+        <I.Chevron
+          size={14}
+          style={{ transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 200ms' }}
+        />
+      </button>
+
+      <div className={`deal-panel${collapsed ? ' collapsed' : ''}`}>
+        <DealPanel
+          deals={filtered}
+          buyBoxes={buyBoxes}
+          filters={filters}
+          onFilterChange={handleFiltersChange}
+          expandedCardId={expandedCardId}
+          onExpandCard={handleExpandCard}
+          onOpenDeal={onOpenDeal}
+        />
       </div>
     </div>
   );

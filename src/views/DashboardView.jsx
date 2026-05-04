@@ -18,7 +18,7 @@ function StatCard({ label, num, trend, sub }) {
   );
 }
 
-export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
+export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selectedId }) {
   const { deals, contacts, loading } = useDeals();
 
   const recentDeals = deals.slice(0, 8);
@@ -176,7 +176,7 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, selectedId }) {
               <div className="panel-title">Deal Map · Top Matches</div>
               <div className="panel-sub">{mapDeals.length} deals mapped by score</div>
             </div>
-            <button className="btn sm"><I.External size={11}/> Open Map</button>
+            <button className="btn sm" onClick={() => onSetView('map')}><I.External size={11}/> Open Map</button>
           </div>
           <div style={{ height: 280, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
             {!loading && (

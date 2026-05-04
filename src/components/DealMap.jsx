@@ -45,6 +45,7 @@ export function DealMap({
   padding = 80,
   initialViewState = null,
   onViewStateChange = null,
+  focusDealId = null,
 }) {
   const mapRef = useRef(null);
   const [viewState, setViewState] = useState(initialViewState || DEFAULT_VIEW);
@@ -60,6 +61,20 @@ export function DealMap({
     if (!mapLoaded || initialViewState) return;
     fitDeals(mapRef, deals, padding);
   }, [deals, padding, mapLoaded, initialViewState]);
+
+  useEffect(() => {
+    if (!mapLoaded || !focusDealId) return;
+    const deal = deals.find(d => d.id === focusDealId);
+    if (!deal?.lat || !deal?.lng) return;
+    const map = mapRef.current?.getMap ? mapRef.current.getMap() : mapRef.current;
+    if (!map) return;
+    const currentZoom = map.getZoom();
+    mapRef.current.flyTo({
+      center: [deal.lng, deal.lat],
+      zoom: currentZoom < 14 ? 14 : currentZoom,
+      duration: 500,
+    });
+  }, [focusDealId, deals, mapLoaded]);
 
   const handleMove = useCallback((evt) => {
     setViewState(evt.viewState);

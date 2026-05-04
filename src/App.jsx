@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useDeals, DealsProvider } from './contexts/DealsContext';
 import { ParcylBar } from './components/ParcylBar';
@@ -7,7 +7,6 @@ import { PropertyDetail } from './components/PropertyDetail';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ConfigurationOverlay } from './components/ConfigurationOverlay';
 import { DashboardView } from './views/DashboardView';
-import { MyDealsView } from './views/MyDealsView';
 import { BuyBoxesView } from './views/BuyBoxesView';
 import { MapView } from './views/MapView';
 import { SettingsView } from './views/SettingsView';
@@ -18,8 +17,8 @@ import { LoginView } from './views/LoginView';
   document.documentElement.setAttribute('data-theme', t);
 })();
 
-function DealDetailRoute() {
-  const { dealId } = useParams();
+// Standalone deal page — cold load or direct navigation from non-map surface
+function DealDetailPage({ dealId }) {
   const { deals, loading } = useDeals();
   const navigate = useNavigate();
 
@@ -41,6 +40,33 @@ function DealDetailRoute() {
   return <PropertyDetail deal={deal} onClose={() => navigate(-1)}/>;
 }
 
+// Full-screen modal overlay — opened from map panel via navigate('/deal/:id', { state: { fromMap: true } })
+function DealDetailModal({ dealId }) {
+  const { deals, loading } = useDeals();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const close = useCallback(() => {
+    navigate(location.key === 'default' ? '/' : -1);
+  }, [navigate, location.key]);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [close]);
+
+  if (loading) return null;
+  const deal = deals.find(d => String(d.id) === dealId);
+  if (!deal) return null;
+
+  return (
+    <div className="deal-modal-overlay">
+      <PropertyDetail deal={deal} onClose={close}/>
+    </div>
+  );
+}
+
 function PauseBoxConfirm({ buyBox, onClose }) {
   const { patchBuyBox } = useDeals();
   return (
@@ -56,6 +82,7 @@ function AppShell() {
   const { subscriber, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const dealMatch = useMatch('/deal/:dealId');
   const [view, setView] = useState('dashboard');
   const [confirmDanger, setConfirmDanger] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
@@ -63,7 +90,9 @@ function AppShell() {
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('parcyl-theme') || 'dark');
 
-  const isOnDeal = location.pathname.startsWith('/deal/');
+  const isOnDeal = !!dealMatch;
+  // Modal mode: deal URL reached from map panel (navigate passes fromMap state)
+  const isModal  = isOnDeal && !!location.state?.fromMap;
 
   const toggleTheme = useCallback(() => {
     setTheme(prev => {
@@ -80,8 +109,10 @@ function AppShell() {
   }, [isOnDeal, navigate]);
 
   const handleOpenDeal = useCallback((deal) => {
-    navigate('/deal/' + deal.id);
-  }, [navigate]);
+    // From map: open as modal overlay so MapView stays mounted
+    const state = view === 'map' ? { fromMap: true } : undefined;
+    navigate('/deal/' + deal.id, state ? { state } : {});
+  }, [navigate, view]);
 
   useEffect(() => {
     if (!loading && !subscriber) navigate('/login');
@@ -109,27 +140,38 @@ function AppShell() {
 
   if (!subscriber) return null;
 
-  const noScroll = view === 'deals' || view === 'map';
+  const noScroll = view === 'map';
 
   return (
     <DealsProvider>
       <div className="app has-topbar">
         <ParcylBar
-          view={isOnDeal ? null : view}
+          view={isOnDeal && !isModal ? null : view}
           setView={handleSetView}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
         <Routes>
-          <Route path="/deal/:dealId" element={<DealDetailRoute/>}/>
           <Route path="/*" element={
-            <div className={`content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
-              {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal} onNavigateBoxes={() => handleSetView('boxes')}/>}
-              {view === 'deals'     && <MyDealsView   onOpenDeal={handleOpenDeal}/>}
-              {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
-              {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)} onEdit={setEditingBuyBox} onPause={setPausingBuyBox}/>}
-              {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
-            </div>
+            <>
+              {/* Standalone full-page deal: cold load or navigation from non-map views */}
+              {isOnDeal && !isModal && (
+                <DealDetailPage dealId={dealMatch.params.dealId}/>
+              )}
+
+              {/* Main view switcher — always mounted when not standalone deal page */}
+              {(!isOnDeal || isModal) && (
+                <div className={`content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
+                  {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal} onNavigateBoxes={() => handleSetView('boxes')} onSetView={handleSetView}/>}
+                  {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
+                  {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)} onEdit={setEditingBuyBox} onPause={setPausingBuyBox}/>}
+                  {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
+                </div>
+              )}
+
+              {/* Full-screen modal over map — opened from deal panel "Open Deal" button */}
+              {isModal && <DealDetailModal dealId={dealMatch.params.dealId}/>}
+            </>
           }/>
         </Routes>
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
