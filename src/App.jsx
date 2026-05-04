@@ -41,6 +41,17 @@ function DealDetailRoute() {
   return <PropertyDetail deal={deal} onClose={() => navigate(-1)}/>;
 }
 
+function PauseBoxConfirm({ buyBox, onClose }) {
+  const { patchBuyBox } = useDeals();
+  return (
+    <ConfirmModal
+      kind="pause-box"
+      onClose={onClose}
+      onConfirm={async () => { await patchBuyBox(buyBox.id, { status: 'paused' }); }}
+    />
+  );
+}
+
 function AppShell() {
   const { subscriber, loading } = useAuth();
   const navigate = useNavigate();
@@ -48,6 +59,8 @@ function AppShell() {
   const [view, setView] = useState('dashboard');
   const [confirmDanger, setConfirmDanger] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
+  const [editingBuyBox, setEditingBuyBox] = useState(null);
+  const [pausingBuyBox, setPausingBuyBox] = useState(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('parcyl-theme') || 'dark');
 
   const isOnDeal = location.pathname.startsWith('/deal/');
@@ -79,6 +92,8 @@ function AppShell() {
       if (e.key !== 'Escape') return;
       setShowWizard(prev => (prev ? false : prev));
       setConfirmDanger(prev => (prev ? null : prev));
+      setEditingBuyBox(prev => (prev ? null : prev));
+      setPausingBuyBox(prev => (prev ? null : prev));
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -112,13 +127,15 @@ function AppShell() {
               {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal} onNavigateBoxes={() => handleSetView('boxes')}/>}
               {view === 'deals'     && <MyDealsView   onOpenDeal={handleOpenDeal}/>}
               {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
-              {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)}/>}
+              {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)} onEdit={setEditingBuyBox} onPause={setPausingBuyBox}/>}
               {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
             </div>
           }/>
         </Routes>
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
+        {pausingBuyBox && <PauseBoxConfirm buyBox={pausingBuyBox} onClose={() => setPausingBuyBox(null)}/>}
         {showWizard && <ConfigurationOverlay onClose={() => setShowWizard(false)}/>}
+        {editingBuyBox && <ConfigurationOverlay mode="edit" initialData={editingBuyBox} onClose={() => setEditingBuyBox(null)}/>}
       </div>
     </DealsProvider>
   );

@@ -12,10 +12,17 @@ const CONFIGS = {
     body: "Service will end at the close of your current billing period (Mar 12, 2027). Your buy boxes will be deleted after 30 days. This cannot be undone after the deletion grace period.",
     btn: "Cancel Subscription",
     danger: true
-  }
+  },
+  'pause-box': {
+    title: "Pause this buy box?",
+    body: "Nightly runs will stop for this buy box. Your data and history are preserved. Resume any time.",
+    btn: "Pause Buy Box",
+    cancelBtn: "Keep Running",
+    danger: false
+  },
 };
 
-export function ConfirmModal({ kind, onClose }) {
+export function ConfirmModal({ kind, onClose, onConfirm }) {
   const cfg = CONFIGS[kind] || CONFIGS.pause;
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -26,8 +33,8 @@ export function ConfirmModal({ kind, onClose }) {
         </div>
         <div className="modal-body">{cfg.body}</div>
         <div className="modal-foot">
-          <button className="btn" onClick={onClose}>Keep Subscription</button>
-          <button className={cfg.danger ? "btn danger" : "btn"} onClick={onClose} style={cfg.danger ? { background: "#E5484D", borderColor: "#E5484D", color: "#FFF" } : null}>{cfg.btn}</button>
+          <button className="btn" onClick={onClose}>{cfg.cancelBtn || 'Keep Subscription'}</button>
+          <button className={cfg.danger ? "btn danger" : "btn"} onClick={() => { onConfirm?.(); onClose(); }} style={cfg.danger ? { background: "#E5484D", borderColor: "#E5484D", color: "#FFF" } : null}>{cfg.btn}</button>
         </div>
       </div>
     </div>

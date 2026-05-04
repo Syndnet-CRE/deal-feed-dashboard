@@ -42,8 +42,16 @@ const GEO_MODES = [
   { id: 'radius', label: 'Radius' },
 ];
 
-function mkInitialForm(subscriber) {
-  return {
+function detectGeoMode(d) {
+  if (d?.geo_states?.length)  return 'state';
+  if (d?.geo_cities?.length)  return 'metro';
+  if (d?.geo_zips?.length)    return 'zip';
+  if (d?.geo_radius_address)  return 'radius';
+  return 'state';
+}
+
+function mkInitialForm(subscriber, initialData) {
+  const base = {
     first_name: subscriber?.first_name || '',
     last_name:  subscriber?.last_name  || '',
     company:    subscriber?.company    || '',
@@ -67,6 +75,35 @@ function mkInitialForm(subscriber) {
     distress_signals: [],
     distress_only: false,
     notes: '',
+    zoning_codes: [],
+  };
+
+  if (!initialData) return base;
+
+  return {
+    ...base,
+    label: initialData.label || '',
+    asset_classes: initialData.asset_classes || [],
+    geoMode: detectGeoMode(initialData),
+    geo_states: initialData.geo_states || [],
+    geo_cities: initialData.geo_cities || [],
+    geo_zips: initialData.geo_zips || [],
+    geo_radius_address: initialData.geo_radius_address || '',
+    geo_radius_miles: initialData.geo_radius_miles ?? 25,
+    acres_min: initialData.acres_min ?? '',
+    acres_max: initialData.acres_max ?? '',
+    value_min: initialData.value_min ?? '',
+    value_max: initialData.value_max ?? '',
+    year_built_min: initialData.year_built_min ?? '',
+    year_built_max: initialData.year_built_max ?? '',
+    min_hold_yrs: initialData.min_hold_yrs ?? '',
+    owner_types: initialData.owner_types || [],
+    absentee_only: initialData.absentee_only || false,
+    out_of_state_only: initialData.out_of_state_only || false,
+    distress_signals: initialData.distress_signals || [],
+    distress_only: initialData.distress_only || false,
+    notes: initialData.notes || '',
+    zoning_codes: initialData.zoning_codes || [],
   };
 }
 
@@ -105,23 +142,27 @@ function toggleArr(arr, val) {
   return arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
 }
 
-export function ConfigurationOverlay({ onClose }) {
+export function ConfigurationOverlay({ onClose, mode = 'create', initialData = null }) {
   const { subscriber } = useAuth();
   const { refetch }    = useDeals();
+  const isEdit         = mode === 'edit';
 
-  const [form, setForm]               = useState(() => mkInitialForm(subscriber));
+  const [form, setForm]               = useState(() => mkInitialForm(subscriber, initialData));
   const [pendingMode, setPending]     = useState(null);
   const [statesOpen, setStatesOpen]   = useState(false);
   const [stateSearch, setStateSearch] = useState('');
   const [assetOpen, setAssetOpen]     = useState(false);
   const [zipInput, setZipInput]       = useState('');
   const [metroInput, setMetroInput]   = useState('');
-  const [submitting, setSubmitting]   = useState(false);
-  const [error, setError]             = useState('');
-  const [success, setSuccess]         = useState(false);
+  const [submitting, setSubmitting]       = useState(false);
+  const [error, setError]                 = useState('');
+  const [success, setSuccess]             = useState(false);
+  const [previewCount, setPreviewCount]   = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const assetWrapRef  = useRef(null);
   const statesWrapRef = useRef(null);
+  const previewTimer  = useRef(null);
 
   useEffect(() => {
     if (!assetOpen && !statesOpen) return;
@@ -133,10 +174,38 @@ export function ConfigurationOverlay({ onClose }) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [assetOpen, statesOpen]);
 
+  const previewAssetKey  = form.asset_classes.join(',');
+  const previewStatesKey = form.geo_states.join(',');
+  const previewCitiesKey = form.geo_cities.join(',');
+  const previewZipsKey   = form.geo_zips.join(',');
+
+  useEffect(() => {
+    let isMounted = true;
+    const hasReqs = previewAssetKey.length > 0 && activeGeoHasData(form);
+    clearTimeout(previewTimer.current);
+    previewTimer.current = setTimeout(async () => {
+      if (!hasReqs) { if (isMounted) setPreviewCount(null); return; }
+      if (isMounted) setPreviewLoading(true);
+      try {
+        const label = form.label.trim() || autoLabel(form);
+        const payload = buildPayload({ ...form, label });
+        const res = await api.post('/api/dealfeed/buy-boxes/preview', payload);
+        if (isMounted) setPreviewCount(res.count ?? res.cnt ?? 0);
+      } catch {
+        if (isMounted) setPreviewCount(null);
+      } finally {
+        if (isMounted) setPreviewLoading(false);
+      }
+    }, 400);
+    return () => { isMounted = false; clearTimeout(previewTimer.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewAssetKey, form.geoMode, previewStatesKey, previewCitiesKey, previewZipsKey, form.geo_radius_address, form.geo_radius_miles]);
+
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
-  const filled = sectionsFilled(form);
-  const pct    = Math.round((filled / 7) * 100);
+  const infoFilled = (form.first_name || form.last_name || form.company || form.phone || form.role) ? 1 : 0;
+  const filledSections = isEdit ? sectionsFilled(form) - infoFilled : sectionsFilled(form);
+  const pct = Math.min(100, Math.round((filledSections / (isEdit ? 6 : 7)) * 100));
 
   function requestModeSwitch(mode) {
     if (mode === form.geoMode) return;
@@ -162,22 +231,27 @@ export function ConfigurationOverlay({ onClose }) {
     try {
       const label   = form.label.trim() || autoLabel(form);
       const payload = buildPayload({ ...form, label });
-      const calls   = [api.post('/api/dealfeed/onboarding', payload)];
 
-      const info = {};
-      if (form.first_name) info.first_name = form.first_name.trim();
-      if (form.last_name)  info.last_name  = form.last_name.trim();
-      if (form.company)    info.company    = form.company.trim();
-      if (form.phone)      info.phone      = form.phone.trim();
-      if (form.role)       info.role       = form.role;
-      if (Object.keys(info).length) calls.push(api.patch('/api/dealfeed/auth/me', info).catch(() => {}));
+      if (isEdit) {
+        if (!initialData?.id) { setError('Invalid buy box. Please close and try again.'); return; }
+        await api.patch(`/api/dealfeed/buy-boxes/${initialData.id}`, payload);
+      } else {
+        const calls = [api.post('/api/dealfeed/onboarding', payload)];
+        const info  = {};
+        if (form.first_name) info.first_name = form.first_name.trim();
+        if (form.last_name)  info.last_name  = form.last_name.trim();
+        if (form.company)    info.company    = form.company.trim();
+        if (form.phone)      info.phone      = form.phone.trim();
+        if (form.role)       info.role       = form.role;
+        if (Object.keys(info).length) calls.push(api.patch('/api/dealfeed/auth/me', info).catch(() => {}));
+        await Promise.all(calls);
+      }
 
-      await Promise.all(calls);
       refetch();
       setSuccess(true);
       setTimeout(onClose, 2200);
     } catch (err) {
-      setError(err?.message || 'Activation failed. Please try again.');
+      setError(err?.message || (isEdit ? 'Save failed. Please try again.' : 'Activation failed. Please try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -201,8 +275,11 @@ export function ConfigurationOverlay({ onClose }) {
       <div className="co-overlay">
         <div className="co-success">
           <div className="co-success-icon">&#10003;</div>
-          <h3>Buy Box Activated</h3>
-          <p>Your buy box is live. We're scanning now and you'll receive your first deal report tomorrow morning.</p>
+          <h3>{isEdit ? 'Buy Box Updated' : 'Buy Box Activated'}</h3>
+          <p>{isEdit
+            ? 'Your changes have been saved. The next nightly run will use your updated criteria.'
+            : "Your buy box is live. We're scanning now and you'll receive your first deal report tomorrow morning."
+          }</p>
         </div>
       </div>
     );
@@ -230,7 +307,8 @@ export function ConfigurationOverlay({ onClose }) {
         {/* Body */}
         <div className="co-body">
 
-          {/* Your Info */}
+          {/* Your Info — create mode only */}
+          {!isEdit && (
           <div className="co-section">
             <div className="co-section-head">
               <span className="co-section-icon"><I.User size={18} /></span>
@@ -271,6 +349,7 @@ export function ConfigurationOverlay({ onClose }) {
               </div>
             </div>
           </div>
+          )}
 
           {/* Buy Box Name */}
           <div className="co-section">
@@ -675,6 +754,10 @@ export function ConfigurationOverlay({ onClose }) {
             )}
           </div>
           <div className="co-review-right">
+            {previewLoading && <span className="co-review-preview co-review-preview--loading">Matching…</span>}
+            {previewCount !== null && !previewLoading && (
+              <span className="co-review-preview">~{previewCount} matches</span>
+            )}
             {error && <span className="co-review-error">{error}</span>}
             <button
               className="co-activate-btn"
@@ -682,7 +765,9 @@ export function ConfigurationOverlay({ onClose }) {
               disabled={submitting}
               type="button"
             >
-              {submitting ? 'Activating...' : 'Activate Buy Box'}
+              {submitting
+                ? (isEdit ? 'Saving...' : 'Activating...')
+                : (isEdit ? 'Save Changes' : 'Activate Buy Box')}
             </button>
           </div>
         </div>

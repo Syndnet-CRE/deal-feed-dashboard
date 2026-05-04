@@ -1,10 +1,21 @@
+import { useState } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from '../components/Icons';
 
-export function BuyBoxesView({ onCreate }) {
-  const { buyBoxes, loading } = useDeals();
+export function BuyBoxesView({ onCreate, onEdit, onPause }) {
+  const { buyBoxes, loading, patchBuyBox } = useDeals();
+  const [resumeError, setResumeError] = useState(null);
   const failed = buyBoxes.filter(b => b.status === "Coverage Failed");
   const activeCount = buyBoxes.filter(b => b.status === "Active").length;
+
+  async function handleResume(b) {
+    try {
+      setResumeError(null);
+      await patchBuyBox(b.id, { status: 'active' });
+    } catch (err) {
+      setResumeError(err?.message || 'Resume failed. Please try again.');
+    }
+  }
 
   if (loading) {
     return (
@@ -31,6 +42,13 @@ export function BuyBoxesView({ onCreate }) {
           <button className="btn primary" onClick={onCreate}><I.Plus size={13}/> New Buy Box</button>
         </div>
       </div>
+
+      {resumeError && (
+        <div className="callout">
+          <div className="cal-ico"><I.Alert size={16}/></div>
+          <div className="cal-text">{resumeError}</div>
+        </div>
+      )}
 
       {failed.length > 0 && (
         <div className="callout">
@@ -74,9 +92,9 @@ export function BuyBoxesView({ onCreate }) {
                   <div className="bb-stat"><div className="num" style={{ fontSize: 14, fontWeight: 700 }}>{b.status === "Active" ? "Nightly" : b.status === "Pending" ? "Q'd" : "—"}</div><div className="lbl">Cadence</div></div>
                 </div>
                 <div className="bb-actions">
-                  <button className="btn sm" style={{ flex: 1 }}><I.Edit size={12}/> Edit</button>
-                  {b.status === "Active" && <button className="btn sm" style={{ flex: 1 }}><I.Pause size={12}/> Pause</button>}
-                  {b.status === "Paused" && <button className="btn outline-green sm" style={{ flex: 1 }}><I.Play size={12}/> Resume</button>}
+                  <button className="btn sm" style={{ flex: 1 }} onClick={() => onEdit?.(b)}><I.Edit size={12}/> Edit</button>
+                  {b.status === "Active" && <button className="btn sm" style={{ flex: 1 }} onClick={() => onPause?.(b)}><I.Pause size={12}/> Pause</button>}
+                  {b.status === "Paused" && <button className="btn outline-green sm" style={{ flex: 1 }} onClick={() => handleResume(b)}><I.Play size={12}/> Resume</button>}
                   {b.status === "Pending" && <button className="btn sm" style={{ flex: 1 }} disabled>Activating…</button>}
                   {b.status === "Coverage Failed" && <button className="btn sm" style={{ flex: 1, color: "#FF7378", borderColor: "rgba(229,72,77,0.4)" }}>Edit Geo</button>}
                 </div>
