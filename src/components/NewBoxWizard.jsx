@@ -6,8 +6,8 @@ import { fmt } from '../lib/format';
 import { buildPayload, canProceed } from '../lib/wizardHelpers';
 import { useDeals } from '../contexts/DealsContext';
 
-const TOTAL_STEPS = STEP_LABELS.length;
 const STEP_LABELS = ['Name', 'Geography', 'Asset Classes', 'Property Criteria', 'Ownership', 'Distress Signals', 'Review'];
+const TOTAL_STEPS = STEP_LABELS.length;
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
