@@ -35,7 +35,7 @@ npx playwright test --ui      # Playwright interactive mode
 npx playwright show-report    # view last HTML report
 ```
 
-E2E tests live in `tests/smoke.spec.js`. `playwright.config.js` sets `webServer: null`, so start `npm run dev` in a separate terminal before running Playwright.
+E2E tests live in `tests/smoke.spec.js`. Story-level regression tests are in `tests/story-4.2-edit-buybox.test.cjs` and `tests/story-4.3-pause-resume-preview.test.cjs` (run with `node`). `playwright.config.js` sets `webServer: null`, so start `npm run dev` in a separate terminal before running Playwright.
 
 ## ENV VARS
 
@@ -58,7 +58,7 @@ BrowserRouter
         DealDetailRoute  (/deal/:dealId → PropertyDetail)
 ```
 
-`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `DealsProvider` is mounted inside `AppShell` (not at app root) and exposes `{ deals, buyBoxes, loading, error, refetch, postFeedback, saveNote }`.
+`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `DealsProvider` is mounted inside `AppShell` (not at app root) and exposes `{ deals, buyBoxes, contacts, loading, error, refetch, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }`.
 
 `AppShell` and `DealDetailRoute` are both defined in `src/App.jsx` — there are no separate files for them.
 
@@ -97,7 +97,14 @@ src/
 | `src/components/DealComponents.jsx` | Shared atoms: `ScoreBubble`, `MapPinSVG`, `DealCard`. `MapPinSVG` uses `getPinColor` from `assetColors.js`. |
 | `src/components/Icons.jsx` | Central icon library — exports `I` object with named icons (e.g. `I.Pin`, `I.Alert`, `I.Trend`). Always import icons from here. |
 | `src/components/ParcylBar.jsx` | Top nav bar with sidebar links and theme toggle. |
-| `src/components/NewBoxWizard.jsx` | Multi-step modal wizard for creating a buy box. 7 steps: Name, Geography, Asset Classes, Property Criteria, Ownership, Distress Signals, Review. Uses wizardHelpers.js for validation and payload building. |
+| `src/components/ConfigurationOverlay.jsx` | The active buy box create/edit wizard. Replaces `NewBoxWizard.jsx` in the App.jsx flow. Supports `mode="edit"` + `initialData` props to pre-populate form in edit mode. Uses `wizardHelpers.js` for validation and payload building. Calls `POST /api/dealfeed/buy-boxes/preview` (debounced 400ms) to show match count in review step. |
+| `src/components/NewBoxWizard.jsx` | Legacy wizard — defined but no longer imported in `App.jsx`. Do not add features here; use `ConfigurationOverlay.jsx` instead. |
+| `src/components/StatusSelector.jsx` | Inline deal status selector; calls `updateStatus` from DealsContext. |
+| `src/components/ContactLogModal.jsx` | Modal for logging and viewing contact attempts on a deal; calls `logContact` and `fetchContacts` from DealsContext. |
+| `src/components/tabs/DistressTab.jsx` | Extracted tab for Distress Signals in PropertyDetail. |
+| `src/components/tabs/MarketTab.jsx` | Extracted tab for Market & Comps in PropertyDetail. |
+| `src/components/tabs/OwnershipTab.jsx` | Extracted tab for Ownership & Skip in PropertyDetail. |
+| `src/components/tabs/SiteTab.jsx` | Extracted tab for Site & Environmental in PropertyDetail. |
 | `src/components/ConfirmModal.jsx` | Generic danger-confirm modal; `kind` prop selects copy. |
 | `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
 | `src/components/MapBackground.jsx` | Static Mapbox background used decoratively inside the wizard geography step. |
@@ -108,7 +115,8 @@ src/
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |
 | `src/lib/assetColors.js` | `getPinColor(assetClass)` → hex; exports `LEGEND_ITEMS`. |
-| `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Not yet connected to `NewBoxWizard.jsx`. |
+| `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Used by both `ConfigurationOverlay.jsx` and `NewBoxWizard.jsx`. |
+| `src/lib/format.test.js` | Unit tests for `format.js` utilities. Run with `npm test`. |
 | `src/views/LoginView.jsx` | Unauthenticated login page; submits to `POST /api/dealfeed/auth/login`. |
 | `src/data/mockData.js` | Static fallback data: `DEALS`, `BUY_BOXES`, `COMPS`, `ASSET_CLASSES`. |
 
@@ -120,6 +128,7 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 
 - `src/contexts/DealsContext.jsx` — central data fetch; touching this breaks all views
 - `src/components/PropertyDetail.jsx` — full property detail (9 tabs); `brief_json` from the API powers all tab data
+- `src/components/ConfigurationOverlay.jsx` — active buy box wizard (create + edit); replaces NewBoxWizard in the live flow
 - `src/components/DealDrawer.jsx` — slide-over detail panel; complex layout with comps table, owner card, feedback
 - `src/components/DealMap.jsx` — Mapbox integration; `fitDeals()` must fire after `onLoad`, not before
 - `src/styles/tokens.css` — source of truth for all colors, spacing, typography
@@ -132,7 +141,9 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `COMPS` in `DealDrawer` is still static mock data from `mockData.js` — not yet wired to the API.
 - `DashboardView` silently falls back to `MOCK_DEALS` when the API returns an empty array. A subscriber with zero real deals will see fake data.
 - `saveNote` in `DealsContext` does an optimistic update but does NOT catch errors — a failed PATCH leaves stale UI state with no user feedback.
-- `NewBoxWizard` backdrop has no onClick close handler — intentional to prevent accidental dismissal mid-flow.
+- `ConfigurationOverlay` backdrop has no onClick close handler — intentional to prevent accidental dismissal mid-flow.
+- `POST /api/dealfeed/buy-boxes/preview` is called by `ConfigurationOverlay` on every form change (debounced). If this route does not exist on the backend, preview count fails silently — no error is surfaced to the user.
+- `NewBoxWizard.jsx` is dead code — it is defined but not imported anywhere in the live app. Do not maintain it.
 
 ## BACKEND CONTRACT
 
@@ -146,5 +157,10 @@ Key endpoints:
 - `GET /api/dealfeed/buy-boxes` → `{ buy_boxes: BuyBox[] }`
 - `POST /api/dealfeed/deals/:id/feedback` → body `{ feedback: "hot" | "no" | null }`
 - `PATCH /api/dealfeed/deals/:id/notes` → body `{ notes: string }`
+- `PATCH /api/dealfeed/deals/:id/status` → body `{ status: string }`
+- `GET /api/dealfeed/deals/:id/contacts` → `{ contacts: ContactLog[] }`
+- `POST /api/dealfeed/deals/:id/contacts` → body `{ method, note, ... }` → `{ contact }`
+- `PATCH /api/dealfeed/buy-boxes/:id` → body `{ status, ... }` — used for pause/resume and edit
+- `POST /api/dealfeed/buy-boxes/preview` → body is a buy box payload → `{ count: number }` (may not exist yet on backend)
 - `PATCH /api/dealfeed/auth/me` → update profile
 - `POST /api/dealfeed/auth/change-password`
