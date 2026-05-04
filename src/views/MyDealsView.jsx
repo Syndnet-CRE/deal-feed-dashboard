@@ -6,6 +6,7 @@ import { AerialThumb } from '../components/AerialThumb';
 import { DealMap } from '../components/DealMap';
 import { fmtMoney, agingColor } from '../lib/format';
 import { LEGEND_ITEMS } from '../lib/assetColors';
+import { StatusSelector } from '../components/StatusSelector';
 
 const LS_KEY = 'parcyl-deals-filters';
 const OWNER_TYPES = ['Individual', 'LLC', 'Trust', 'Corporate'];
@@ -27,13 +28,14 @@ function loadFilters() {
 }
 
 export function MyDealsView({ onOpenDeal, selectedId }) {
-  const { deals, buyBoxes, loading } = useDeals();
+  const { deals, buyBoxes, contacts, loading, updateStatus } = useDeals();
   const [box, setBox] = useState(() => loadFilters().box || "all");
   const [range, setRange] = useState(() => loadFilters().range || "month");
   const [klass, setKlass] = useState(() => loadFilters().klass || "all");
   const [sort, setSort] = useState(() => loadFilters().sort || "recent");
   const [distressTypes, setDistressTypes] = useState(() => loadFilters().distressTypes || []);
   const [ownerTypes, setOwnerTypes] = useState(() => loadFilters().ownerTypes || []);
+  const [hasContactInfo, setHasContactInfo] = useState(() => loadFilters().hasContactInfo || false);
   const [hover, setHover] = useState(null);
   const [mapStyle, setMapStyle] = useState("dark");
   const [showLegend, setShowLegend] = useState(false);
@@ -44,9 +46,9 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ box, range, klass, sort, distressTypes, ownerTypes }));
+      localStorage.setItem(LS_KEY, JSON.stringify({ box, range, klass, sort, distressTypes, ownerTypes, hasContactInfo }));
     } catch { /* quota exceeded — silently skip */ }
-  }, [box, range, klass, sort, distressTypes, ownerTypes]);
+  }, [box, range, klass, sort, distressTypes, ownerTypes, hasContactInfo]);
 
   function toggleDistressType(dt) {
     setDistressTypes(prev => prev.includes(dt) ? prev.filter(x => x !== dt) : [...prev, dt]);
@@ -63,11 +65,12 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
     out = out.filter(d => d.days <= days);
     if (distressTypes.length > 0) out = out.filter(d => distressTypes.some(dt => (d.signals || []).includes(dt)));
     if (ownerTypes.length > 0) out = out.filter(d => ownerTypes.includes(ownerTypeCategory(d.entityType)));
+    if (hasContactInfo) out = out.filter(d => d.dm?.phone || d.dm?.email);
     if (sort === "score") out = [...out].sort((a, b) => b.score - a.score);
     else if (sort === "value") out = [...out].sort((a, b) => b.value - a.value);
     else out = [...out].sort((a, b) => a.days - b.days);
     return out;
-  }, [deals, box, range, klass, sort, distressTypes, ownerTypes]);
+  }, [deals, box, range, klass, sort, distressTypes, ownerTypes, hasContactInfo]);
 
   return (
     <div className="split-deals" style={{ height: "100%" }}>
@@ -143,6 +146,13 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
           {OWNER_TYPES.map(ot => (
             <button key={ot} className={`filter-chip ${ownerTypes.includes(ot) ? 'active' : ''}`} onClick={() => toggleOwnerType(ot)}>{ot}</button>
           ))}
+          <button
+            className={`filter-chip ${hasContactInfo ? 'active' : ''}`}
+            onClick={() => setHasContactInfo(v => !v)}
+            style={{ marginLeft: 8 }}
+          >
+            <I.Phone size={10} style={{ marginRight: 3, verticalAlign: "middle" }}/>Has Contact Info
+          </button>
         </div>
 
         <div className="list-results-meta">
@@ -171,6 +181,10 @@ export function MyDealsView({ onOpenDeal, selectedId }) {
                   <span className="aging-chip" style={{ color: agingColor(d.days) }}>{d.days === 0 ? "Today" : `${d.days}d ago`}</span>
                   {d.fb === "hot" && <span className="fb hot"><I.Hot size={10}/> Hot</span>}
                   {d.fb === "no" && <span className="fb no">Not Relevant</span>}
+                  {(contacts[d.id]?.length > 0) && <span className="pill blue" style={{ fontSize: 9 }}><I.Phone size={9}/> Contacted</span>}
+                </div>
+                <div style={{ marginTop: 5 }} onClick={e => e.stopPropagation()}>
+                  <StatusSelector status={d.status || 'new'} onChangeStatus={s => updateStatus(d.id, s)} size="sm"/>
                 </div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
