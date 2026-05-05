@@ -5,6 +5,17 @@ import { fmtMoney, scoreClass, agingColor } from '../lib/format';
 import { useReadState } from '../contexts/ReadStateContext';
 import { useDealState } from '../contexts/DealStateContext';
 
+function getAssetChipStyle(asset) {
+  const a = (asset || '').toLowerCase();
+  if (a.includes('storage'))                                                      return { background: 'rgba(245,158,11,0.15)', color: '#F59E0B', borderColor: 'rgba(245,158,11,0.3)' };
+  if (a.includes('industrial') || a.includes('flex') || a.includes('warehouse')) return { background: 'rgba(59,130,246,0.15)',  color: '#60A5FA', borderColor: 'rgba(59,130,246,0.3)' };
+  if (a.includes('multifamily'))                                                  return { background: 'rgba(139,92,246,0.15)', color: '#A78BFA', borderColor: 'rgba(139,92,246,0.3)' };
+  if (a.includes('land'))                                                         return { background: 'rgba(29,175,41,0.15)',  color: '#1DAF29', borderColor: 'rgba(29,175,41,0.3)' };
+  if (a.includes('retail'))                                                       return { background: 'rgba(249,115,22,0.15)', color: '#FB923C', borderColor: 'rgba(249,115,22,0.3)' };
+  if (a.includes('mixed'))                                                        return { background: 'rgba(20,184,166,0.15)', color: '#2DD4BF', borderColor: 'rgba(20,184,166,0.3)' };
+  return { background: 'rgba(100,100,120,0.15)', color: '#9DA2B3', borderColor: 'rgba(100,100,120,0.3)' };
+}
+
 export function ScoreBubble({ score, size = "md" }) {
   return (
     <div className={`score-bubble ${scoreClass(score)}`} style={size === "sm" ? { width: 30, height: 30, fontSize: 12 } : size === "lg" ? { width: 56, height: 56, fontSize: 20, borderWidth: 2 } : null}>
@@ -16,7 +27,7 @@ export function ScoreBubble({ score, size = "md" }) {
 export function FactRow({ deal }) {
   return (
     <div className="deal-row">
-      <span className="tag">{deal.asset}</span>
+      <span className="tag" style={getAssetChipStyle(deal.asset)}>{deal.asset}</span>
       <span className="fact"><span className="k">Lot</span> <span className="v">{deal.acres.toFixed(2)} ac</span></span>
       <span className="dot-sep">•</span>
       <span className="fact"><span className="k">Assessed</span> <span className="v">{fmtMoney(deal.value)}</span></span>

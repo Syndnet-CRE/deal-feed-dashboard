@@ -39,14 +39,31 @@ function buildWeekDays() {
   });
 }
 
-function StatCard({ label, num, trend, sub }) {
+const CARD_ICONS = {
+  'New This Week':     <I.Trend size={14}/>,
+  'Contacted':         <I.Mail size={14}/>,
+  'Response Rate':     <I.Check size={14}/>,
+  'Hot Deals':         <I.Hot size={14}/>,
+  'Awaiting Response': <I.Bell size={14}/>,
+};
+
+function StatCard({ label, num, sub, emptyHint, isNew }) {
+  const zeroish = num === 0 || num === '0%' || num === '—';
+  const dim = !isNew && zeroish;
+  const borderColor = isNew ? '#1DAF29' : dim ? '#40424D' : 'transparent';
+  const numColor    = isNew ? '#1DAF29' : dim ? '#40424D' : 'var(--ink-1)';
+  const icon = CARD_ICONS[label];
+
   return (
-    <div className="stat-card">
+    <div className="stat-card" style={{ borderLeft: `3px solid ${borderColor}` }}>
+      <div className={`stat-card-icon ${isNew ? 'green' : 'gray'}`}>{icon}</div>
       <div className="label">{label}</div>
-      <div className="num">{num}</div>
-      <div className={`trend ${trend || 'flat'}`}>
-        {trend === 'up' && <I.Trend size={12}/>}
-        <span>{sub}</span>
+      <div className="num" style={{ color: numColor }}>{num}</div>
+      <div className="trend flat">
+        {emptyHint && dim
+          ? <span style={{ color: '#F59E0B', fontWeight: 600, fontSize: 11 }}>{emptyHint}</span>
+          : <span>{sub}</span>
+        }
       </div>
     </div>
   );
@@ -122,7 +139,7 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selected
         <div>
           <h1 className="page-title">Dashboard</h1>
           <div className="page-sub">
-            {loading ? 'Loading…' : `${deals.length} total deals across all buy boxes`}
+            {loading ? 'Loading…' : <><span style={{ color: '#1DAF29', fontWeight: 600 }}>{deals.length}</span><span style={{ color: '#9DA2B3' }}> total deals across all buy boxes</span></>}
           </div>
         </div>
         <div className="spaced">
@@ -139,11 +156,11 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selected
       <PipelineTimeline/>
 
       <div className="stat-grid stat-grid-5">
-        <StatCard label="New This Week"     num={loading ? '…' : newThisWeek}          trend="up"   sub="deals delivered ≤ 7 days"/>
-        <StatCard label="Contacted"         num={loading ? '…' : contactedCount}        trend="flat" sub="deals with contact log"/>
-        <StatCard label="Response Rate"     num={loading ? '…' : `${responseRate}%`}    trend="flat" sub="contacted vs. total"/>
-        <StatCard label="Hot Deals"         num={loading ? '…' : hotDeals}              trend="up"   sub="marked hot, not dead"/>
-        <StatCard label="Awaiting Response" num={loading ? '…' : awaitingCount}         trend="flat" sub="contacted, no reply 7+ days"/>
+        <StatCard label="New This Week"     num={loading ? '…' : newThisWeek}                                     isNew={true} sub="deals delivered ≤ 7 days"/>
+        <StatCard label="Contacted"         num={loading ? '…' : contactedCount}                                              sub="deals with contact log"      emptyHint="→ Start outreach"/>
+        <StatCard label="Response Rate"     num={loading ? '…' : (responseRate === 0 ? '—' : `${responseRate}%`)}             sub="contacted vs. total"/>
+        <StatCard label="Hot Deals"         num={loading ? '…' : hotDeals}                                                     sub="marked hot, not dead"/>
+        <StatCard label="Awaiting Response" num={loading ? '…' : awaitingCount}                                               sub="contacted, no reply 7+ days"/>
       </div>
 
       {activityFeed.length > 0 && (
@@ -209,7 +226,7 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selected
             ))}
             <div className="week-tab-sep"/>
             <button
-              className={`week-tab${activeTab === 'pipeline' ? ' active' : ''}`}
+              className={`week-tab pipeline-tab${activeTab === 'pipeline' ? ' active' : ''}`}
               onClick={() => setActiveTab('pipeline')}
             >
               Pipeline
