@@ -1,132 +1,68 @@
 # HANDOFF
-Date: 2026-05-06 (session 12)
-Repo: deal-feed-dashboard + scoutgpt-api
-Session objective: Deal detail 12-section institutional layout (Phases 1-4)
+Date: 2026-05-08
+Repo: deal-feed-dashboard
+Session objective: A1-A6 dashboard feature batch
 Status: COMPLETE
 
----
-
 ## What was done
 
-### Phase 1 — Token extension (commit 382327f, deal-feed-dashboard)
-- `src/styles/tokens.css` — added `--parcyl-green-900: #0E7A18`, `--link: #1366CC`, 5 pill token pairs (green/amber/red/blue/gray), full `[data-theme="dark"]` block
+### A1 — Pipeline Timeline
+- `src/components/PipelineTimeline.jsx` — live CT countdown with 4 pipeline stages (Submit/Agents/Briefs/Delivered)
+- Mounted at top of DashboardView, above stat grid
+- Updates every second via `setInterval`
 
-### Phase 2 — DealDetail component (commit 1808543, deal-feed-dashboard)
-- **New:** `src/components/DealDetail.jsx` — 12-section institutional layout
-  - Sticky address bar: Deal Feed wordmark, property identity, distress score badge, Mark as Hot / Not Relevant, ESC-aware close
-  - 6px `--parcyl-green-900` decorative nav band
-  - 5-field hero strip (Assessed Value, Last Sale Price, Lot Size, Year Built, Hold Period)
-  - 12-tab sticky sub-tab strip with smooth scroll-to-section
-  - Left column: Property Record, Ownership, Financials, Capital Stack (table), Transactions (table)
-  - Right column: Site & Lot + aerial thumbnail, Zoning, Site Context, Risk, Distress flat signal list, Deal Intel
-  - Null-hiding via `nv()` / `hasVal()` — no empty rows rendered
-  - Dual-context sticky positioning (modal overlay + standalone page)
-- **New:** `src/styles/deal-detail.css` — full token-based stylesheet with dark mode overrides, mobile responsive, print rules
+### A2 — 5 KPI Stat Cards
+- `src/views/DashboardView.jsx` — 5 cards: New This Week, Contacted, Response Rate, Hot Deals, Awaiting Response
+- `awaitingCount`: contacts with 7+ days since last outreach
+- `hotDeals`: feedback=hot AND not dead state
+- `.stat-grid-5` CSS override added to `styles.css`
 
-### Phase 3 — Backend response expansion (commit d983c05, scoutgpt-api)
-- `routes/dealfeed/deals.js` — expanded `normalizeDeal()` with 33 canonical field aliases alongside existing abbreviated fields. Strictly additive — map panel consumers unaffected.
-- New fields: `address`, `state`, `zip`, `county`, `msa`, `asset_class`, `use_type`, `owner_name`, `owner_type`, `absentee_owner`, `owner_since`, `owner_mailing`, `assessed_value`, `last_sale_price`, `last_sale_date`, `building_sf`, `lot_sf`, `year_built`, `units`, `stories`, `distress_score`, `distress_tier`, `match_score`, `buy_box_name`, `feedback`, `source`, `updated_at`, `parcel_id`, `attom_id`, `city_jurisdiction`, `in_etj`, `etj_city`, `submarket`, `tax_delinquent`, `liens`, `code_violations`, `vacancy_est`
-- All sourced from already-queried columns or `brief_json` — no new SQL
+### A3 — Read/Unread State
+- `src/contexts/ReadStateContext.jsx` — localStorage key `dealfeed.read.{subId}:{dealId}`
+- `src/components/DealDetail.jsx` — calls `markRead(deal.id)` on mount
+- `src/components/DealComponents.jsx` — green dot (`.deal-unread-dot`) on unread DealCards
 
-### Phase 4 — Integration (commit d7865f3, deal-feed-dashboard)
-- `src/App.jsx` — swapped `PropertyDetail` for `DealDetail` in both `DealDetailPage` (standalone /deal/:dealId) and `DealDetailModal` (fromMap overlay). Identical `{ deal, onClose }` props. JS bundle shrinks ~56kb.
+### A4 — Weekly Deal Tabs + Calendar
+- `src/views/DashboardView.jsx` — Mon-Sun tabs built from CT-aware date math; Pipeline tab with separator
+- Active tab defaults to CT today's day name
+- Calendar icon button (`btn.icon`) opens CalendarModal
+- `src/components/CalendarModal.jsx` — full month grid with deal counts, archive drill-down
 
-### Quality gate
-- Build: PASS
-- Lint: 8 errors, all pre-existing (none from this session's files)
-- Tests: 161/161 pass
+### A5 — Deal States (Dead / LOI / Archive)
+- `src/contexts/DealStateContext.jsx` — localStorage key `dealfeed.dealstate.{subId}:{dealId}`
+- `src/components/DealComponents.jsx` — 3-dot action menu with STATE_ACTIONS; badges for Dead/LOI/Pipeline; `.deal-card-dead` opacity
+- Archived deals appear in Pipeline tab
 
----
+### A6 — Bug Fixes
+- `src/styles/styles.css` — `.deal-modal-overlay` background fixed to `rgba(0,0,0,0.85)`
+- `src/views/DashboardView.jsx` — pill reads "Ready for Midnight Run" / "No Active Buy Boxes" based on `buyBoxes.some(b => b.status === 'Active')`
+- `src/App.jsx` — `ToastProvider` mounted at App root
 
-## What was NOT done
-- Phase 5 (print/PDF): deferred per plan
-- `PropertyDetail.jsx` and its 4 tab sub-components (`DistressTab`, `MarketTab`, `OwnershipTab`, `SiteTab`) are now dead code — safe to delete in a future cleanup session
-- 8 pre-existing lint errors not addressed — reserved for dedicated lint-cleanup session
+### CSS additions (`src/styles/styles.css`)
+- `.pipeline-timeline`, `.pt-*` — timeline and countdown styles
+- `.stat-grid-5` — 5-column grid override
+- `.btn.icon` — square icon button
+- `.deal-unread-dot` — green read indicator
+- `.deal-state-badge.danger/amber/neutral` — state badge variants
+- `.deal-card-dead` — dead deal opacity
+- `.deal-menu-*` — action menu dropdown
+- `.week-tabs`, `.week-tab`, `.week-tab-badge`, `.week-tab-sep` — tab bar
+- `.cal-overlay`, `.cal-modal`, `.cal-*` — calendar modal
+- `.pt-node-cell`, `.pt-connector`, `.pt-dot-*`, `.pt-node-label-*` — timeline track
 
-## Component tree (updated)
-```
-AppShell
-  DealDetailPage  (/deal/:dealId standalone) -> DealDetail
-  DealDetailModal (fromMap modal overlay)    -> DealDetail
-  MapView -> DealDetailModal
-  DashboardView, BuyBoxesView, SettingsView (unchanged)
-```
-
-## Deferred features
-- Pipeline/CRM references (Add to Deal, Pipeline Status, Lead Score) — reserved for Pipeline product
-- Photo rail / Streetview — dropped for MVP
-- PDF/print export — deferred
-- PropertyDetail.jsx dead code removal
-
----
-
-## Next session
-Priority: Test DealDetail against live data — verify field population for a real deal, fix any empty sections, spot-check both themes. Then lint cleanup pass.
-cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
-
-## Blockers for Brady
-- Backend (Render) auto-deploys from scoutgpt-api push (d983c05) — verify Render deploy completes before testing DealDetail against live data
-- Frontend (Netlify) auto-deploys from deal-feed-dashboard push (d7865f3)
-
----
-
-## Previous session (2026-05-05, session 11)
-
----
-
-## What was done
-
-### Commit: 36d78b6
-`feat: merge my deals into map view with collapsible deal panel and full-screen detail modal`
-
-### Files changed
-
-**New:**
-- `src/components/DealPanel.jsx` — right panel container with filter header (dropdowns + chip toggles), summary bar, scrollable card list, scroll-into-view on expand
-- `src/components/DealPanelCard.jsx` — accordion card with forwardRef; collapsed shows pin badge / aerial thumb / address / score / date; expanded shows signal pills, 2-col facts grid, owner block, Open Deal CTA
-
-**Modified:**
-- `src/views/MapView.jsx` — full rewrite; `.map-view-wrap` container, localStorage for collapse/style/viewport/filters, handleExpandCard (sets focusDealId for flyTo), handlePinClick (opens panel, no flyTo), style-switcher toolbar, toggle button, deal panel
-- `src/App.jsx` — full rewrite; DealDetailPage (cold-load standalone), DealDetailModal (fixed overlay), `useMatch('/deal/:dealId')` + `location.state?.fromMap` for modal detection, single `/*` route so MapView stays mounted during modal
-- `src/components/DealMap.jsx` — added `focusDealId` prop; fires flyTo (pan-only if zoom>=14, zoom-to-14 if below) with 500ms duration
-- `src/components/ParcylBar.jsx` — removed My Deals tab; nav is now Dashboard / Map / Buy Boxes / Settings
-- `src/views/DashboardView.jsx` — wired Open Map button to `onSetView('map')`
-- `src/styles/styles.css` — added ~200 lines: `.map-view-wrap`, `.deal-panel[.collapsed]`, `.panel-toggle-btn[.collapsed]`, `.chip[.active]`, `.dpc-*` card classes, `.signal-pill.hi/md/lo`, `.tag.green`, `.select.xs`, `.btn.xs`, `.deal-modal-overlay`
-
-**Deleted:**
-- `src/components/DealDrawer.jsx` — only used by MyDealsView, now dead
-- `src/views/MyDealsView.jsx` — replaced by map panel
-
-### Route contract preserved
-- `/deal/:id` — existing route, unchanged
-- Cold load `/deal/:id` renders standalone PropertyDetail page
-- From map: navigate with `{ state: { fromMap: true } }` renders full-screen modal overlay; MapView stays mounted
-
-### Quality gate
-- `npm run build` — clean (82 modules, no errors)
-- `npm run lint` — 8 pre-existing errors, none in files touched this session
-- `npm test` — 161/161 pass
-
-### Deploy
-- Pushed to origin/main; Netlify auto-deploy triggered
-
----
+## Quality gate
+- Build: PASS (`npm run build`)
+- Lint: PASS (`npm run lint`)
+- Tests: PASS (161/161)
+- Commit: `4f5e2a9`
 
 ## What was NOT done
-
-- **Chunk 6 — Mobile bottom sheet** (`<768px`): right panel becomes bottom sheet with peek/half/full states. Explicitly deferred to a separate commit.
-- `src/contexts/DealsContext.jsx` has an unstaged pre-existing modification — not part of this refactor, left as-is.
-
----
+- E2E Playwright tests for new features (dev server needed separately)
+- Light theme review for new components (functional, not designed for light mode)
 
 ## Next session
-
-Implement mobile bottom sheet for map panel (`<768px`): bottom sheet with peek (~80px) / half (50vh) / full states, drag handle, toggle moves to bottom-right corner.
-
-```
-cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
-```
+Review UI in browser, fix any visual polish issues, then tackle next feature batch.
+`cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions`
 
 ## Blockers for Brady
-
-None. Map view with collapsible panel and full-screen deal modal is live on Netlify.
+None — push auto-deploys to Netlify.
