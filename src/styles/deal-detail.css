@@ -443,6 +443,138 @@
   }
 }
 
+/* ── Back link ───────────────────────────────────────────────── */
+.dd-addr-back {
+  font-size: var(--t-micro);
+  color: var(--fg-3);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: var(--w-medium);
+  text-align: left;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.dd-addr-back:hover { color: var(--parcyl-green-700); }
+
+/* ── Deal pagination nav ─────────────────────────────────────── */
+.dd-deal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-6);
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-subtle);
+  flex-shrink: 0;
+}
+
+.dd-deal-nav-bottom {
+  border-top: 1px solid var(--border-1);
+  border-bottom: none;
+  padding: var(--s-5) var(--s-6);
+}
+
+.dd-deal-nav-btn {
+  background: none;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  padding: 5px var(--s-4);
+  font-size: var(--t-cap);
+  font-weight: var(--w-medium);
+  color: var(--fg-2);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+.dd-deal-nav-btn:hover:not(:disabled) {
+  background: var(--bg-card);
+  color: var(--fg-1);
+  border-color: var(--border-strong);
+}
+.dd-deal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.dd-deal-nav-count {
+  font-size: var(--t-cap);
+  color: var(--fg-3);
+  font-weight: var(--w-medium);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ── Glassmorphism page shell ────────────────────────────────── */
+.dd-page-glass {
+  position: relative;
+  min-height: 100%;
+}
+
+.dd-page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dd-page-bg .map-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dd-page-glass .dd-root {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+/* Light-mode glass */
+.dd-page-glass .dd-addr-bar,
+.dd-page-glass .dd-subtabs {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+}
+.dd-page-glass .dd-hero {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+}
+.dd-page-glass .dd-sec {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+}
+.dd-page-glass .dd-deal-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Dark-mode glass */
+[data-theme="dark"] .dd-page-glass .dd-addr-bar,
+[data-theme="dark"] .dd-page-glass .dd-subtabs {
+  background: rgba(10, 10, 14, 0.88);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+}
+[data-theme="dark"] .dd-page-glass .dd-hero {
+  background: rgba(13, 14, 20, 0.80);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+}
+[data-theme="dark"] .dd-page-glass .dd-sec {
+  background: rgba(30, 30, 36, 0.80);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+}
+[data-theme="dark"] .dd-page-glass .dd-deal-nav {
+  background: rgba(10, 10, 14, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 /* ── Print ───────────────────────────────────────────────────── */
 @media print {
   .dd-nav-band,

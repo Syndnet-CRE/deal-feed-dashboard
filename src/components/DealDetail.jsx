@@ -79,7 +79,7 @@ function SecHead({ title, date }) {
   );
 }
 
-export function DealDetail({ deal, onClose }) {
+export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) {
   const { postFeedback } = useDeals();
   const { markRead } = useReadState();
   const [activeTab, setActiveTab] = useState('summary');
@@ -245,6 +245,9 @@ export function DealDetail({ deal, onClose }) {
           {line2Parts.length > 0 && (
             <span className="dd-addr-line2">{line2Parts.join(' · ')}</span>
           )}
+          {onClose && (
+            <button className="dd-addr-back" onClick={onClose}>← Back to deals</button>
+          )}
         </div>
         <div className="dd-addr-actions">
           <span className={`dd-score-badge ${variant}`}>{scoreLabel}</span>
@@ -262,6 +265,22 @@ export function DealDetail({ deal, onClose }) {
           )}
         </div>
       </div>
+
+      {deals && deals.length > 1 && onNavigateDeal && (
+        <div className="dd-deal-nav">
+          <button
+            className="dd-deal-nav-btn"
+            onClick={() => onNavigateDeal(deals[dealIndex - 1])}
+            disabled={dealIndex <= 0}
+          >← Prev</button>
+          <span className="dd-deal-nav-count">Deal {dealIndex + 1} of {deals.length}</span>
+          <button
+            className="dd-deal-nav-btn"
+            onClick={() => onNavigateDeal(deals[dealIndex + 1])}
+            disabled={dealIndex >= deals.length - 1}
+          >Next →</button>
+        </div>
+      )}
 
       <div className="dd-hero">
         {heroFields.map((f) => (
@@ -285,7 +304,7 @@ export function DealDetail({ deal, onClose }) {
         ))}
       </div>
 
-      <div className="dd-body">
+      <div className="dd-body" style={{ flex: 1 }}>
 
         <div id="dd-summary" className="dd-sec">
           <SecHead title="Summary" date={enriched} />
@@ -471,6 +490,22 @@ export function DealDetail({ deal, onClose }) {
 
         </div>
       </div>
+
+      {deals && deals.length > 1 && onNavigateDeal && (
+        <div className="dd-deal-nav dd-deal-nav-bottom">
+          <button
+            className="dd-deal-nav-btn"
+            onClick={() => onNavigateDeal(deals[dealIndex - 1])}
+            disabled={dealIndex <= 0}
+          >← Prev</button>
+          <span className="dd-deal-nav-count">Deal {dealIndex + 1} of {deals.length}</span>
+          <button
+            className="dd-deal-nav-btn"
+            onClick={() => onNavigateDeal(deals[dealIndex + 1])}
+            disabled={dealIndex >= deals.length - 1}
+          >Next →</button>
+        </div>
+      )}
     </div>
   );
 }

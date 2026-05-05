@@ -7,6 +7,7 @@ import { ReadStateProvider } from './contexts/ReadStateContext';
 import { DealStateProvider } from './contexts/DealStateContext';
 import { ParcylBar } from './components/ParcylBar';
 import { DealDetail } from './components/DealDetail';
+import { MapBackground } from './components/MapBackground';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ConfigurationOverlay } from './components/ConfigurationOverlay';
 import { DashboardView } from './views/DashboardView';
@@ -43,7 +44,23 @@ function DealDetailPage({ dealId }) {
   if (loading) return null;
   const deal = deals.find(d => String(d.id) === dealId);
   if (!deal) return null;
-  return <DealDetail deal={deal} onClose={() => navigate(-1)}/>;
+
+  const dealIndex = deals.findIndex(d => String(d.id) === dealId);
+
+  return (
+    <div className="dd-page-glass">
+      <div className="dd-page-bg">
+        <MapBackground width={1600} height={900} />
+      </div>
+      <DealDetail
+        deal={deal}
+        onClose={() => navigate(-1)}
+        deals={deals}
+        dealIndex={dealIndex}
+        onNavigateDeal={(d) => navigate('/deal/' + d.id)}
+      />
+    </div>
+  );
 }
 
 // Full-screen modal overlay — opened from map panel via navigate('/deal/:id', { state: { fromMap: true } })
