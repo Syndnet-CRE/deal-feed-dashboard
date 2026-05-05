@@ -7,7 +7,6 @@ import { ReadStateProvider } from './contexts/ReadStateContext';
 import { DealStateProvider } from './contexts/DealStateContext';
 import { ParcylBar } from './components/ParcylBar';
 import { DealDetail } from './components/DealDetail';
-import { MapBackground } from './components/MapBackground';
 import { ConfirmModal } from './components/ConfirmModal';
 import { ConfigurationOverlay } from './components/ConfigurationOverlay';
 import { DashboardView } from './views/DashboardView';
@@ -49,9 +48,6 @@ function DealDetailPage({ dealId }) {
 
   return (
     <div className="dd-page-glass">
-      <div className="dd-page-bg">
-        <MapBackground width={1600} height={900} />
-      </div>
       <DealDetail
         deal={deal}
         onClose={() => navigate(-1)}

@@ -1417,6 +1417,8 @@ button { font-family: inherit; }
    ───────────────────────────────────────────────────────────── */
 .app.has-topbar { grid-template-columns: 1fr; grid-template-rows: 44px 1fr; }
 .parcyl-bar {
+  position: relative;
+  z-index: 100;
   background: linear-gradient(180deg, var(--topbar-bg) 0%, var(--topbar-bg-2) 100%);
   color: #FFF;
   display: flex;
@@ -2819,7 +2821,7 @@ button { font-family: inherit; }
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: transparent;
+  background: rgba(0,0,0,0.85);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

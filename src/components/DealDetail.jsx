@@ -292,16 +292,18 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
         ))}
       </div>
 
-      <div className="dd-subtabs">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={`dd-subtab${activeTab === t.id ? ' active' : ''}`}
-            onClick={() => scrollToSection(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="dd-subtabs-outer">
+        <div className="dd-subtabs">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              className={`dd-subtab${activeTab === t.id ? ' active' : ''}`}
+              onClick={() => scrollToSection(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="dd-body" style={{ flex: 1 }}>

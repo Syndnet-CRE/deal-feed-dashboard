@@ -170,14 +170,18 @@
 }
 
 /* ── Sub-tab strip ───────────────────────────────────────────── */
-.dd-subtabs {
+.dd-subtabs-outer {
   position: sticky;
   top: 68px;
   z-index: 19;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-1);
+}
+
+.dd-subtabs {
   display: flex;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   gap: 0;
 }
@@ -427,7 +431,7 @@
   }
   .dd-hero-cell:nth-child(n+4) { border-top: 1px solid var(--border-1); }
 
-  .dd-subtabs {
+  .dd-subtabs-outer {
     position: relative;
     top: auto;
   }
@@ -508,30 +512,14 @@
 /* ── Glassmorphism page shell ────────────────────────────────── */
 .dd-page-glass {
   position: relative;
-  min-height: 100%;
-}
-
-.dd-page-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.dd-page-bg .map-svg {
-  width: 100%;
   height: 100%;
-}
-
-.dd-page-glass .dd-root {
-  position: relative;
-  z-index: 1;
-  background: transparent;
+  overflow-y: auto;
+  background: #0D0D0D;
 }
 
 /* Light-mode glass — applies to both standalone page and modal-over-map */
 .dd-addr-bar,
-.dd-subtabs {
+.dd-subtabs-outer {
   background: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(18px) saturate(1.5);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
@@ -554,7 +542,7 @@
 
 /* Dark-mode glass — applies to both standalone page and modal-over-map */
 [data-theme="dark"] .dd-addr-bar,
-[data-theme="dark"] .dd-subtabs {
+[data-theme="dark"] .dd-subtabs-outer {
   background: rgba(10, 10, 14, 0.88);
   backdrop-filter: blur(18px) saturate(1.5);
   -webkit-backdrop-filter: blur(18px) saturate(1.5);
@@ -578,7 +566,7 @@
 /* ── Print ───────────────────────────────────────────────────── */
 @media print {
   .dd-nav-band,
-  .dd-subtabs,
+  .dd-subtabs-outer,
   .dd-addr-actions { display: none; }
 
   .dd-addr-bar {
