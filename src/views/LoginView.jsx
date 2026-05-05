@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export function LoginView() {
@@ -68,7 +68,10 @@ export function LoginView() {
           </button>
         </form>
 
-        <div style={{ marginTop: 20, textAlign: "center", fontSize: 12, color: "#9DA2B3" }}>
+        <div style={{ marginTop: 16, textAlign: "center", fontSize: 12, color: "#9DA2B3" }}>
+          <Link to="/forgot-password" style={{ color: "#9DA2B3", fontWeight: 500 }}>Forgot password?</Link>
+        </div>
+        <div style={{ marginTop: 10, textAlign: "center", fontSize: 12, color: "#9DA2B3" }}>
           Need access? <a href="mailto:hello@parcyl.ai" style={{ color: "#5BCC48", fontWeight: 600 }}>Contact Parcyl</a>
         </div>
       </div>

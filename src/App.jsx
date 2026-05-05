@@ -12,6 +12,8 @@ import { MapView } from './views/MapView';
 import { SettingsView } from './views/SettingsView';
 import { InviteView } from './views/InviteView';
 import { LoginView } from './views/LoginView';
+import { ForgotPasswordView } from './views/ForgotPasswordView';
+import { ResetPasswordView } from './views/ResetPasswordView';
 
 (() => {
   const t = localStorage.getItem('parcyl-theme') || 'dark';
@@ -189,6 +191,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginView/>}/>
+      <Route path="/forgot-password" element={<ForgotPasswordView/>}/>
+      <Route path="/reset-password" element={<ResetPasswordView/>}/>
       <Route path="/*" element={<AppShell/>}/>
     </Routes>
   );
