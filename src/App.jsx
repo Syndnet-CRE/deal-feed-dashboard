@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate, useMatch, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { useDeals, DealsProvider } from './contexts/DealsContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { ReadStateProvider } from './contexts/ReadStateContext';
+import { DealStateProvider } from './contexts/DealStateContext';
 import { ParcylBar } from './components/ParcylBar';
 import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
@@ -146,6 +149,8 @@ function AppShell() {
   const noScroll = view === 'map';
 
   return (
+    <ReadStateProvider>
+    <DealStateProvider>
     <DealsProvider>
       <div className="app has-topbar">
         <ParcylBar
@@ -184,16 +189,20 @@ function AppShell() {
         {editingBuyBox && <ConfigurationOverlay mode="edit" initialData={editingBuyBox} onClose={() => setEditingBuyBox(null)}/>}
       </div>
     </DealsProvider>
+    </DealStateProvider>
+    </ReadStateProvider>
   );
 }
 
 export default function App() {
   return (
+    <ToastProvider>
     <Routes>
       <Route path="/login" element={<LoginView/>}/>
       <Route path="/forgot-password" element={<ForgotPasswordView/>}/>
       <Route path="/reset-password" element={<ResetPasswordView/>}/>
       <Route path="/*" element={<AppShell/>}/>
     </Routes>
+    </ToastProvider>
   );
 }

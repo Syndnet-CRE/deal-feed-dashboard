@@ -1,7 +1,8 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { AerialThumb } from './AerialThumb.jsx';
 import { fmt, fmtMoney, hasVal } from '../lib/format.js';
 import { useDeals } from '../contexts/DealsContext.jsx';
+import { useReadState } from '../contexts/ReadStateContext';
 import '../styles/deal-detail.css';
 
 const TABS = [
@@ -80,8 +81,11 @@ function SecHead({ title, date }) {
 
 export function DealDetail({ deal, onClose }) {
   const { postFeedback } = useDeals();
+  const { markRead } = useReadState();
   const [activeTab, setActiveTab] = useState('summary');
   const [hotLoading, setHotLoading] = useState(false);
+
+  useEffect(() => { markRead(deal.id); }, [deal.id, markRead]);
 
   const bj = deal.briefJson || deal.brief_json || {};
   const enriched = bj.enriched_at || deal.updated_at;

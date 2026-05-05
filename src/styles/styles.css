@@ -2795,7 +2795,7 @@ button { font-family: inherit; }
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: var(--bg);
+  background: rgba(0,0,0,0.85);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -2883,3 +2883,417 @@ button { font-family: inherit; }
 
 .iv-error { background: rgba(229,72,77,0.1); border: 1px solid rgba(229,72,77,0.3); color: var(--danger); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
 .iv-send-result { background: rgba(91,204,72,0.1); border: 1px solid rgba(91,204,72,0.3); color: var(--green); border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
+
+/* ── Pipeline Timeline (A1) ───────────────────────────────── */
+.pipeline-timeline {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.pt-countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+.pt-active-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--green);
+}
+.pt-digits {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-1);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.pt-digit-group { display: inline-block; }
+.pt-sep { color: var(--ink-4); margin: 0 1px; }
+.pt-countdown-label {
+  font-size: 11px;
+  color: var(--ink-4);
+  white-space: nowrap;
+}
+.pt-track {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 0;
+}
+.pt-node-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+.pt-connector {
+  position: absolute;
+  left: calc(-50% + 6px);
+  right: calc(50% + 6px);
+  top: 6px;
+  height: 2px;
+  background: var(--hairline);
+}
+.pt-connector-filled {
+  background: var(--green);
+}
+.pt-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--hairline);
+  background: var(--panel);
+  margin-bottom: 5px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+.pt-dot-done {
+  background: var(--green);
+  border-color: var(--green);
+}
+.pt-dot-active {
+  background: var(--panel);
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(91,204,72,0.2);
+}
+.pt-dot-future {
+  background: var(--panel);
+  border-color: var(--hairline);
+}
+.pt-node-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-4);
+  white-space: nowrap;
+  text-align: center;
+}
+.pt-node-label-active { color: var(--green); }
+.pt-node-label-done { color: var(--ink-2); }
+
+/* ── Stat grid 5-column override (A2) ────────────────────── */
+.stat-grid-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* ── Btn icon (A4 calendar button) ───────────────────────── */
+.btn.icon {
+  padding: 6px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Read/Unread dot (A3) ────────────────────────────────── */
+.deal-unread-dot {
+  position: absolute;
+  top: 14px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+}
+
+/* ── Deal state badges (A5) ──────────────────────────────── */
+.deal-state-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.deal-state-badge.danger {
+  background: rgba(229,72,77,0.15);
+  color: var(--danger);
+}
+.deal-state-badge.amber {
+  background: rgba(244,183,62,0.15);
+  color: var(--warning);
+}
+.deal-state-badge.neutral {
+  background: rgba(157,162,179,0.15);
+  color: var(--ink-3);
+}
+.deal-card-dead {
+  opacity: 0.55;
+}
+.deal-card-dead:hover {
+  opacity: 0.7;
+}
+
+/* ── Deal action menu (A5) ───────────────────────────────── */
+.deal-menu-wrap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+.deal-menu-trigger {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-4);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 5px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background 100ms, color 100ms;
+}
+.deal-menu-trigger:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--ink-1);
+}
+.deal-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  min-width: 160px;
+  overflow: hidden;
+  z-index: 100;
+}
+.deal-menu-item {
+  display: block;
+  width: 100%;
+  padding: 9px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--hairline-soft);
+  cursor: pointer;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: background 100ms, color 100ms;
+}
+.deal-menu-item:last-child { border-bottom: none; }
+.deal-menu-item:hover { background: rgba(255,255,255,0.06); color: var(--ink-1); }
+.deal-menu-item.danger { color: var(--danger); }
+.deal-menu-item.danger:hover { background: rgba(229,72,77,0.1); }
+
+/* ── Week tabs (A4) ──────────────────────────────────────── */
+.week-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px 0;
+  border-bottom: 1px solid var(--hairline-soft);
+  overflow-x: auto;
+}
+.week-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 10px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 100ms, border-color 100ms;
+  flex-shrink: 0;
+}
+.week-tab:hover { color: var(--ink-1); }
+.week-tab.active { color: var(--green); border-bottom-color: var(--green); }
+.week-tab.today { color: var(--ink-1); }
+.week-tab.today.active { color: var(--green); }
+.week-tab-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(91,204,72,0.15);
+  color: var(--green);
+  padding: 1px 5px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+.week-tab-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--hairline);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ── Calendar Modal (A4) ─────────────────────────────────── */
+.cal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal-modal {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 20px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+}
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.cal-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-1);
+  text-align: center;
+}
+.cal-nav-btn, .cal-close-btn, .cal-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 100ms, color 100ms;
+}
+.cal-nav-btn:hover, .cal-close-btn:hover, .cal-back-btn:hover {
+  background: rgba(255,255,255,0.07);
+  color: var(--ink-1);
+}
+.cal-member-since {
+  font-size: 11px;
+  color: var(--ink-4);
+  text-align: center;
+  margin-bottom: 10px;
+}
+.cal-grid-head {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+.cal-dow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-4);
+  text-align: center;
+  padding: 4px 0;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.cal-cell {
+  aspect-ratio: 1;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-size: 12px;
+  color: var(--ink-3);
+  transition: background 100ms;
+}
+.cal-cell.cal-has-deals {
+  cursor: pointer;
+  color: var(--ink-1);
+  background: rgba(255,255,255,0.04);
+}
+.cal-cell.cal-has-deals:hover {
+  background: rgba(255,255,255,0.09);
+}
+.cal-cell.cal-today {
+  border: 1px solid var(--green);
+  color: var(--green);
+}
+.cal-blank { aspect-ratio: 1; }
+.cal-day-num {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+.cal-day-badge {
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--green);
+  color: #000;
+  border-radius: 8px;
+  padding: 0 4px;
+  line-height: 1.5;
+  margin-top: 1px;
+}
+.cal-member-dot {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+.cal-archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.cal-archive-row {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--hairline-soft);
+  padding: 12px 4px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 100ms;
+  border-radius: 6px;
+}
+.cal-archive-row:last-child { border-bottom: none; }
+.cal-archive-row:hover { background: rgba(255,255,255,0.05); }
+.cal-archive-addr {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-1);
+  margin-bottom: 2px;
+}
+.cal-archive-meta {
+  font-size: 11px;
+  color: var(--ink-4);
+}
+
+/* (pill.green and pill.amber already defined in the main pill section above) */
