@@ -66,6 +66,7 @@ export function DealsProvider({ children }) {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const postFeedback = useCallback(async (dealId, fb) => {
@@ -122,6 +123,7 @@ export function DealsProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useDeals() {
   const ctx = useContext(DealsCtx);
   if (!ctx) throw new Error('useDeals must be used within DealsProvider');

@@ -30,11 +30,12 @@ export function InviteView() {
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadQueue(); }, [loadQueue]);
 
   useEffect(() => {
     const parsed = parseInvitesFromText(text);
-    setPreview(dedupeByEmail(parsed));
+    setPreview(dedupeByEmail(parsed)); // eslint-disable-line react-hooks/set-state-in-effect
   }, [text]);
 
   const previewErrors = preview.map(inv => validateInvite(inv)).filter(Boolean);

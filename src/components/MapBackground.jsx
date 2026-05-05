@@ -5,7 +5,7 @@ function seedRand(seed) {
   return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
 }
 
-export function MapBackground({ style = "dark", width = 1200, height = 800, density = 1, satellite = false }) {
+export function MapBackground({ width = 1200, height = 800, density = 1, satellite = false }) {
   const streets = useMemo(() => {
     const r2 = seedRand(7);
     const lines = [];

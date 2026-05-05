@@ -599,7 +599,6 @@ test.describe('Buy Box Wizard Tests', () => {
     await expect(stepIndicator).toBeVisible();
 
     // Verify the name appears in the review section
-    const reviewContent = page.locator('.review-section');
     const nameReviewRow = page.locator('text=Basics').first().locator('..').locator('text=' + testName);
     await expect(nameReviewRow).toBeVisible();
     console.log(`✓ Review screen displays entered name: "${testName}"`);

@@ -5,6 +5,7 @@ const Icon = ({ d, size = 16, stroke = 1.6, fill = "none", className = "ico" }) 
   </svg>
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const I = {
   Dashboard: (p) => <Icon {...p} d={<><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></>} />,
   Deals: (p) => <Icon {...p} d={<><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/><circle cx="11" cy="12" r="1.5" fill="currentColor"/><circle cx="9" cy="17" r="1.5" fill="currentColor"/></>} />,

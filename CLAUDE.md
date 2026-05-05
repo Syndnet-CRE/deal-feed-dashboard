@@ -55,7 +55,7 @@ BrowserRouter
       AppShell        (holds view state + DealsProvider)
         ParcylBar
         Views (DashboardView / BuyBoxesView / MapView / SettingsView)
-        DealDetailRoute  (/deal/:dealId → PropertyDetail)
+        DealDetailRoute  (/deal/:dealId → DealDetail)
 ```
 
 `AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `DealsProvider` is mounted inside `AppShell` (not at app root) and exposes `{ deals, buyBoxes, contacts, loading, error, refetch, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }`.
@@ -65,12 +65,14 @@ BrowserRouter
 ### Navigation model — hybrid
 
 - Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Views: `dashboard`, `map`, `boxes`, `settings`.
-- Deal detail is **URL-based**: navigating to a deal calls `navigate('/deal/' + deal.id)`. `DealDetailRoute` reads `dealId` from params and renders `PropertyDetail`.
+- Deal detail is **URL-based**: navigating to a deal calls `navigate('/deal/' + deal.id)`. Two rendering modes exist:
+  - **DealDetailPage** — cold load or navigation from any non-map view. Renders full-screen, replacing the view switcher.
+  - **DealDetailModal** — opened from MapView via `navigate('/deal/:id', { state: { fromMap: true } })`. Renders as an overlay on top of the still-mounted MapView. Detected by `location.state?.fromMap`.
 - Deep-linking to a view is not supported (only `/` and `/deal/:id` are addressable).
 
 ### API layer (src/lib/api.js)
 
-All requests go through a single `request()` function that injects the Bearer token and handles 401 (clear token + redirect to `/login`). Use `api.get/post/patch` everywhere; never call `fetch` directly.
+All requests go through a single `request()` function that injects the Bearer token and handles 401 (clear token + redirect to `/login`). Use `api.get/post/patch/delete` everywhere; never call `fetch` directly.
 
 ### File layout
 
@@ -91,8 +93,9 @@ src/
 
 | File | Role |
 |------|------|
-| `src/components/PropertyDetail.jsx` | Full-page deal detail with 9 tabs: Overview, Ownership & Skip, Transactions, Tax & Assessment, Site & Environmental, Market & Comps, Distress Signals, Documents, Notes. Reads `briefJson` and `notes` from deal object. Calls `saveNote` and `postFeedback` from DealsContext. |
-| `src/components/DealDrawer.jsx` | Slide-over panel used within feed/list views for quick deal preview. Distinct from PropertyDetail. |
+| `src/components/DealDetail.jsx` | Active full-page deal detail with 12 tabs: Summary, Property Record, Ownership, Financials, Capital Stack, Transactions, Site & Lot, Zoning, Site Context, Risk, Distress, Deal Intel. Styled by `src/styles/deal-detail.css`. |
+| `src/components/PropertyDetail.jsx` | **Dead code** — replaced by `DealDetail.jsx`. Not imported anywhere. Do not add features here. |
+| `src/components/DealDrawer.jsx` | **Dead code** — not imported anywhere. Do not add features here. |
 | `src/components/DealMap.jsx` | Reusable Mapbox map. Auto-fits to deal markers via `fitDeals()`. Props: `deals`, `selectedId`, `hoverId`, `onClickDeal`, `mapStyle`, `withPopup`. |
 | `src/components/DealPanel.jsx` | Collapsible sidebar inside MapView listing filtered/sorted deals. Owns filter state, sort, owner-type chips, CSV export. Persists collapsed state to `localStorage` key `dealfeed.mapPanel.collapsed`; filters to `parcyl-deals-filters`. |
 | `src/components/DealPanelCard.jsx` | Individual deal card within DealPanel. Expandable inline preview (signals, score, aerial thumb). Calls `onOpenDeal` to navigate to full PropertyDetail. |
@@ -113,10 +116,12 @@ src/
 | `src/views/DashboardView.jsx` | Stats + recent deals + map background. Falls back to `MOCK_DEALS` when API returns empty. |
 | `src/views/MapView.jsx` | Full-screen Mapbox map + collapsible DealPanel sidebar. This is the primary deal browsing surface (My Deals was merged here). Map style persisted to `parcyl-map-style`; viewport to `parcyl-map-viewport`. |
 | `src/views/BuyBoxesView.jsx` | Buy box management table. |
+| `src/views/InviteView.jsx` | Admin-only invite queue manager. Add contacts by pasting emails (bare or `Name <email>` format), preview parsed list, batch-add to queue, send all unsent in one call. Visible in ParcylBar only when `subscriber.email === 'brady@parcyl.ai'`. |
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |
 | `src/lib/assetColors.js` | `getPinColor(assetClass)` → hex; exports `LEGEND_ITEMS`. |
 | `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Used by both `ConfigurationOverlay.jsx` and `NewBoxWizard.jsx`. |
+| `src/lib/inviteHelpers.js` | Pure functions for the invite flow: `parseInvitesFromText(text)` — parses `Name <email>` or bare email lines; `validateInvite({email, full_name})` — returns error string or null; `dedupeByEmail(invites)` — removes duplicate emails. |
 | `src/lib/format.test.js` | Unit tests for `format.js` utilities. Run with `npm test`. |
 | `src/views/LoginView.jsx` | Unauthenticated login page; submits to `POST /api/dealfeed/auth/login`. |
 | `src/data/mockData.js` | Static fallback data: `DEALS`, `BUY_BOXES`, `COMPS`, `ASSET_CLASSES`. |
@@ -128,9 +133,9 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 ## KEY FILES
 
 - `src/contexts/DealsContext.jsx` — central data fetch; touching this breaks all views
-- `src/components/PropertyDetail.jsx` — full property detail (9 tabs); `brief_json` from the API powers all tab data
+- `src/components/DealDetail.jsx` — active full deal detail (12 tabs); powers both page and modal rendering modes
+- `src/styles/deal-detail.css` — styles for DealDetail; separate from the main `styles.css`
 - `src/components/ConfigurationOverlay.jsx` — active buy box wizard (create + edit); replaces NewBoxWizard in the live flow
-- `src/components/DealDrawer.jsx` — slide-over detail panel; complex layout with comps table, owner card, feedback
 - `src/components/DealMap.jsx` — Mapbox integration; `fitDeals()` must fire after `onLoad`, not before
 - `src/styles/tokens.css` — source of truth for all colors, spacing, typography
 - `src/lib/wizardHelpers.js` — pure helper functions for the wizard: `canProceed(step, form)` step gate logic, `buildPayload(form)` API payload builder, `toNum(v)` null-safe numeric converter
@@ -144,7 +149,9 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `saveNote` in `DealsContext` does an optimistic update but does NOT catch errors — a failed PATCH leaves stale UI state with no user feedback.
 - `ConfigurationOverlay` backdrop has no onClick close handler — intentional to prevent accidental dismissal mid-flow.
 - `POST /api/dealfeed/buy-boxes/preview` is called by `ConfigurationOverlay` on every form change (debounced). If this route does not exist on the backend, preview count fails silently — no error is surfaced to the user.
-- `NewBoxWizard.jsx` is dead code — it is defined but not imported anywhere in the live app. Do not maintain it.
+- `NewBoxWizard.jsx` is dead code — defined but not imported anywhere. Do not maintain it.
+- `PropertyDetail.jsx` is dead code — replaced by `DealDetail.jsx`. Not imported anywhere. Do not maintain it.
+- `DealDrawer.jsx` is dead code — not imported anywhere. Do not maintain it.
 
 ## BACKEND CONTRACT
 
@@ -165,3 +172,7 @@ Key endpoints:
 - `POST /api/dealfeed/buy-boxes/preview` → body is a buy box payload → `{ count: number }` (may not exist yet on backend)
 - `PATCH /api/dealfeed/auth/me` → update profile
 - `POST /api/dealfeed/auth/change-password`
+- `GET /api/dealfeed/invites` → `{ invites: Invite[] }` (admin only)
+- `POST /api/dealfeed/invites` → body `{ invites: [{email, full_name}] }` → `{ added, skipped }`
+- `POST /api/dealfeed/invites/send` → sends all unsent invites → `{ sent, failed }`
+- `DELETE /api/dealfeed/invites/:id` → removes invite from queue

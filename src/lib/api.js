@@ -31,7 +31,7 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || `API error ${res.status}`);
+    throw new Error(err.message || err.error || `API error ${res.status}`);
   }
 
   return res.json();

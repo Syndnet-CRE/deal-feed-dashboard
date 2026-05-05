@@ -1,4 +1,4 @@
-import { fmt, hasVal, fmtMoney } from '../../lib/format';
+import { hasVal, fmtMoney } from '../../lib/format';
 
 export function MarketTab({ deal }) {
   const bj = deal.briefJson || {};
