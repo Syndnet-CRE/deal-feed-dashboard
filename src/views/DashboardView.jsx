@@ -6,6 +6,7 @@ import { DealCard } from '../components/DealComponents';
 import { DealMap } from '../components/DealMap';
 import { PipelineTimeline } from '../components/PipelineTimeline';
 import { CalendarModal } from '../components/CalendarModal';
+import { MarketNewsfeed } from '../components/MarketNewsfeed';
 import { fmtRelativeTime } from '../lib/format';
 
 const TZ = 'America/Chicago';
@@ -184,7 +185,7 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selected
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px 260px', gap: 16, alignItems: 'start' }}>
         <div className="panel-card">
           <div className="panel-head">
             <div>
@@ -238,20 +239,24 @@ export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selected
           )}
         </div>
 
-        <div className="panel-card" style={{ position: 'sticky', top: 0 }}>
-          <div className="panel-head">
-            <div>
-              <div className="panel-title">Deal Map · Top Matches</div>
-              <div className="panel-sub">{mapDeals.length} deals mapped by score</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="panel-card" style={{ position: 'sticky', top: 0 }}>
+            <div className="panel-head">
+              <div>
+                <div className="panel-title">Deal Map · Top Matches</div>
+                <div className="panel-sub">{mapDeals.length} deals mapped by score</div>
+              </div>
+              <button className="btn sm" onClick={() => onSetView('map')}><I.External size={11}/> Open Map</button>
             </div>
-            <button className="btn sm" onClick={() => onSetView('map')}><I.External size={11}/> Open Map</button>
-          </div>
-          <div style={{ height: 280, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-            {!loading && (
-              <DealMap deals={mapDeals} selectedId={selectedId} withPopup={true} onClickDeal={onOpenDeal} mapStyle="dark"/>
-            )}
+            <div style={{ height: 240, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+              {!loading && (
+                <DealMap deals={mapDeals} selectedId={selectedId} withPopup={true} onClickDeal={onOpenDeal} mapStyle="dark"/>
+              )}
+            </div>
           </div>
         </div>
+
+        <MarketNewsfeed />
       </div>
 
       {showCalendar && (

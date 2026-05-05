@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const TZ = 'America/Chicago';
 
@@ -21,13 +21,38 @@ function secsUntilCTHour(targetH) {
 function getStageInfo() {
   const nowSecs = getCTSeconds();
   const h = Math.floor(nowSecs / 3600);
-  if (h < 2)  return { nodeIdx: 1, activeLabel: 'Agents Running Now',   countdownLabel: 'Briefs Writing In',          nextH: 2 };
-  if (h < 4)  return { nodeIdx: 2, activeLabel: 'Briefs Generating Now', countdownLabel: 'Deals Hitting Inboxes In',   nextH: 4 };
-  if (h < 6)  return { nodeIdx: 3, activeLabel: 'Deals Delivering Now',  countdownLabel: 'Agent Launch In',            nextH: 0 };
+  if (h < 2)  return { nodeIdx: 1, activeLabel: 'Agents Running Now',    countdownLabel: 'Briefs Writing In',           nextH: 2 };
+  if (h < 4)  return { nodeIdx: 2, activeLabel: 'Briefs Generating Now', countdownLabel: 'Deals Hitting Inboxes In',    nextH: 4 };
+  if (h < 6)  return { nodeIdx: 3, activeLabel: 'Deals Delivering Now',  countdownLabel: 'Agent Launch In',             nextH: 0 };
   return               { nodeIdx: 0, activeLabel: null,                   countdownLabel: 'Buy Box Submission Closes In', nextH: 0 };
 }
 
 function pad(n) { return String(n).padStart(2, '0'); }
+
+function FlipDigit({ value }) {
+  const prevRef = useRef(value);
+  const [flipping, setFlipping] = useState(false);
+  const [displayPrev, setDisplayPrev] = useState(value);
+
+  useEffect(() => {
+    if (value !== prevRef.current) {
+      setDisplayPrev(prevRef.current);
+      prevRef.current = value;
+      setFlipping(true);
+      const t = setTimeout(() => setFlipping(false), 320);
+      return () => clearTimeout(t);
+    }
+  }, [value]);
+
+  return (
+    <div className="fd-wrap" aria-hidden="true">
+      <div className="fd-half fd-lower">{value}</div>
+      <div className={`fd-half fd-upper${flipping ? ' fd-flip' : ''}`}>
+        {flipping ? displayPrev : value}
+      </div>
+    </div>
+  );
+}
 
 const NODES = ['Submit', 'Agents', 'Briefs', 'Delivered'];
 
@@ -55,12 +80,18 @@ export function PipelineTimeline() {
     <div className="pipeline-timeline">
       <div className="pt-countdown-wrap">
         {activeLabel && <div className="pt-active-badge">{activeLabel}</div>}
-        <div className="pt-digits" aria-label={`${hh} hours ${mm} minutes ${ss} seconds`}>
-          <span className="pt-digit-group">{hh}</span>
-          <span className="pt-sep">:</span>
-          <span className="pt-digit-group">{mm}</span>
-          <span className="pt-sep">:</span>
-          <span className="pt-digit-group">{ss}</span>
+        <div
+          className="fd-row"
+          aria-label={`${hh} hours ${mm} minutes ${ss} seconds`}
+        >
+          <FlipDigit value={hh[0]} />
+          <FlipDigit value={hh[1]} />
+          <span className="fd-sep">:</span>
+          <FlipDigit value={mm[0]} />
+          <FlipDigit value={mm[1]} />
+          <span className="fd-sep">:</span>
+          <FlipDigit value={ss[0]} />
+          <FlipDigit value={ss[1]} />
         </div>
         <div className="pt-countdown-label">{countdownLabel}</div>
       </div>
