@@ -10,6 +10,7 @@ import { DashboardView } from './views/DashboardView';
 import { BuyBoxesView } from './views/BuyBoxesView';
 import { MapView } from './views/MapView';
 import { SettingsView } from './views/SettingsView';
+import { InviteView } from './views/InviteView';
 import { LoginView } from './views/LoginView';
 
 (() => {
@@ -166,6 +167,7 @@ function AppShell() {
                   {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
                   {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)} onEdit={setEditingBuyBox} onPause={setPausingBuyBox}/>}
                   {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
+                  {view === 'invites'   && <InviteView/>}
                 </div>
               )}
 

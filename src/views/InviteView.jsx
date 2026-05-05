@@ -1,0 +1,201 @@
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '../lib/api';
+import { parseInvitesFromText, validateInvite, dedupeByEmail } from '../lib/inviteHelpers';
+import { I } from '../components/Icons';
+
+function fmtDate(val) {
+  if (!val) return '—';
+  return new Date(val).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+export function InviteView() {
+  const [text, setText] = useState('');
+  const [preview, setPreview] = useState([]);
+  const [queue, setQueue] = useState([]);
+  const [loadingQueue, setLoadingQueue] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [sendResult, setSendResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const loadQueue = useCallback(async () => {
+    setLoadingQueue(true);
+    try {
+      const data = await api.get('/api/dealfeed/invites');
+      setQueue(data.invites || []);
+    } catch {
+      setError('Failed to load invite queue.');
+    } finally {
+      setLoadingQueue(false);
+    }
+  }, []);
+
+  useEffect(() => { loadQueue(); }, [loadQueue]);
+
+  useEffect(() => {
+    const parsed = parseInvitesFromText(text);
+    setPreview(dedupeByEmail(parsed));
+  }, [text]);
+
+  const previewErrors = preview.map(inv => validateInvite(inv)).filter(Boolean);
+  const canAdd = preview.length > 0 && previewErrors.length === 0;
+
+  async function handleAdd() {
+    if (!canAdd) return;
+    setAdding(true);
+    setError(null);
+    try {
+      const data = await api.post('/api/dealfeed/invites', { invites: preview });
+      if (data.skipped?.length > 0) {
+        setError(`Added ${data.added.length}. Skipped ${data.skipped.length} (already in system or invalid).`);
+      }
+      setText('');
+      setPreview([]);
+      await loadQueue();
+    } catch {
+      setError('Failed to add invites.');
+    } finally {
+      setAdding(false);
+    }
+  }
+
+  async function handleSendAll() {
+    setSending(true);
+    setSendResult(null);
+    setError(null);
+    try {
+      const data = await api.post('/api/dealfeed/invites/send', {});
+      setSendResult(data);
+      await loadQueue();
+    } catch {
+      setError('Failed to send invites.');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleRemove(id) {
+    try {
+      await api.delete(`/api/dealfeed/invites/${id}`);
+      setQueue(q => q.filter(r => r.id !== id));
+    } catch {
+      setError('Failed to remove invite.');
+    }
+  }
+
+  const unsent = queue.filter(r => !r.invited_at);
+
+  return (
+    <div className="invite-view">
+      <div className="iv-header">
+        <h1 className="iv-title">Invite Queue</h1>
+        <p className="iv-sub">Add people by email, review the list, then send in one batch.</p>
+      </div>
+
+      <div className="iv-card">
+        <div className="iv-label">Add contacts</div>
+        <p className="iv-hint">
+          One per line. Formats: <code>email@example.com</code> or <code>First Last &lt;email@example.com&gt;</code>
+        </p>
+        <textarea
+          className="iv-textarea"
+          rows={6}
+          placeholder={'jon@example.com\nJane Doe <jane@example.com>'}
+          value={text}
+          onChange={e => setText(e.target.value)}
+          spellCheck={false}
+        />
+
+        {preview.length > 0 && (
+          <div className="iv-preview">
+            <div className="iv-preview-label">{preview.length} contact{preview.length !== 1 ? 's' : ''} parsed</div>
+            <table className="iv-table">
+              <thead>
+                <tr><th>Email</th><th>Name</th><th>Valid</th></tr>
+              </thead>
+              <tbody>
+                {preview.map((inv, i) => {
+                  const err = validateInvite(inv);
+                  return (
+                    <tr key={i} className={err ? 'iv-row-err' : ''}>
+                      <td>{inv.email}</td>
+                      <td>{inv.full_name || <span className="iv-muted">none</span>}</td>
+                      <td>
+                        {err
+                          ? <span className="iv-badge iv-badge-err">{err}</span>
+                          : <span className="iv-badge iv-badge-ok"><I.Check size={11}/> OK</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            <button
+              className="iv-btn iv-btn-primary"
+              onClick={handleAdd}
+              disabled={!canAdd || adding}
+            >
+              {adding ? 'Adding...' : `Add ${preview.length} to queue`}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {error && <div className="iv-error">{error}</div>}
+      {sendResult && (
+        <div className="iv-send-result">
+          Sent {sendResult.sent} invite{sendResult.sent !== 1 ? 's' : ''}.
+          {sendResult.failed > 0 && ` ${sendResult.failed} failed — check Resend logs.`}
+        </div>
+      )}
+
+      <div className="iv-card">
+        <div className="iv-queue-header">
+          <div className="iv-queue-meta">
+            <span className="iv-label">Queue</span>
+            {!loadingQueue && (
+              <span className="iv-count">{queue.length} total &middot; {unsent.length} unsent</span>
+            )}
+          </div>
+          {unsent.length > 0 && (
+            <button className="iv-btn iv-btn-send" onClick={handleSendAll} disabled={sending}>
+              <I.Mail size={13}/>
+              {sending ? 'Sending...' : `Send to ${unsent.length}`}
+            </button>
+          )}
+        </div>
+
+        {loadingQueue ? (
+          <p className="iv-muted">Loading...</p>
+        ) : queue.length === 0 ? (
+          <p className="iv-muted">Queue is empty. Add contacts above.</p>
+        ) : (
+          <table className="iv-table iv-table-full">
+            <thead>
+              <tr><th>Email</th><th>Name</th><th>Added</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+              {queue.map(row => (
+                <tr key={row.id}>
+                  <td>{row.email}</td>
+                  <td>{row.full_name || <span className="iv-muted">&mdash;</span>}</td>
+                  <td className="iv-muted">{fmtDate(row.created_at)}</td>
+                  <td>
+                    {row.invited_at
+                      ? <span className="iv-badge iv-badge-sent">Sent {fmtDate(row.invited_at)}</span>
+                      : <span className="iv-muted">Not sent</span>}
+                  </td>
+                  <td>
+                    <button className="iv-remove-btn" onClick={() => handleRemove(row.id)} title="Remove">
+                      <I.Close size={13}/>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
