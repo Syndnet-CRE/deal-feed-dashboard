@@ -40,6 +40,13 @@ function getMarkerPct(nowSecs) {
 const NODE_LABELS = ['Submit', 'Agents', 'Briefs', 'Delivered'];
 const NODE_PCTS   = [18, 50, 75, 100];
 
+// Track geometry — all values in px, relative to .pt2-track-row
+const TRACK_TOP    = 14; // center of 28px nodes: 0 + 14 = 14
+const TRACK_H      = 4;
+const TRACK_OFFSET = TRACK_TOP - TRACK_H / 2; // top of the 4px bar = 12px
+const MARKER_SIZE  = 16;
+const MARKER_TOP   = TRACK_TOP - MARKER_SIZE / 2; // 14 - 8 = 6px
+
 export function PipelineTimeline() {
   const hRef       = useRef(null);
   const mRef       = useRef(null);
@@ -75,8 +82,8 @@ export function PipelineTimeline() {
         const done   = i < nodeIdx;
         const active = i === nodeIdx;
         if (done) {
-          el.style.background   = '#1DAF29';
-          el.style.borderColor  = '#1DAF29';
+          el.style.background  = '#1DAF29';
+          el.style.borderColor = '#1DAF29';
         } else if (active) {
           el.style.background  = '#1E1E24';
           el.style.borderColor = '#1DAF29';
@@ -99,10 +106,14 @@ export function PipelineTimeline() {
 
   return (
     <div className="pipeline-timeline">
-      <div className="pt2-top">
-        <div className="pt2-countdown">
+
+      {/* TOP ROW: countdown left, phase right */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24 }}>
+
+        {/* Countdown */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div className="pt2-cd-label" ref={cdLabelRef}>BUY BOX SUBMISSION CLOSES IN</div>
-          <div className="pt2-blocks">
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
             <div className="pt2-block">
               <span className="pt2-block-num" ref={hRef}>00</span>
               <span className="pt2-block-unit">HRS</span>
@@ -119,37 +130,85 @@ export function PipelineTimeline() {
             </div>
           </div>
         </div>
-        <div className="pt2-phase">
+
+        {/* Current phase */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end', textAlign: 'right', paddingTop: 2 }}>
           <span className="pt2-phase-label">CURRENT PHASE</span>
           <span className="pt2-phase-name" ref={phaseRef}>Dead Zone — Accepting Submissions</span>
         </div>
       </div>
 
-      <div className="pt2-track-row">
-        <div className="pt2-track-bg" />
-        <div className="pt2-fill" ref={fillRef} />
-        <div className="pt2-marker" ref={markerRef}>›</div>
-        <div className="pt2-nodes">
-          {NODE_LABELS.map((label, i) => (
+      {/* BOTTOM ROW: animated track bar with 4 nodes */}
+      <div style={{ position: 'relative', height: 60 }}>
+
+        {/* Track background */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0,
+          top: TRACK_OFFSET, height: TRACK_H,
+          background: '#40424D', borderRadius: 2,
+        }} />
+
+        {/* Green fill — same position as track-bg, width animated */}
+        <div ref={fillRef} style={{
+          position: 'absolute', left: 0,
+          top: TRACK_OFFSET, height: TRACK_H,
+          width: '0%',
+          background: '#1DAF29', borderRadius: 2,
+          transition: 'width 0.25s linear',
+          animation: 'timelineGlow 2s ease-in-out infinite',
+        }} />
+
+        {/* Live position marker */}
+        <div ref={markerRef} style={{
+          position: 'absolute',
+          top: MARKER_TOP, left: '0%',
+          transform: 'translateX(-50%)',
+          width: MARKER_SIZE, height: MARKER_SIZE,
+          borderRadius: '50%',
+          background: '#1DAF29',
+          boxShadow: '0 0 0 4px rgba(29,175,41,0.2)',
+          zIndex: 4,
+          transition: 'left 0.25s linear',
+          animation: 'markerPulse 2s ease-in-out infinite',
+        }} />
+
+        {/* Stage nodes */}
+        {NODE_LABELS.map((label, i) => (
+          <div key={label} style={{
+            position: 'absolute',
+            left: `${NODE_PCTS[i]}%`,
+            top: 0,
+            transform: 'translateX(-50%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+          }}>
             <div
-              key={label}
-              className="pt2-node-wrap"
-              style={{ left: `${NODE_PCTS[i]}%` }}
+              ref={el => { nodeRefs.current[i] = el; }}
+              style={{
+                width: 28, height: 28, borderRadius: '50%',
+                border: '2px solid #40424D',
+                background: '#1E1E24',
+                position: 'relative', zIndex: 3,
+                flexShrink: 0,
+              }}
             >
               <div
-                className="pt2-node"
-                ref={el => { nodeRefs.current[i] = el; }}
-              >
-                <div
-                  className="pt2-ring"
-                  ref={el => { ringRefs.current[i] = el; }}
-                  style={{ display: 'none' }}
-                />
-              </div>
-              <div className="pt2-node-label">{label}</div>
+                ref={el => { ringRefs.current[i] = el; }}
+                style={{
+                  display: 'none',
+                  position: 'absolute', inset: -6,
+                  borderRadius: '50%',
+                  border: '2px solid rgba(29,175,41,0.4)',
+                  pointerEvents: 'none',
+                  animation: 'ringPulse 2s ease-in-out infinite',
+                }}
+              />
             </div>
-          ))}
-        </div>
+            <div style={{
+              fontSize: 9, fontWeight: 600, textTransform: 'uppercase',
+              letterSpacing: '0.05em', color: '#9DA2B3', whiteSpace: 'nowrap',
+            }}>{label}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
