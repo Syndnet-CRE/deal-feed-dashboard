@@ -74,15 +74,15 @@ const S = {
   phaseName: { fontSize: 12, fontWeight: 600, color: '#1DAF29', fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap' },
 
   // Track row — nodeWrap.top=8, node height=44 → node center y=30, track center y=30
-  trackRow:  { position: 'relative', height: 100, marginLeft: 150, marginRight: 150 },
+  trackRow:  { position: 'relative', height: 100, marginLeft: 100, marginRight: 100 },
   trackBg:   { position: 'absolute', left: 0, right: 0, top: 27, height: 6, background: '#40424D', borderRadius: 3 },
   fill:      { position: 'absolute', left: 0, top: 27, height: 6, width: '0%', background: 'linear-gradient(90deg, #1DAF29, #3DE346)', borderRadius: 3, transition: 'width 0.25s linear', animation: 'timelineGlow 2s ease-in-out infinite', overflow: 'hidden' },
   particle:  { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.75)', animation: 'particleFlow 2s linear infinite' },
   marker:    { position: 'absolute', top: 21, left: '0%', transform: 'translateX(-50%)', width: 18, height: 18, borderRadius: '50%', background: '#1DAF29', boxShadow: '0 0 0 4px rgba(29,175,41,0.2)', zIndex: 4, transition: 'left 0.25s linear', animation: 'markerPulse 2s ease-in-out infinite' },
 
   // Nodes
-  nodeWrap:     { position: 'absolute', top: 8, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 },
-  node:         { width: 44, height: 44, borderRadius: '50%', border: '2px solid #40424D', background: '#1E1E24', position: 'relative', zIndex: 3, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  nodeWrap:     { position: 'absolute', top: 16, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 },
+  node:         { width: 29, height: 29, borderRadius: '50%', border: '2px solid #40424D', background: '#1E1E24', position: 'relative', zIndex: 3, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   iconWrap:     { display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#40424D' },
   ring:         { position: 'absolute', inset: -8, borderRadius: '50%', border: '2px solid rgba(29,175,41,0.4)', pointerEvents: 'none', animation: 'ringPulse 2s ease-in-out infinite' },
   nodeLabelWrap:{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 },
