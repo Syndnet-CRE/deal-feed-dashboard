@@ -51,6 +51,7 @@ export function DealMap({
   const [viewState, setViewState] = useState(initialViewState || DEFAULT_VIEW);
   const [popup, setPopup] = useState(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [hoverDealId, setHoverDealId] = useState(null);
 
   const handleMapLoad = useCallback(() => {
     setMapLoaded(true);
@@ -105,7 +106,7 @@ export function DealMap({
 
       {deals.map((d, i) => {
         if (!d.lat || !d.lng) return null;
-        const active = selectedId === d.id || hoverId === d.id;
+        const active = selectedId === d.id || hoverId === d.id || hoverDealId === d.id;
         return (
           <Marker
             key={d.id}
@@ -114,7 +115,11 @@ export function DealMap({
             anchor="bottom"
             onClick={(e) => handleMarkerClick(e, d)}
           >
-            <div style={{ cursor: 'pointer', transform: active ? 'scale(1.25)' : 'scale(1)', transition: 'transform 0.15s', zIndex: active ? 10 : 1, position: 'relative' }}>
+            <div
+              style={{ cursor: 'pointer', transform: active ? 'scale(1.25)' : 'scale(1)', transition: 'transform 0.15s', zIndex: active ? 10 : 1, position: 'relative' }}
+              onMouseEnter={() => setHoverDealId(d.id)}
+              onMouseLeave={() => setHoverDealId(null)}
+            >
               <MapPinSVG score={d.score} num={i + 1} selected={active}/>
             </div>
           </Marker>

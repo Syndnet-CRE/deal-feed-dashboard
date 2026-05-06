@@ -58,6 +58,7 @@ export function MapView({ onOpenDeal }) {
   const [collapsed,      setCollapsed]      = useState(loadCollapsed);
   const [expandedCardId, setExpandedCardId] = useState(null);
   const [focusDealId,    setFocusDealId]    = useState(null);
+  const [panelHoverId,   setPanelHoverId]   = useState(null);
   const [activePanel,    setActivePanel]    = useState(null);
 
   const handleFiltersChange = useCallback((next) => {
@@ -140,6 +141,7 @@ export function MapView({ onOpenDeal }) {
         initialViewState={viewport}
         onViewStateChange={handleViewportChange}
         selectedId={expandedCardId}
+        hoverId={panelHoverId}
         focusDealId={focusDealId}
       />
 
@@ -199,6 +201,7 @@ export function MapView({ onOpenDeal }) {
           expandedCardId={expandedCardId}
           onExpandCard={handleExpandCard}
           onOpenDeal={onOpenDeal}
+          onHoverDeal={setPanelHoverId}
         />
       </div>
     </div>

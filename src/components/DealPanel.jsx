@@ -35,6 +35,7 @@ function exportCSV(deals) {
 export function DealPanel({
   deals, buyBoxes, filters, onFilterChange,
   expandedCardId, onExpandCard, onOpenDeal,
+  onHoverDeal,
 }) {
   const cardRefs = useRef({});
   const { postFeedback, updateStatus } = useDeals();
@@ -162,6 +163,8 @@ export function DealPanel({
               onOpenDeal={onOpenDeal}
               selected={selectedIds.has(d.id)}
               onSelect={toggleSelect}
+              onHover={onHoverDeal}
+              onHoverEnd={() => onHoverDeal?.(null)}
             />
           ))
         )}

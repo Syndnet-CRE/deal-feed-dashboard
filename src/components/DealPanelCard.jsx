@@ -23,13 +23,18 @@ function deliveryLabel(days) {
 }
 
 export const DealPanelCard = forwardRef(function DealPanelCard(
-  { deal, index, expanded, onExpand, onOpenDeal, selected, onSelect },
+  { deal, index, expanded, onExpand, onOpenDeal, selected, onSelect, onHover, onHoverEnd },
   ref
 ) {
   const signals = deal.signals || [];
 
   return (
-    <div ref={ref} className={`dpc${expanded ? ' expanded' : ''}${selected ? ' selected' : ''}`}>
+    <div
+      ref={ref}
+      className={`dpc${expanded ? ' expanded' : ''}${selected ? ' selected' : ''}`}
+      onMouseEnter={() => onHover?.(deal.id)}
+      onMouseLeave={() => onHoverEnd?.()}
+    >
       <div
         className="dpc-header"
         onClick={() => onExpand(expanded ? null : deal.id)}

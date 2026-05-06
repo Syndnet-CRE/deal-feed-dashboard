@@ -119,7 +119,7 @@ export function DealCard({ deal, onClick, selected }) {
 }
 
 export function MapPinSVG({ score: _score, num, selected }) {
-  const fill = "#5BCC48";
+  const fill = selected ? '#F4B73E' : '#5BCC48';
   const stroke = "#06270A";
   return (
     <svg width="26" height="32" viewBox="0 0 26 32" style={{ filter: `drop-shadow(0 ${selected ? 4 : 2}px ${selected ? 8 : 4}px rgba(0,0,0,0.55))` }}>
