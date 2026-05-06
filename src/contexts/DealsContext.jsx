@@ -46,6 +46,7 @@ export function DealsProvider({ children }) {
   const [deals, setDeals] = useState([]);
   const [buyBoxes, setBuyBoxes] = useState([]);
   const [contacts, setContacts] = useState({});
+  const [dealNotes, setDealNotes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -116,8 +117,26 @@ export function DealsProvider({ children }) {
     return res.buy_box;
   }, []);
 
+  const fetchDealNotes = useCallback(async (dealId) => {
+    try {
+      const res = await api.get(`/api/dealfeed/deals/${dealId}/notes`);
+      setDealNotes(prev => ({ ...prev, [dealId]: res.notes || [] }));
+    } catch {
+      // leave existing state unchanged on error
+    }
+  }, []);
+
+  const createDealNote = useCallback(async (dealId, noteText) => {
+    const res = await api.post(`/api/dealfeed/deals/${dealId}/notes`, { note_text: noteText });
+    setDealNotes(prev => ({
+      ...prev,
+      [dealId]: [res.note, ...(prev[dealId] || [])],
+    }));
+    return res.note;
+  }, []);
+
   return (
-    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }}>
+    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, dealNotes, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox, fetchDealNotes, createDealNote }}>
       {children}
     </DealsCtx.Provider>
   );
