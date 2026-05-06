@@ -12,8 +12,7 @@ const BASE_TABS = [
 ];
 
 const ADMIN_TABS = [
-  { id: "invites", label: "Invites",   icon: Users },
-  { id: "admin",   label: "Admin",     icon: ShieldCheck },
+  { id: "invites", label: "Invites", icon: Users },
 ];
 
 const SunIcon  = (p) => <Icon {...p} d={<><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></>} />;
@@ -142,6 +141,15 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
                 <SettingsIcon size={13} />
                 Settings
               </button>
+              {email === 'brady@parcyl.ai' && (
+                <button
+                  className="pb-avatar-menu-item"
+                  onClick={() => { setView('admin'); setMenuOpen(false); }}
+                >
+                  <ShieldCheck size={13} />
+                  Admin
+                </button>
+              )}
             </div>
           )}
         </div>
