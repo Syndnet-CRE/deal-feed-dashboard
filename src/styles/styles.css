@@ -357,17 +357,14 @@ button { font-family: inherit; }
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent, #4A4D5E) 60%, transparent), transparent);
-  border-radius: 9px 9px 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(91,204,72,0.5), transparent);
   opacity: 0;
   transition: opacity 200ms;
-  pointer-events: none;
-  z-index: 1;
 }
 .stat-card:hover {
-  border-color: color-mix(in srgb, var(--accent, #4A4D5E) 22%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #4A4D5E) 7%, transparent);
+  border-color: rgba(91,204,72,0.22);
+  box-shadow: 0 0 0 1px rgba(91,204,72,0.07);
 }
 .stat-card:hover::before { opacity: 1; }
 .stat-card .label {
@@ -2612,7 +2609,7 @@ button { font-family: inherit; }
   right: 0;
   bottom: 0;
   width: 420px;
-  background: var(--topbar-bg);
+  background: linear-gradient(180deg, var(--topbar-bg) 0%, var(--topbar-bg-2) 100%);
   border-left: 1px solid var(--hairline);
   display: flex;
   flex-direction: column;
@@ -2715,7 +2712,30 @@ button { font-family: inherit; }
   cursor: pointer;
   user-select: none;
 }
-.panel-select-all input[type="checkbox"] { accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+.panel-select-all input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--warning);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: box-shadow 120ms, background 120ms;
+}
+.panel-select-all input[type="checkbox"]:hover { box-shadow: 0 0 0 3px rgba(244,183,62,0.2); }
+.panel-select-all input[type="checkbox"]:checked { background: var(--warning); }
+.panel-select-all input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l4 4 10-11'/%3E%3C/svg%3E");
+  background-size: 10px 10px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
 .bulk-action-bar {
   position: sticky;
   bottom: 0;
@@ -2728,15 +2748,41 @@ button { font-family: inherit; }
   border-top: 1px solid var(--hairline-soft);
   z-index: 10;
 }
-.bulk-count { font-size: 11px; font-weight: 600; color: var(--green); white-space: nowrap; margin-right: 4px; }
+.bulk-count { font-size: 11px; font-weight: 600; color: var(--warning); white-space: nowrap; margin-right: 4px; }
 .bulk-clear { margin-left: auto; color: var(--ink-4); }
 
 /* ── Deal Panel Card (dpc) ───────────────────────────────── */
 .dpc { border-bottom: 1px solid var(--hairline-soft); transition: background 100ms; }
 .dpc:hover { background: var(--panel-2); }
 .dpc.expanded { background: var(--panel-2); }
-.dpc.selected { border-left: 3px solid var(--green); background: rgba(91,204,72,0.06); }
-.dpc-checkbox { flex-shrink: 0; margin-right: 4px; accent-color: var(--green); cursor: pointer; width: 14px; height: 14px; }
+.dpc.selected { border-left: 3px solid var(--warning); }
+.dpc-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  margin-right: 4px;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--warning);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  opacity: 0;
+  transition: box-shadow 120ms, background 120ms, opacity 120ms;
+}
+.dpc:hover .dpc-checkbox { opacity: 1; }
+.dpc-checkbox:checked { opacity: 1; background: var(--warning); }
+.dpc-checkbox:hover { box-shadow: 0 0 0 3px rgba(244,183,62,0.2); }
+.dpc-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l4 4 10-11'/%3E%3C/svg%3E");
+  background-size: 10px 10px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
 
 .dpc-header {
   display: flex;
