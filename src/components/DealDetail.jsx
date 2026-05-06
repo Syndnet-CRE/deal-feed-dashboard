@@ -238,8 +238,6 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
       <div className="dd-nav-band" />
 
       <div className="dd-addr-bar">
-        <span className="dd-wordmark">Deal Feed</span>
-        <div className="dd-addr-divider" />
         <div className="dd-addr-identity">
           <span className="dd-addr-line1">{deal.address || 'Unknown Address'}</span>
           {line2Parts.length > 0 && (

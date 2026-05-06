@@ -17,15 +17,15 @@
 /* ── Address bar ─────────────────────────────────────────────── */
 .dd-addr-bar {
   position: sticky;
-  top: 0;
+  top: 44px;
   z-index: 20;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-1);
-  padding: var(--s-3) var(--s-6);
+  padding: var(--s-2) var(--s-6);
   display: flex;
   align-items: center;
   gap: var(--s-4);
-  min-height: 68px;
+  min-height: 60px;
 }
 
 .dd-wordmark {
@@ -172,7 +172,7 @@
 /* ── Sub-tab strip ───────────────────────────────────────────── */
 .dd-subtabs-outer {
   position: sticky;
-  top: 68px;
+  top: 104px;
   z-index: 19;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-1);
@@ -248,7 +248,7 @@
   border: 1px solid var(--border-1);
   border-radius: var(--r-md);
   overflow: hidden;
-  scroll-margin-top: 140px;
+  scroll-margin-top: 148px;
 }
 
 .dd-sec-head {
@@ -450,7 +450,7 @@
 /* ── Back link ───────────────────────────────────────────────── */
 .dd-addr-back {
   font-size: var(--t-micro);
-  color: var(--fg-3);
+  color: var(--green);
   background: none;
   border: none;
   padding: 0;
@@ -459,8 +459,13 @@
   font-weight: var(--w-medium);
   text-align: left;
   transition: color var(--dur-fast) var(--ease-out);
+  text-decoration: none;
 }
-.dd-addr-back:hover { color: var(--parcyl-green-700); }
+.dd-addr-back:hover {
+  color: var(--parcyl-green-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* ── Deal pagination nav ─────────────────────────────────────── */
 .dd-deal-nav {

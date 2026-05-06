@@ -145,7 +145,7 @@
 
   /* Dot grid background */
   --dot-grid-color: rgba(0, 0, 0, 0.055);
-  --dot-grid-size: 22px;
+  --dot-grid-size: 24px;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -174,8 +174,8 @@
   --pill-blue-bg:  rgba(62,123,250,0.18);  --pill-blue-fg:  #6BA8F2;
   --pill-gray-bg:  rgba(255,255,255,0.08); --pill-gray-fg:  #9DA2B3;
 
-  /* Dot grid background — lighter dots on dark */
-  --dot-grid-color: rgba(255, 255, 255, 0.04);
+  /* Dot grid background — visible dots on dark */
+  --dot-grid-color: #2a2a2a;
 }
 
 /* ─────────────────────────────────────────────────────────────
