@@ -1,0 +1,62 @@
+name: Claude Weekly Improvement Loop
+
+on:
+  schedule:
+    - cron: '3 9 * * 1'   # Every Monday 9:03am UTC
+  workflow_dispatch:        # Manual trigger from GitHub Actions UI
+
+jobs:
+  improve:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude improvement loop
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude --dangerously-skip-permissions -p "
+            You are running the weekly autonomous improvement loop for deal-feed-dashboard.
+            Project context: React SPA + scoutgpt-api backend, CRE deal feed for investors.
+
+            Run these steps in order:
+
+            1. Read CLAUDE.md, notes/HANDOFF.md, and any recent session files in ~/.claude/session-data/
+               to understand current project state.
+
+            2. Scan the codebase for:
+               - Any scripts/ files with no corresponding cron job or route trigger (orphaned scripts)
+               - Any route files not registered in their index.js (unregistered routes)
+               - Any console.log statements in committed code
+               - Any TODO or FIXME comments older than 2 weeks (check git blame)
+               - Undefined CSS custom properties (var(--something) not defined in tokens.css)
+
+            3. Run /evolve to cluster learned session patterns into permanent instincts.
+
+            4. Run /harness-audit to check agent harness config for reliability and cost issues.
+               Apply any trivial fixes automatically.
+
+            5. Write a summary to notes/WEEKLY_IMPROVEMENT.md with:
+               - Date
+               - New instincts added (if any)
+               - Issues found (with file:line references)
+               - Auto-fixes applied
+               - Items Brady must review manually
+
+            Make decisions and execute. Do not wait for input.
+            When done, print: WEEKLY IMPROVEMENT COMPLETE.
+          "
+
+      - name: Commit improvement notes
+        run: |
+          git config user.name "claude-weekly"
+          git config user.email "noreply@anthropic.com"
+          git add notes/WEEKLY_IMPROVEMENT.md || true
+          git diff --staged --quiet || git commit -m "chore: weekly improvement loop report"
+          git push origin main || true
