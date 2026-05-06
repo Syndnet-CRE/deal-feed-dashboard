@@ -58,7 +58,7 @@ BrowserRouter
             DealStateProvider (src/contexts/DealStateContext.jsx)
               DealsProvider   (src/contexts/DealsContext.jsx)
                 ParcylBar
-                Views (DashboardView / BuyBoxesView / MapView / SettingsView / InviteView)
+                Views (DashboardView / BuyBoxesView / MapView / SettingsView / InviteView / AdminView)
                 DealDetailPage   (/deal/:dealId — standalone, no fromMap state)
                 DealDetailModal  (/deal/:dealId — overlay, fromMap state set)
 ```
@@ -78,11 +78,13 @@ BrowserRouter
 
 ### Navigation model — hybrid
 
-- Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Views: `dashboard`, `map`, `boxes`, `settings`.
+- Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Primary sidebar views: `dashboard`, `map`, `boxes`, `settings`.
+- **Avatar dropdown views**: `invites` and `admin` are accessed via the avatar menu in the top-right of ParcylBar. Both are gated to `isAdmin` (`subscriber.email === 'brady@parcyl.ai'`).
 - Deal detail is **URL-based**: navigating to a deal calls `navigate('/deal/' + deal.id)`. Two rendering modes exist:
   - **DealDetailPage** — cold load or navigation from any non-map view. Renders full-screen, replacing the view switcher.
   - **DealDetailModal** — opened from MapView via `navigate('/deal/:id', { state: { fromMap: true } })`. Renders as an overlay on top of the still-mounted MapView. Detected by `location.state?.fromMap`.
-- Deep-linking to a view is not supported (only `/` and `/deal/:id` are addressable).
+- **Invite claim** is URL-based at `/invite/:token` — rendered by `InviteClaimView` outside the authenticated `AppShell`.
+- Deep-linking to a view is not supported (only `/`, `/deal/:id`, and `/invite/:token` are addressable).
 
 ### API layer (src/lib/api.js)
 
@@ -124,6 +126,7 @@ src/
 | `src/components/tabs/MarketTab.jsx` | Extracted tab for Market & Comps — used by `DealDetail.jsx`. |
 | `src/components/tabs/OwnershipTab.jsx` | Extracted tab for Ownership & Skip — used by `DealDetail.jsx`. |
 | `src/components/tabs/SiteTab.jsx` | Extracted tab for Site & Environmental — used by `DealDetail.jsx`. |
+| `src/components/BulkActionBar.jsx` | Bulk action toolbar shown in DealPanel when deals are selected. Props: `count`, `onStatus`, `onFeedback`, `onExport`, `onClear`. |
 | `src/components/ConfirmModal.jsx` | Generic danger-confirm modal; `kind` prop selects copy. |
 | `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
 | `src/components/MapBackground.jsx` | Static Mapbox background used decoratively inside the wizard geography step. |
@@ -136,7 +139,9 @@ src/
 | `src/views/BuyBoxesView.jsx` | Buy box management table. |
 | `src/views/ForgotPasswordView.jsx` | Unauthenticated forgot-password page; submits email to trigger reset link. |
 | `src/views/ResetPasswordView.jsx` | Unauthenticated password reset page; consumes token from URL query param. |
-| `src/views/InviteView.jsx` | Admin-only invite queue manager. Add contacts by pasting emails (bare or `Name <email>` format), preview parsed list, batch-add to queue, send all unsent in one call. Visible in ParcylBar only when `subscriber.email === 'brady@parcyl.ai'`. |
+| `src/views/InviteView.jsx` | Admin-only invite queue manager. Add contacts by pasting emails (bare or `Name <email>` format), preview parsed list, batch-add to queue, send all unsent in one call. Accessible via avatar dropdown when `isAdmin`. |
+| `src/views/AdminView.jsx` | Admin dashboard: subscriber list with status pills, per-subscriber detail drawer, agent run history, and a "Trigger Run Now" button. Accessible via avatar dropdown when `isAdmin`. Styled by `src/styles/admin.css`. |
+| `src/views/InviteClaimView.jsx` | Unauthenticated view at `/invite/:token`. Validates the token via `GET /api/dealfeed/auth/invite/:token`, collects `full_name` + password, and activates the account. |
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |
 | `src/lib/assetColors.js` | `getPinColor(assetClass)` → hex; exports `LEGEND_ITEMS`. |
@@ -164,7 +169,7 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 
 - `DealMap` calls `fitDeals` inside `onLoad` AND in a `useEffect` gated on `mapLoaded`. Both are needed; removing either breaks auto-fit on mount vs. data change.
 - `fmt()` must be used on any field that might arrive as the string `"null"` or `"undefined"` from the API — the backend occasionally serializes nulls as strings.
-- `COMPS` in `DealDrawer` is still static mock data from `mockData.js` — not yet wired to the API.
+- `COMPS` in `mockData.js` is still static mock data — the comps section in deal detail is not yet wired to a live API endpoint.
 - `DashboardView` silently falls back to `MOCK_DEALS` when the API returns an empty array. A subscriber with zero real deals will see fake data.
 - `saveNote` in `DealsContext` does an optimistic update but does NOT catch errors — a failed PATCH leaves stale UI state with no user feedback.
 - `ConfigurationOverlay` backdrop has no onClick close handler — intentional to prevent accidental dismissal mid-flow.
@@ -196,3 +201,9 @@ Key endpoints:
 - `POST /api/dealfeed/invites` → body `{ invites: [{email, full_name}] }` → `{ added, skipped }`
 - `POST /api/dealfeed/invites/send` → sends all unsent invites → `{ sent, failed }`
 - `DELETE /api/dealfeed/invites/:id` → removes invite from queue
+- `GET /api/dealfeed/auth/invite/:token` → validates invite token → `{ email }` (unauthenticated)
+- `POST /api/dealfeed/auth/invite/:token/claim` → body `{ full_name, password }` → activates account (unauthenticated)
+- `GET /api/dealfeed/admin/subscribers` → `{ subscribers: Subscriber[] }` (admin only)
+- `GET /api/dealfeed/admin/subscribers/:id` → `{ subscriber }` with full detail (admin only)
+- `GET /api/dealfeed/admin/runs` → `{ runs: AgentRun[] }` (admin only)
+- `POST /api/dealfeed/admin/runs/trigger` → triggers a deal-feed agent run (admin only)

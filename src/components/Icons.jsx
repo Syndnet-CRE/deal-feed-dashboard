@@ -15,6 +15,7 @@ export const I = {
   Search: (p) => <Icon {...p} d={<><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></>} />,
   Bell: (p) => <Icon {...p} d={<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></>} />,
   Plus: (p) => <Icon {...p} d="M12 5v14M5 12h14" />,
+  Minus: (p) => <Icon {...p} d="M5 12h14" />,
   Filter: (p) => <Icon {...p} d="M3 4h18l-7 9v6l-4-2v-4z" />,
   Sort: (p) => <Icon {...p} d={<><path d="M11 5h10M11 9h7M11 13h4M3 7l3-3 3 3M6 4v16M3 17l3 3 3-3"/></>} />,
   Calendar: (p) => <Icon {...p} d={<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></>} />,

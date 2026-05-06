@@ -153,6 +153,7 @@ export function ConfigurationOverlay({ onClose, mode = 'create', initialData = n
   const [stateSearch, setStateSearch] = useState('');
   const [assetOpen, setAssetOpen]     = useState(false);
   const [zipInput, setZipInput]       = useState('');
+  const [zipError, setZipError]       = useState('');
   const [metroInput, setMetroInput]   = useState('');
   const [submitting, setSubmitting]       = useState(false);
   const [error, setError]                 = useState('');
@@ -262,12 +263,38 @@ export function ConfigurationOverlay({ onClose, mode = 'create', initialData = n
   function handleZipKey(e) {
     if ((e.key === 'Enter' || e.key === ',') && zipInput.trim()) {
       e.preventDefault();
-      const z = zipInput.trim().replace(/,/g, '');
-      if (/^\d{5}$/.test(z) && !form.geo_zips.includes(z)) {
-        set('geo_zips', [...form.geo_zips, z]);
-      }
-      setZipInput('');
+      commitZip(zipInput);
     }
+  }
+
+  function commitZip(raw) {
+    const z = raw.trim().replace(/,/g, '');
+    if (!z) return;
+    if (/^\d{5}$/.test(z)) {
+      if (!form.geo_zips.includes(z)) set('geo_zips', [...form.geo_zips, z]);
+      setZipError('');
+    } else {
+      setZipError('Enter a 5-digit ZIP code.');
+    }
+    setZipInput('');
+  }
+
+  function handleZipPaste(e) {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text');
+    const tokens = text.split(/[\s,;-]+/).map(t => t.trim()).filter(Boolean);
+    const valid = tokens.filter(t => /^\d{5}$/.test(t));
+    const invalid = tokens.filter(t => t && !/^\d{5}$/.test(t));
+    if (valid.length) {
+      const merged = [...new Set([...form.geo_zips, ...valid])];
+      set('geo_zips', merged);
+    }
+    if (invalid.length) {
+      setZipError(`Skipped invalid: ${invalid.join(', ')}`);
+    } else {
+      setZipError('');
+    }
+    setZipInput('');
   }
 
   if (success) {
@@ -547,11 +574,14 @@ export function ConfigurationOverlay({ onClose, mode = 'create', initialData = n
                   className="co-text-input"
                   placeholder="Type a 5-digit zip and press Enter..."
                   value={zipInput}
-                  onChange={e => setZipInput(e.target.value)}
+                  onChange={e => { setZipInput(e.target.value); setZipError(''); }}
                   onKeyDown={handleZipKey}
+                  onBlur={() => { if (zipInput.trim()) commitZip(zipInput); }}
+                  onPaste={handleZipPaste}
                   maxLength={5}
                   inputMode="numeric"
                 />
+                {zipError && <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: '4px' }}>{zipError}</p>}
                 {form.geo_zips.length > 0 && (
                   <div className="co-chips">
                     {form.geo_zips.map(z => (

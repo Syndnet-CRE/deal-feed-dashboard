@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Map, Marker, Popup, NavigationControl } from 'react-map-gl/mapbox';
+import { Map, Marker, Popup } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapPinSVG, ScoreBubble } from './DealComponents';
 import { fmtMoney, fmt, hasVal } from '../lib/format';
@@ -102,7 +102,14 @@ export function DealMap({
       style={{ width: '100%', height: '100%' }}
       onClick={() => setPopup(null)}
     >
-      <NavigationControl position="top-right" showCompass={false}/>
+      <div className="map-zoom-ctrl">
+        <button className="mt-btn" onClick={() => mapRef.current?.getMap().zoomIn()} title="Zoom in">
+          <I.Plus size={16} />
+        </button>
+        <button className="mt-btn" onClick={() => mapRef.current?.getMap().zoomOut()} title="Zoom out">
+          <I.Minus size={16} />
+        </button>
+      </div>
 
       {deals.map((d, i) => {
         if (!d.lat || !d.lng) return null;
