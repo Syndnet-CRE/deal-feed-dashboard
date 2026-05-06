@@ -72,7 +72,6 @@
 html, body, #root {
   margin: 0; padding: 0;
   height: 100%;
-  background-color: var(--app-bg);
   color: var(--ink-1);
   font-family: 'Manrope', system-ui, sans-serif;
   font-size: 13px;
@@ -303,7 +302,6 @@ button { font-family: inherit; }
 .content {
   flex: 1;
   overflow: auto;
-  background: var(--app-bg);
   position: relative;
 }
 .content.no-scroll { overflow: hidden; }
