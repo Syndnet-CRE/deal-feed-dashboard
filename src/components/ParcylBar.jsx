@@ -33,7 +33,19 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
   const { deals } = useDeals();
   const navigate = useNavigate();
   const email = subscriber?.email || '';
-  const initials = email.slice(0, 2).toUpperCase() || 'DR';
+  const initials = (() => {
+    const fn = subscriber?.first_name?.trim();
+    const ln = subscriber?.last_name?.trim();
+    if (fn && ln) return (fn[0] + ln[0]).toUpperCase();
+    const full = subscriber?.full_name?.trim();
+    if (full) {
+      const parts = full.split(/\s+/);
+      return parts.length >= 2
+        ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+        : parts[0].slice(0, 2).toUpperCase();
+    }
+    return email.slice(0, 2).toUpperCase() || '??';
+  })();
   const tabs = email === 'brady@parcyl.ai' ? [...BASE_TABS, ...ADMIN_TABS] : BASE_TABS;
 
   const MAX_RESULTS = 8;
