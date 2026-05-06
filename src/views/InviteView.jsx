@@ -89,12 +89,27 @@ export function InviteView() {
   return (
     <div className="invite-view">
       <div className="iv-header">
-        <h1 className="iv-title">Invite Queue</h1>
-        <p className="iv-sub">Add people by email, review the list, then send in one batch.</p>
+        <div>
+          <h1 className="iv-title">Invite Queue</h1>
+          <p className="iv-sub">Add people by email, review the list, then send in one batch.</p>
+        </div>
+        {!loadingQueue && (
+          <div className="iv-header-stats">
+            <div className="iv-stat-chip">
+              <span className="num">{queue.length}</span>
+              <span className="lbl">In queue</span>
+            </div>
+            <div className="iv-stat-divider" />
+            <div className="iv-stat-chip">
+              <span className="num">{unsent.length}</span>
+              <span className="lbl">Unsent</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="iv-card">
-        <div className="iv-label">Add contacts</div>
+        <div className="iv-card-title">Add contacts</div>
         <p className="iv-hint">
           One per line. Formats: <code>email@example.com</code> or <code>First Last &lt;email@example.com&gt;</code>
         </p>
@@ -153,7 +168,7 @@ export function InviteView() {
       <div className="iv-card">
         <div className="iv-queue-header">
           <div className="iv-queue-meta">
-            <span className="iv-label">Queue</span>
+            <span className="iv-card-title">Queue</span>
             {!loadingQueue && (
               <span className="iv-count">{queue.length} total &middot; {unsent.length} unsent</span>
             )}
