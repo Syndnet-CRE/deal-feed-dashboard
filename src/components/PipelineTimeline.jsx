@@ -74,7 +74,7 @@ const S = {
   phaseName: { fontSize: 12, fontWeight: 600, color: '#1DAF29', fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap' },
 
   // Track row — nodeWrap.top=8, node height=44 → node center y=30, track center y=30
-  trackRow:  { position: 'relative', height: 100 },
+  trackRow:  { position: 'relative', height: 100, marginLeft: 150, marginRight: 150 },
   trackBg:   { position: 'absolute', left: 0, right: 0, top: 27, height: 6, background: '#40424D', borderRadius: 3 },
   fill:      { position: 'absolute', left: 0, top: 27, height: 6, width: '0%', background: 'linear-gradient(90deg, #1DAF29, #3DE346)', borderRadius: 3, transition: 'width 0.25s linear', animation: 'timelineGlow 2s ease-in-out infinite', overflow: 'hidden' },
   particle:  { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.75)', animation: 'particleFlow 2s linear infinite' },

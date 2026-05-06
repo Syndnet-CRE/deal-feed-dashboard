@@ -2,42 +2,42 @@
   {
     "id": "mp-001",
     "tag": "run",
-    "timestamp": "2026-05-08T00:03:14Z",
+    "timestamp": "2026-05-06T02:03:00Z",
     "title": "Midnight Run complete — 47 deals matched",
     "body": "Buy boxes processed across 6 markets. 12 new distressed signals flagged in Travis County."
   },
   {
     "id": "mp-002",
     "tag": "signal",
-    "timestamp": "2026-05-07T23:41:00Z",
+    "timestamp": "2026-05-05T23:41:00Z",
     "title": "Pre-foreclosure spike in Williamson Co.",
     "body": "18 NOD filings recorded in the past 48 hours — 3.2x above the 30-day average."
   },
   {
     "id": "mp-003",
     "tag": "market",
-    "timestamp": "2026-05-07T18:00:00Z",
+    "timestamp": "2026-05-05T18:00:00Z",
     "title": "Austin multifamily cap rates ticking up",
     "body": "Class B/C cap rates moved from 5.1% to 5.4% over 60 days per CoStar data."
   },
   {
     "id": "mp-004",
     "tag": "run",
-    "timestamp": "2026-05-07T00:04:52Z",
+    "timestamp": "2026-05-05T00:04:52Z",
     "title": "Midnight Run complete — 39 deals matched",
     "body": "Hays County led supply. 4 deals flagged with absentee owner and code violation overlap."
   },
   {
     "id": "mp-005",
     "tag": "market",
-    "timestamp": "2026-05-06T14:22:00Z",
+    "timestamp": "2026-05-04T14:22:00Z",
     "title": "TX SB 2 passes — property tax appraisal caps",
     "body": "Assessment growth limits expected to dampen value increases on income-producing properties statewide."
   },
   {
     "id": "mp-006",
     "tag": "signal",
-    "timestamp": "2026-05-05T09:15:00Z",
+    "timestamp": "2026-05-03T09:15:00Z",
     "title": "Absentee landlord concentration rising in 78741",
     "body": "Out-of-state owners now 34% of the SFR stock in this zip, up from 26% in Q1 2026."
   }
