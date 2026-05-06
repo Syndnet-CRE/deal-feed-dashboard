@@ -14,6 +14,7 @@ import { BuyBoxesView } from './views/BuyBoxesView';
 import { MapView } from './views/MapView';
 import { SettingsView } from './views/SettingsView';
 import { InviteView } from './views/InviteView';
+import { AdminView } from './views/AdminView';
 import { LoginView } from './views/LoginView';
 import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
@@ -189,6 +190,7 @@ function AppShell() {
                   {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)} onEdit={setEditingBuyBox} onPause={setPausingBuyBox}/>}
                   {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
                   {view === 'invites'   && <InviteView/>}
+                  {view === 'admin'     && <AdminView/>}
                 </div>
               )}
 

@@ -1,0 +1,530 @@
+/* ── Admin View ─────────────────────────────────────────────── */
+
+.adm-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+/* ── Runs Strip ────────────────────────────────────────────── */
+
+.adm-runs-strip {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-card);
+  padding: 10px 16px;
+}
+
+.adm-runs-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--fg-3);
+}
+
+.adm-runs-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  flex: 1;
+}
+
+.adm-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-4);
+  padding: 3px;
+  border-radius: var(--r-xs);
+  display: flex;
+  align-items: center;
+  transition: color var(--dur-fast);
+}
+
+.adm-icon-btn:hover { color: var(--fg-2); }
+
+.adm-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+
+.adm-trigger-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.adm-trigger-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.adm-runs-list {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.adm-run-empty {
+  font-size: 12px;
+  color: var(--fg-4);
+}
+
+.adm-run-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  padding: 5px 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.adm-run-date {
+  font-size: 11px;
+  color: var(--fg-3);
+}
+
+.adm-run-stat {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-2);
+}
+
+.adm-run-dur {
+  font-size: 11px;
+  color: var(--fg-4);
+  font-family: var(--font-mono);
+}
+
+.adm-run-err {
+  font-size: 11px;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ── Body layout ───────────────────────────────────────────── */
+
+.adm-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────── */
+
+.adm-sidebar {
+  width: 264px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-1);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.adm-sidebar-top {
+  flex-shrink: 0;
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--border-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adm-search {
+  width: 100%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  padding: 7px 10px;
+  font-size: 13px;
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.adm-search::placeholder { color: var(--fg-4); }
+.adm-search:focus { border-color: var(--accent); box-shadow: var(--ring); }
+
+.adm-sub-count {
+  font-size: 11px;
+  color: var(--fg-4);
+  text-align: right;
+}
+
+.adm-sub-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.adm-sub-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+  margin-bottom: 2px;
+}
+
+.adm-sub-card:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-2);
+}
+
+.adm-sub-card.active {
+  background: var(--accent-soft);
+  border-color: rgba(29, 175, 41, 0.25);
+}
+
+[data-theme="dark"] .adm-sub-card.active {
+  background: rgba(29, 175, 41, 0.12);
+  border-color: rgba(29, 175, 41, 0.3);
+}
+
+.adm-sub-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: space-between;
+}
+
+.adm-sub-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fg-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.adm-sub-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adm-sub-email {
+  font-size: 11px;
+  color: var(--fg-4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.adm-sub-stats {
+  font-size: 11px;
+  color: var(--fg-3);
+  font-weight: 500;
+  flex-shrink: 0;
+  margin-left: 6px;
+}
+
+.adm-sub-arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fg-4);
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+}
+
+.adm-sub-card:hover .adm-sub-arrow,
+.adm-sub-card.active .adm-sub-arrow { opacity: 1; }
+
+/* ── Main panel ────────────────────────────────────────────── */
+
+.adm-main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.adm-detail-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-4);
+  font-size: 14px;
+  height: 100%;
+}
+
+.adm-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.adm-detail-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--border-2);
+}
+
+.adm-detail-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--fg-1);
+  margin-bottom: 2px;
+}
+
+.adm-detail-sub {
+  font-size: 12px;
+  color: var(--fg-4);
+}
+
+.adm-detail-tabs {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-1);
+}
+
+.adm-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-3);
+  cursor: pointer;
+  transition: color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.adm-tab:hover { color: var(--fg-1); }
+.adm-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+
+.adm-detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+/* ── Profile tab ───────────────────────────────────────────── */
+
+.adm-profile-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.adm-profile-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-2);
+  gap: 12px;
+}
+
+.adm-profile-row:last-child { border-bottom: none; }
+
+.adm-profile-label {
+  font-size: 12px;
+  color: var(--fg-4);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.adm-profile-val {
+  font-size: 13px;
+  color: var(--fg-1);
+  word-break: break-all;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Buy boxes tab ─────────────────────────────────────────── */
+
+.adm-boxes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adm-box-card {
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  background: var(--bg-card);
+}
+
+.adm-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.adm-box-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg-1);
+}
+
+.adm-box-meta {
+  font-size: 12px;
+  color: var(--fg-3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.adm-sep { color: var(--fg-4); }
+
+.adm-box-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 8px;
+}
+
+.adm-box-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.adm-stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg-1);
+  line-height: 1;
+}
+
+.adm-stat-lbl {
+  font-size: 11px;
+  color: var(--fg-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.adm-box-note {
+  font-size: 12px;
+  border-radius: var(--r-xs);
+  padding: 6px 10px;
+  margin-top: 8px;
+}
+
+.adm-box-note--coverage {
+  background: rgba(62, 123, 250, 0.08);
+  color: var(--fg-2);
+  border-left: 2px solid var(--info);
+}
+
+.adm-box-note--internal {
+  background: var(--bg-subtle);
+  color: var(--fg-3);
+  border-left: 2px solid var(--border-1);
+}
+
+/* ── Deals tab ─────────────────────────────────────────────── */
+
+.adm-deals-wrap {
+  overflow-x: auto;
+}
+
+.adm-deals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.adm-deals-table th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-subtle);
+}
+
+.adm-deals-table td {
+  padding: 9px 10px;
+  color: var(--fg-2);
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: top;
+}
+
+.adm-deals-table tbody tr:hover td { background: var(--bg-subtle); }
+
+.adm-deal-addr {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--fg-1);
+}
+
+.adm-deal-score {
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+
+.adm-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.adm-badge.pill-green { background: var(--pill-green-bg); color: var(--pill-green-fg); }
+.adm-badge.pill-amber { background: var(--pill-amber-bg); color: var(--pill-amber-fg); }
+.adm-badge.pill-red   { background: var(--pill-red-bg);   color: var(--pill-red-fg);   }
+.adm-badge.pill-blue  { background: var(--pill-blue-bg);  color: var(--pill-blue-fg);  }
+.adm-badge.pill-gray  { background: var(--pill-gray-bg);  color: var(--pill-gray-fg);  }
+
+/* ── Shared utilities ──────────────────────────────────────── */
+
+.adm-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--fg-4);
+  font-size: 13px;
+}

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { I, Icon } from './Icons';
-import { LayoutDashboard, Map as MapIcon, LayoutGrid, Users, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Map as MapIcon, LayoutGrid, Users, ShieldCheck, Settings as SettingsIcon } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useDeals } from '../contexts/DealsContext';
 
@@ -11,7 +11,10 @@ const BASE_TABS = [
   { id: "boxes",     label: "Buy Boxes", icon: LayoutGrid },
 ];
 
-const ADMIN_TAB = { id: "invites", label: "Invites", icon: Users };
+const ADMIN_TABS = [
+  { id: "invites", label: "Invites",   icon: Users },
+  { id: "admin",   label: "Admin",     icon: ShieldCheck },
+];
 
 const SunIcon  = (p) => <Icon {...p} d={<><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></>} />;
 const MoonIcon = (p) => <Icon {...p} d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />;
@@ -32,7 +35,7 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
   const navigate = useNavigate();
   const email = subscriber?.email || '';
   const initials = email.slice(0, 2).toUpperCase() || 'DR';
-  const tabs = email === 'brady@parcyl.ai' ? [...BASE_TABS, ADMIN_TAB] : BASE_TABS;
+  const tabs = email === 'brady@parcyl.ai' ? [...BASE_TABS, ...ADMIN_TABS] : BASE_TABS;
 
   const MAX_RESULTS = 8;
   const [query, setQuery] = useState('');
