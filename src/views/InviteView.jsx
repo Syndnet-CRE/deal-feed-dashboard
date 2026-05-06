@@ -131,15 +131,15 @@ export function InviteView() {
                 })}
               </tbody>
             </table>
-            <button
-              className="iv-btn iv-btn-primary"
-              onClick={handleAdd}
-              disabled={!canAdd || adding}
-            >
-              {adding ? 'Adding...' : `Add ${preview.length} to queue`}
-            </button>
           </div>
         )}
+        <button
+          className="iv-btn iv-btn-primary"
+          onClick={handleAdd}
+          disabled={!canAdd || adding}
+        >
+          {adding ? 'Adding...' : preview.length > 0 ? `Add ${preview.length} to queue` : 'Add to queue'}
+        </button>
       </div>
 
       {error && <div className="iv-error">{error}</div>}
@@ -158,12 +158,10 @@ export function InviteView() {
               <span className="iv-count">{queue.length} total &middot; {unsent.length} unsent</span>
             )}
           </div>
-          {unsent.length > 0 && (
-            <button className="iv-btn iv-btn-send" onClick={handleSendAll} disabled={sending}>
-              <I.Mail size={13}/>
-              {sending ? 'Sending...' : `Send to ${unsent.length}`}
-            </button>
-          )}
+          <button className="iv-btn iv-btn-send" onClick={handleSendAll} disabled={unsent.length === 0 || sending}>
+            <I.Mail size={13}/>
+            {sending ? 'Sending...' : unsent.length > 0 ? `Send to ${unsent.length}` : 'Send all'}
+          </button>
         </div>
 
         {loadingQueue ? (
