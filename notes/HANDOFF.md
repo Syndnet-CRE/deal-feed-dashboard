@@ -1,42 +1,40 @@
 # HANDOFF
 
-Date: 2026-05-05
+Date: 2026-05-06
 Repo: deal-feed-dashboard
-Session objective: Fix deal detail addr-bar gap, restore global dot grid background, upgrade card visuals
+Session objective: Rebuild DealDetail hero, signals bar, metrics bar, status chip, contact log, and notes log
 Status: COMPLETE
 
 ---
 
 ## What was done
 
-### Fix 1 — addr-bar gap (`src/styles/deal-detail.css`)
-- `.dd-addr-bar`: `top: 44px` → `top: 0`
-  - Root cause: sticky threshold was relative to the scroll container (dd-page-glass), not the viewport. At scrollTop=0, the element's natural position (6px) was less than 44px, so CSS pushed it down 38px.
-- `.dd-subtabs-outer`: `top: 104px` → `top: 60px`
-- `.dd-sec`: `scroll-margin-top: 148px` → `scroll-margin-top: 104px`
-- **Committed**: `8548ea4 fix: deal detail addr-bar gap and global dot grid background`
+### Part 1 — Hero and Data Rebuild (`src/components/DealDetail.jsx`, `src/styles/deal-detail.css`)
 
-### Fix 2 — global dot grid (`src/styles/styles.css`, `src/styles/deal-detail.css`)
-- `styles.css` `html, body, #root`: removed `background-color: var(--app-bg)` — #root was covering the dot grid defined on html/body in tokens.css
-- `styles.css` `.content`: removed `background: var(--app-bg)` — main view wrapper was covering dot grid
-- `deal-detail.css` `.dd-page-glass`: removed `background: #0D0D0D` (hardcoded opaque cover)
-- **Committed**: `8548ea4` (same commit as Fix 1)
+- **Hero image**: replaced 5-cell stats bar with full-bleed `AerialThumb` container (`.dd-hero-image`, 240px). Gradient overlay bottom-up. Address block bottom-left (`.dd-hero-address`). Score/asset class/hold period badges top-right (`.dd-hero-badges`).
+- **Signals bar** (`.dd-signals-bar`): maps `deal.distress_signals` array to color-coded pills (`.dd-signal-pill .red/.amber/.green/.gray`). Adds absentee owner pill if `deal.absentee_owner === true`.
+- **Metrics bar** (`.dd-metrics-bar`): 5-cell grid — Assessed Value, Lot Size, Year Built, Hold Period, Owner Distance. Owner Distance compares state parsed from `deal.owner_mailing` via regex vs `deal.state`.
+- **`hasSectionData(rows)`**: guard hides entire sections when all row values are null/empty. Applied to financials, zoning, context, risk sections.
+- **Hidden fields surfaced**: `fips` + `censusTract` in Site Context; `deal_state` + `days` in Deal Intel; `dm.phoneConf`/`dm.emailConf` as `ConfBadge` in Ownership.
 
-### Fix 3 — deal detail card visuals (`src/styles/deal-detail.css`)
-- `.dd-root`: `background: var(--bg-card)` → `background: transparent` — was same color as cards, hiding dot grid
-- `.dd-page-glass`: added dot grid (`#0D0D0D` base + `#2a2a2a` dots, 24px grid) — tiles correctly as user scrolls
-- `.dd-sec`: replaced flat gray border with green glow ring (`rgba(29,175,41,0.25)` resting)
-- `.dd-sec:hover`: `translateY(-2px)` lift + brighter green glow (`rgba(91,204,72,0.55)`) + 200ms transition
-- **Committed**: `1d67e4c feat: dot grid background, green gradient card borders, hover lift on deal sections`
+### Part 2 — Workflow Layer (`src/components/DealDetail.jsx`, `src/styles/deal-detail.css`, `src/contexts/DealsContext.jsx`)
 
-All three commits pushed to main. Netlify auto-deployed.
+- **Status chip** (`.dd-status-row`): inline dropdown below addr-bar. Valid statuses: `new, due_diligence, contacted, negotiating, offer_made, dead`. Calls existing `updateStatus()`. Outside-click closes dropdown via `statusRef`.
+- **Log Contact button**: wired to pre-built `ContactLogModal.jsx` (imported as-is). Calls `logContact()` from DealsContext. `contactSubmitting` state wires the modal's `submitting` prop.
+- **Contact history**: rendered inside Ownership section. `fetchContacts(deal.id)` fires on mount. Each entry shows channel, outcome, date, notes.
+- **Notes log** (`.dd-notes-log`): timestamped thread at bottom of page. `fetchDealNotes` + `createDealNote` wired (System B — `df_deal_notes` table, separate from existing `saveNote` PATCH).
+- **DealsContext additions**: `dealNotes` state, `fetchDealNotes` (GET `/deals/:id/notes`), `createDealNote` (POST `/deals/:id/notes`), all exported in context value.
+
+### Commit
+- `4fe6d8f feat: deal detail hero image, signals bar, metrics, status chip, contact log, notes log`
+- Pushed to main. Netlify auto-deploying.
 
 ---
 
 ## What was NOT done
 
-- Visual browser QA — Brady should confirm the deployed Netlify URL looks correct
-- No BMAD tasks were touched this session
+- Browser QA on deployed Netlify URL — Brady should verify all new sections render correctly
+- Notes log requires backend `GET/POST /api/dealfeed/deals/:id/notes` endpoints returning `{ notes: [{id, note_text, created_at}] }` — verify these are live on Render or the thread will be empty
 
 ## Next session
 
@@ -48,7 +46,10 @@ cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
 
 ## Blockers for Brady
 
-- Open the deployed Netlify URL, navigate to any deal (`/deal/:id`), and confirm:
-  1. addr-bar sits flush at the top (no gap under ParcylBar)
-  2. Background between cards shows the dot grid (dark `#0D0D0D` with visible dots)
-  3. Cards have a thin green border glow at rest, lift + brighter glow on hover
+1. Open the deployed Netlify URL, navigate to any deal (`/deal/:id`), and confirm:
+   - Hero image renders (or aerial fallback SVG) with address overlay and badges
+   - Signals bar shows pills (or is hidden if `distress_signals` is empty/null)
+   - Metrics bar shows 5 cells — at minimum Assessed Value and Lot Size should populate
+   - Status chip is visible below the address bar with the current deal status
+   - Log Contact button opens `ContactLogModal` correctly
+2. Confirm `GET/POST /api/dealfeed/deals/:id/notes` are live on scoutgpt-api Render backend — notes thread won't appear otherwise
