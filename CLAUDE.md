@@ -50,17 +50,31 @@ VITE_MAPBOX_TOKEN=   # Mapbox public token
 
 ```
 BrowserRouter
-  AuthProvider        (src/hooks/useAuth.jsx)
-    App               (src/App.jsx — also defines AppShell and DealDetailRoute inline)
-      AppShell        (holds view state + DealsProvider)
-        ParcylBar
-        Views (DashboardView / BuyBoxesView / MapView / SettingsView)
-        DealDetailRoute  (/deal/:dealId → DealDetail)
+  AuthProvider           (src/hooks/useAuth.jsx)
+    ToastProvider        (src/contexts/ToastContext.jsx)
+      App                (src/App.jsx — also defines AppShell, DealDetailPage, DealDetailModal inline)
+        AppShell         (holds view state)
+          ReadStateProvider   (src/contexts/ReadStateContext.jsx)
+            DealStateProvider (src/contexts/DealStateContext.jsx)
+              DealsProvider   (src/contexts/DealsContext.jsx)
+                ParcylBar
+                Views (DashboardView / BuyBoxesView / MapView / SettingsView / InviteView)
+                DealDetailPage   (/deal/:dealId — standalone, no fromMap state)
+                DealDetailModal  (/deal/:dealId — overlay, fromMap state set)
 ```
 
-`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `DealsProvider` is mounted inside `AppShell` (not at app root) and exposes `{ deals, buyBoxes, contacts, loading, error, refetch, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }`.
+`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `ReadStateProvider`, `DealStateProvider`, and `DealsProvider` are all mounted inside `AppShell` (not at app root). `DealsProvider` exposes `{ deals, buyBoxes, contacts, loading, error, refetch, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }`.
 
-`AppShell` and `DealDetailRoute` are both defined in `src/App.jsx` — there are no separate files for them.
+`AppShell`, `DealDetailPage`, and `DealDetailModal` are all defined in `src/App.jsx` — there are no separate files for them.
+
+### Contexts
+
+| Context | Hook | Storage | Purpose |
+|---------|------|---------|---------|
+| `DealsContext.jsx` | `useDeals()` | API | Deals, buy boxes, contacts — central data layer |
+| `ToastContext.jsx` | `useToast()` | Memory | Fire toast notifications; never render `Toast` directly |
+| `ReadStateContext.jsx` | `useReadState()` | localStorage `dealfeed.read.{subId}:{dealId}` | Per-subscriber read/unread tracking |
+| `DealStateContext.jsx` | `useDealState()` | localStorage `dealfeed.dealstate.{subId}:{dealId}` | Per-subscriber deal state machine (`active`, `dead`, `loi`, `archived`) |
 
 ### Navigation model — hybrid
 
@@ -106,16 +120,22 @@ src/
 | `src/components/NewBoxWizard.jsx` | Legacy wizard — defined but no longer imported in `App.jsx`. Do not add features here; use `ConfigurationOverlay.jsx` instead. |
 | `src/components/StatusSelector.jsx` | Inline deal status selector; calls `updateStatus` from DealsContext. |
 | `src/components/ContactLogModal.jsx` | Modal for logging and viewing contact attempts on a deal; calls `logContact` and `fetchContacts` from DealsContext. |
-| `src/components/tabs/DistressTab.jsx` | Extracted tab for Distress Signals in PropertyDetail. |
-| `src/components/tabs/MarketTab.jsx` | Extracted tab for Market & Comps in PropertyDetail. |
-| `src/components/tabs/OwnershipTab.jsx` | Extracted tab for Ownership & Skip in PropertyDetail. |
-| `src/components/tabs/SiteTab.jsx` | Extracted tab for Site & Environmental in PropertyDetail. |
+| `src/components/tabs/DistressTab.jsx` | Extracted tab for Distress Signals — used by `DealDetail.jsx`. |
+| `src/components/tabs/MarketTab.jsx` | Extracted tab for Market & Comps — used by `DealDetail.jsx`. |
+| `src/components/tabs/OwnershipTab.jsx` | Extracted tab for Ownership & Skip — used by `DealDetail.jsx`. |
+| `src/components/tabs/SiteTab.jsx` | Extracted tab for Site & Environmental — used by `DealDetail.jsx`. |
 | `src/components/ConfirmModal.jsx` | Generic danger-confirm modal; `kind` prop selects copy. |
 | `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
 | `src/components/MapBackground.jsx` | Static Mapbox background used decoratively inside the wizard geography step. |
+| `src/components/PipelineTimeline.jsx` | Animated horizontal pipeline timeline on the Dashboard. All layout styles are inlined (no CSS class dependencies) to avoid cascade conflicts with `styles.css`. |
+| `src/components/MarketNewsfeed.jsx` | Scrolling market news ticker on the Dashboard. Data sourced from `src/data/marketPulse.json`. |
+| `src/components/CalendarModal.jsx` | Modal for scheduling/viewing calendar entries on a deal. |
+| `src/components/Toast.jsx` | Toast notification UI driven by `src/contexts/ToastContext.jsx`. Use the `useToast()` hook to fire toasts; never render Toast directly. |
 | `src/views/DashboardView.jsx` | Stats + recent deals + map background. Falls back to `MOCK_DEALS` when API returns empty. |
 | `src/views/MapView.jsx` | Full-screen Mapbox map + collapsible DealPanel sidebar. This is the primary deal browsing surface (My Deals was merged here). Map style persisted to `parcyl-map-style`; viewport to `parcyl-map-viewport`. |
 | `src/views/BuyBoxesView.jsx` | Buy box management table. |
+| `src/views/ForgotPasswordView.jsx` | Unauthenticated forgot-password page; submits email to trigger reset link. |
+| `src/views/ResetPasswordView.jsx` | Unauthenticated password reset page; consumes token from URL query param. |
 | `src/views/InviteView.jsx` | Admin-only invite queue manager. Add contacts by pasting emails (bare or `Name <email>` format), preview parsed list, batch-add to queue, send all unsent in one call. Visible in ParcylBar only when `subscriber.email === 'brady@parcyl.ai'`. |
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |

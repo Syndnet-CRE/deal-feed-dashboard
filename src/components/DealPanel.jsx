@@ -1,5 +1,7 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { DealPanelCard } from './DealPanelCard';
+import { BulkActionBar } from './BulkActionBar';
+import { useDeals } from '../contexts/DealsContext';
 
 const OWNER_CHIPS = [
   { label: 'Individual', value: 'Individual' },
@@ -35,6 +37,36 @@ export function DealPanel({
   expandedCardId, onExpandCard, onOpenDeal,
 }) {
   const cardRefs = useRef({});
+  const { postFeedback, updateStatus } = useDeals();
+
+  const [selectedIds, setSelectedIds] = useState(new Set());
+
+  const toggleSelect = useCallback((id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  const allSelected = deals.length > 0 && deals.every(d => selectedIds.has(d.id));
+  const toggleAll = useCallback(() => {
+    setSelectedIds(allSelected ? new Set() : new Set(deals.map(d => d.id)));
+  }, [allSelected, deals]);
+
+  const handleBulkStatus = useCallback(async (status) => {
+    await Promise.all([...selectedIds].map(id => updateStatus(id, status)));
+    setSelectedIds(new Set());
+  }, [selectedIds, updateStatus]);
+
+  const handleBulkFeedback = useCallback(async (fb) => {
+    await Promise.all([...selectedIds].map(id => postFeedback(id, fb)));
+    setSelectedIds(new Set());
+  }, [selectedIds, postFeedback]);
+
+  const handleBulkExport = useCallback(() => {
+    exportCSV(deals.filter(d => selectedIds.has(d.id)));
+  }, [deals, selectedIds]);
 
   useEffect(() => {
     if (!expandedCardId) return;
@@ -103,7 +135,14 @@ export function DealPanel({
         </div>
 
         <div className="panel-summary">
-          <span>{deals.length} deals · sorted by {SORT_LABELS[filters.sort] || 'Most Recent'}</span>
+          <label className="panel-select-all">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={toggleAll}
+            />
+            <span>{deals.length} deals · sorted by {SORT_LABELS[filters.sort] || 'Most Recent'}</span>
+          </label>
           <button className="btn xs" onClick={() => exportCSV(deals)}>Export CSV</button>
         </div>
       </div>
@@ -121,10 +160,22 @@ export function DealPanel({
               expanded={expandedCardId === d.id}
               onExpand={onExpandCard}
               onOpenDeal={onOpenDeal}
+              selected={selectedIds.has(d.id)}
+              onSelect={toggleSelect}
             />
           ))
         )}
       </div>
+
+      {selectedIds.size > 0 && (
+        <BulkActionBar
+          count={selectedIds.size}
+          onStatus={handleBulkStatus}
+          onFeedback={handleBulkFeedback}
+          onExport={handleBulkExport}
+          onClear={() => setSelectedIds(new Set())}
+        />
+      )}
     </div>
   );
 }

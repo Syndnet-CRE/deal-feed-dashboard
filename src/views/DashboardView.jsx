@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { useDealState } from '../contexts/DealStateContext';
 import { I } from '../components/Icons';
@@ -39,28 +39,47 @@ function buildWeekDays() {
   });
 }
 
-const CARD_ICONS = {
-  'New This Week':     <I.Trend size={14}/>,
-  'Contacted':         <I.Mail size={14}/>,
-  'Response Rate':     <I.Check size={14}/>,
-  'Hot Deals':         <I.Hot size={14}/>,
-  'Awaiting Response': <I.Bell size={14}/>,
-};
+function getAccentColor(label, num) {
+  const n = typeof num === 'string' && num.endsWith('%') ? parseInt(num) : (typeof num === 'number' ? num : null);
+  if (label === 'New This Week') return '#1DAF29';
+  if (label === 'Hot Deals') return n > 0 ? '#1DAF29' : '#4A4D5E';
+  if (label === 'Contacted') return n > 0 ? '#1DAF29' : '#F59E0B';
+  if (label === 'Response Rate') return n >= 50 ? '#1DAF29' : n >= 10 ? '#F59E0B' : '#4A4D5E';
+  if (label === 'Awaiting Response') return n > 0 ? '#F59E0B' : '#4A4D5E';
+  return '#4A4D5E';
+}
 
-function StatCard({ label, num, sub, emptyHint, isNew }) {
+function StatCard({ label, num, sub, emptyHint }) {
+  const isPct = typeof num === 'string' && num.endsWith('%');
+  const rawNum = isPct ? parseInt(num) : (typeof num === 'number' ? num : null);
+  const shouldAnimate = rawNum !== null && rawNum > 0;
+  const [display, setDisplay] = useState(shouldAnimate ? 0 : num);
+  const accentColor = getAccentColor(label, num);
+
+  useEffect(() => {
+    if (!shouldAnimate) return;
+    const start = performance.now();
+    let rafId;
+    function tick(now) {
+      const t = Math.min((now - start) / 600, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      const current = Math.round(ease * rawNum);
+      setDisplay(isPct ? `${current}%` : current);
+      if (t < 1) rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [shouldAnimate, rawNum, isPct]);
+
   const zeroish = num === 0 || num === '0%' || num === '—';
-  const dim = !isNew && zeroish;
-  const borderColor = isNew ? '#1DAF29' : dim ? '#40424D' : 'transparent';
-  const numColor    = isNew ? '#1DAF29' : dim ? '#40424D' : 'var(--ink-1)';
-  const icon = CARD_ICONS[label];
 
   return (
-    <div className="stat-card" style={{ borderLeft: `3px solid ${borderColor}` }}>
-      <div className={`stat-card-icon ${isNew ? 'green' : 'gray'}`}>{icon}</div>
+    <div className="stat-card" style={{ '--accent': accentColor }}>
+      <div className="stat-accent-band"/>
       <div className="label">{label}</div>
-      <div className="num" style={{ color: numColor }}>{num}</div>
+      <div className="num" style={{ color: accentColor }}>{display}</div>
       <div className="trend flat">
-        {emptyHint && dim
+        {emptyHint && zeroish
           ? <span style={{ color: '#F59E0B', fontWeight: 600, fontSize: 11 }}>{emptyHint}</span>
           : <span>{sub}</span>
         }

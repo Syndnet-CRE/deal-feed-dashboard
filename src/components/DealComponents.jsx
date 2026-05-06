@@ -10,7 +10,7 @@ function getAssetChipStyle(asset) {
   if (a.includes('storage'))                                                      return { background: 'rgba(245,158,11,0.15)', color: '#F59E0B', borderColor: 'rgba(245,158,11,0.3)' };
   if (a.includes('industrial') || a.includes('flex') || a.includes('warehouse')) return { background: 'rgba(59,130,246,0.15)',  color: '#60A5FA', borderColor: 'rgba(59,130,246,0.3)' };
   if (a.includes('multifamily'))                                                  return { background: 'rgba(139,92,246,0.15)', color: '#A78BFA', borderColor: 'rgba(139,92,246,0.3)' };
-  if (a.includes('land'))                                                         return { background: 'rgba(29,175,41,0.15)',  color: '#1DAF29', borderColor: 'rgba(29,175,41,0.3)' };
+  if (a.includes('land'))                                                         return { background: 'rgba(91,204,72,0.15)',  color: '#5BCC48', borderColor: 'rgba(91,204,72,0.3)' };
   if (a.includes('retail'))                                                       return { background: 'rgba(249,115,22,0.15)', color: '#FB923C', borderColor: 'rgba(249,115,22,0.3)' };
   if (a.includes('mixed'))                                                        return { background: 'rgba(20,184,166,0.15)', color: '#2DD4BF', borderColor: 'rgba(20,184,166,0.3)' };
   return { background: 'rgba(100,100,120,0.15)', color: '#9DA2B3', borderColor: 'rgba(100,100,120,0.3)' };
@@ -118,16 +118,15 @@ export function DealCard({ deal, onClick, selected }) {
   );
 }
 
-export function MapPinSVG({ score, num, selected }) {
-  const cls = scoreClass(score);
-  const fill = cls === "hi" ? "#1DAF29" : cls === "md" ? "#F4B73E" : "#9DA2B3";
+export function MapPinSVG({ score: _score, num, selected }) {
+  const fill = "#5BCC48";
   const stroke = "#06270A";
   return (
     <svg width="26" height="32" viewBox="0 0 26 32" style={{ filter: `drop-shadow(0 ${selected ? 4 : 2}px ${selected ? 8 : 4}px rgba(0,0,0,0.55))` }}>
       <path d="M13 0 C 5.8 0 0 5.5 0 12.5 C 0 22 13 32 13 32 S 26 22 26 12.5 C 26 5.5 20.2 0 13 0 Z"
         fill={fill} stroke={stroke} strokeWidth="1.5"/>
-      <circle cx="13" cy="12" r="6.5" fill={stroke}/>
-      <text x="13" y="15.5" textAnchor="middle" fontFamily="Manrope" fontSize="9" fontWeight="800" fill={fill}>{num != null ? num : ""}</text>
+      <circle cx="13" cy="12" r="8" fill={stroke}/>
+      <text x="13" y="12" textAnchor="middle" dominantBaseline="central" fontFamily="Manrope" fontSize="9" fontWeight="800" fill={fill}>{num != null ? num : ""}</text>
     </svg>
   );
 }

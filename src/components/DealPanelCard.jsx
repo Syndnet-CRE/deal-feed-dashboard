@@ -23,17 +23,24 @@ function deliveryLabel(days) {
 }
 
 export const DealPanelCard = forwardRef(function DealPanelCard(
-  { deal, index, expanded, onExpand, onOpenDeal },
+  { deal, index, expanded, onExpand, onOpenDeal, selected, onSelect },
   ref
 ) {
   const signals = deal.signals || [];
 
   return (
-    <div ref={ref} className={`dpc${expanded ? ' expanded' : ''}`}>
+    <div ref={ref} className={`dpc${expanded ? ' expanded' : ''}${selected ? ' selected' : ''}`}>
       <div
         className="dpc-header"
         onClick={() => onExpand(expanded ? null : deal.id)}
       >
+        <input
+          type="checkbox"
+          className="dpc-checkbox"
+          checked={!!selected}
+          onChange={() => {}}
+          onClick={e => { e.stopPropagation(); onSelect(deal.id); }}
+        />
         <div className="dpc-pin-badge">{index + 1}</div>
         <div className="dpc-thumb">
           <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} />

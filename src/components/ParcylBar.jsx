@@ -8,7 +8,6 @@ const BASE_TABS = [
   { id: "dashboard", label: "Dashboard", icon: I.Dashboard },
   { id: "map",       label: "Map",       icon: I.Map },
   { id: "boxes",     label: "Buy Boxes", icon: I.Boxes },
-  { id: "settings",  label: "Settings",  icon: I.Settings },
 ];
 
 const ADMIN_TAB = { id: "invites", label: "Invites", icon: I.Users };
@@ -36,7 +35,9 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
 
   const MAX_RESULTS = 8;
   const [query, setQuery] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef(null);
+  const avatarRef = useRef(null);
 
   const results = query.length >= 2
     ? deals.filter(d => matchesDeal(d, query)).slice(0, MAX_RESULTS)
@@ -46,6 +47,14 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
   useEffect(() => {
     function onOutside(e) {
       if (wrapRef.current && !wrapRef.current.contains(e.target)) setQuery('');
+    }
+    document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
+  }, []);
+
+  useEffect(() => {
+    function onOutside(e) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target)) setMenuOpen(false);
     }
     document.addEventListener('mousedown', onOutside);
     return () => document.removeEventListener('mousedown', onOutside);
@@ -112,7 +121,26 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
           {theme === 'dark' ? <SunIcon size={15} /> : <MoonIcon size={15} />}
         </button>
         <div className="pb-divider" />
-        <div className="pb-avatar">{initials}</div>
+        <div className="pb-avatar-wrap" ref={avatarRef}>
+          <div
+            className={`pb-avatar${view === 'settings' ? ' active' : ''}`}
+            onClick={() => setMenuOpen(o => !o)}
+          >
+            {initials}
+          </div>
+          {menuOpen && (
+            <div className="pb-avatar-menu">
+              <div className="pb-avatar-menu-email">{email}</div>
+              <button
+                className="pb-avatar-menu-item"
+                onClick={() => { setView('settings'); setMenuOpen(false); }}
+              >
+                <I.Settings size={13} style={{ marginRight: 7 }} />
+                Settings
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

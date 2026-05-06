@@ -339,25 +339,35 @@ button { font-family: inherit; }
   background: var(--panel);
   border: 1px solid var(--hairline);
   border-radius: 10px;
-  padding: 18px 18px 16px;
+  padding: 0 18px 16px;
   display: flex; flex-direction: column;
   gap: 6px;
   position: relative;
-  overflow: hidden;
   transition: border-color 200ms, box-shadow 200ms;
+}
+.stat-accent-band {
+  height: 4px;
+  width: calc(100% + 36px);
+  margin: 0 -18px 16px;
+  background: var(--accent, #4A4D5E);
+  border-radius: 9px 9px 0 0;
+  opacity: 0.85;
 }
 .stat-card::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(91,204,72,0.5), transparent);
+  height: 4px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent, #4A4D5E) 60%, transparent), transparent);
+  border-radius: 9px 9px 0 0;
   opacity: 0;
   transition: opacity 200ms;
+  pointer-events: none;
+  z-index: 1;
 }
 .stat-card:hover {
-  border-color: rgba(91,204,72,0.22);
-  box-shadow: 0 0 0 1px rgba(91,204,72,0.07);
+  border-color: color-mix(in srgb, var(--accent, #4A4D5E) 22%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #4A4D5E) 7%, transparent);
 }
 .stat-card:hover::before { opacity: 1; }
 .stat-card .label {
@@ -368,7 +378,7 @@ button { font-family: inherit; }
   color: var(--ink-3);
 }
 .stat-card .num {
-  font-size: 34px;
+  font-size: 52px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink-1);
@@ -1466,6 +1476,12 @@ button { font-family: inherit; }
 .pb-link { color: rgba(255,255,255,0.85); font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 0 6px; }
 .pb-link:hover { color: #FFF; }
 .pb-avatar { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--green-deep); background: #FFF; cursor: pointer; }
+.pb-avatar.active { outline: 2px solid var(--green); outline-offset: 2px; }
+.pb-avatar-wrap { position: relative; }
+.pb-avatar-menu { position: absolute; top: calc(100% + 8px); right: 0; min-width: 180px; background: var(--surface-2, #1e2226); border: 1px solid rgba(255,255,255,0.10); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.35); padding: 6px 0; z-index: 200; }
+.pb-avatar-menu-email { font-size: 10px; color: rgba(255,255,255,0.4); padding: 6px 14px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-avatar-menu-item { display: flex; align-items: center; width: 100%; padding: 8px 14px; font-size: 12.5px; color: rgba(255,255,255,0.85); background: transparent; border: 0; cursor: pointer; text-align: left; }
+.pb-avatar-menu-item:hover { background: rgba(255,255,255,0.07); color: #FFF; }
 
 .pb-search-wrap { position: relative; }
 .pb-search-input-row { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.20); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; padding: 4px 10px; width: 200px; }
@@ -2596,7 +2612,7 @@ button { font-family: inherit; }
   right: 0;
   bottom: 0;
   width: 420px;
-  background: var(--panel);
+  background: var(--topbar-bg);
   border-left: 1px solid var(--hairline);
   display: flex;
   flex-direction: column;
@@ -2691,10 +2707,36 @@ button { font-family: inherit; }
 .panel-card-list { flex: 1; overflow-y: auto; overflow-x: hidden; }
 .panel-empty { padding: 32px 20px; text-align: center; font-size: 13px; color: var(--ink-4); }
 
+/* ── Panel select-all + bulk action bar ─────────────────── */
+.panel-select-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+.panel-select-all input[type="checkbox"] { accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+.bulk-action-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--panel-1);
+  border-top: 1px solid var(--hairline-soft);
+  z-index: 10;
+}
+.bulk-count { font-size: 11px; font-weight: 600; color: var(--green); white-space: nowrap; margin-right: 4px; }
+.bulk-clear { margin-left: auto; color: var(--ink-4); }
+
 /* ── Deal Panel Card (dpc) ───────────────────────────────── */
 .dpc { border-bottom: 1px solid var(--hairline-soft); transition: background 100ms; }
 .dpc:hover { background: var(--panel-2); }
 .dpc.expanded { background: var(--panel-2); }
+.dpc.selected { border-left: 3px solid var(--green); background: rgba(91,204,72,0.06); }
+.dpc-checkbox { flex-shrink: 0; margin-right: 4px; accent-color: var(--green); cursor: pointer; width: 14px; height: 14px; }
 
 .dpc-header {
   display: flex;
