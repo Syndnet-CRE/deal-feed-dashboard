@@ -1,68 +1,54 @@
 # HANDOFF
-Date: 2026-05-08
+
+Date: 2026-05-05
 Repo: deal-feed-dashboard
-Session objective: A1-A6 dashboard feature batch
+Session objective: Fix deal detail addr-bar gap, restore global dot grid background, upgrade card visuals
 Status: COMPLETE
+
+---
 
 ## What was done
 
-### A1 — Pipeline Timeline
-- `src/components/PipelineTimeline.jsx` — live CT countdown with 4 pipeline stages (Submit/Agents/Briefs/Delivered)
-- Mounted at top of DashboardView, above stat grid
-- Updates every second via `setInterval`
+### Fix 1 — addr-bar gap (`src/styles/deal-detail.css`)
+- `.dd-addr-bar`: `top: 44px` → `top: 0`
+  - Root cause: sticky threshold was relative to the scroll container (dd-page-glass), not the viewport. At scrollTop=0, the element's natural position (6px) was less than 44px, so CSS pushed it down 38px.
+- `.dd-subtabs-outer`: `top: 104px` → `top: 60px`
+- `.dd-sec`: `scroll-margin-top: 148px` → `scroll-margin-top: 104px`
+- **Committed**: `8548ea4 fix: deal detail addr-bar gap and global dot grid background`
 
-### A2 — 5 KPI Stat Cards
-- `src/views/DashboardView.jsx` — 5 cards: New This Week, Contacted, Response Rate, Hot Deals, Awaiting Response
-- `awaitingCount`: contacts with 7+ days since last outreach
-- `hotDeals`: feedback=hot AND not dead state
-- `.stat-grid-5` CSS override added to `styles.css`
+### Fix 2 — global dot grid (`src/styles/styles.css`, `src/styles/deal-detail.css`)
+- `styles.css` `html, body, #root`: removed `background-color: var(--app-bg)` — #root was covering the dot grid defined on html/body in tokens.css
+- `styles.css` `.content`: removed `background: var(--app-bg)` — main view wrapper was covering dot grid
+- `deal-detail.css` `.dd-page-glass`: removed `background: #0D0D0D` (hardcoded opaque cover)
+- **Committed**: `8548ea4` (same commit as Fix 1)
 
-### A3 — Read/Unread State
-- `src/contexts/ReadStateContext.jsx` — localStorage key `dealfeed.read.{subId}:{dealId}`
-- `src/components/DealDetail.jsx` — calls `markRead(deal.id)` on mount
-- `src/components/DealComponents.jsx` — green dot (`.deal-unread-dot`) on unread DealCards
+### Fix 3 — deal detail card visuals (`src/styles/deal-detail.css`)
+- `.dd-root`: `background: var(--bg-card)` → `background: transparent` — was same color as cards, hiding dot grid
+- `.dd-page-glass`: added dot grid (`#0D0D0D` base + `#2a2a2a` dots, 24px grid) — tiles correctly as user scrolls
+- `.dd-sec`: replaced flat gray border with green glow ring (`rgba(29,175,41,0.25)` resting)
+- `.dd-sec:hover`: `translateY(-2px)` lift + brighter green glow (`rgba(91,204,72,0.55)`) + 200ms transition
+- **Committed**: `1d67e4c feat: dot grid background, green gradient card borders, hover lift on deal sections`
 
-### A4 — Weekly Deal Tabs + Calendar
-- `src/views/DashboardView.jsx` — Mon-Sun tabs built from CT-aware date math; Pipeline tab with separator
-- Active tab defaults to CT today's day name
-- Calendar icon button (`btn.icon`) opens CalendarModal
-- `src/components/CalendarModal.jsx` — full month grid with deal counts, archive drill-down
+All three commits pushed to main. Netlify auto-deployed.
 
-### A5 — Deal States (Dead / LOI / Archive)
-- `src/contexts/DealStateContext.jsx` — localStorage key `dealfeed.dealstate.{subId}:{dealId}`
-- `src/components/DealComponents.jsx` — 3-dot action menu with STATE_ACTIONS; badges for Dead/LOI/Pipeline; `.deal-card-dead` opacity
-- Archived deals appear in Pipeline tab
-
-### A6 — Bug Fixes
-- `src/styles/styles.css` — `.deal-modal-overlay` background fixed to `rgba(0,0,0,0.85)`
-- `src/views/DashboardView.jsx` — pill reads "Ready for Midnight Run" / "No Active Buy Boxes" based on `buyBoxes.some(b => b.status === 'Active')`
-- `src/App.jsx` — `ToastProvider` mounted at App root
-
-### CSS additions (`src/styles/styles.css`)
-- `.pipeline-timeline`, `.pt-*` — timeline and countdown styles
-- `.stat-grid-5` — 5-column grid override
-- `.btn.icon` — square icon button
-- `.deal-unread-dot` — green read indicator
-- `.deal-state-badge.danger/amber/neutral` — state badge variants
-- `.deal-card-dead` — dead deal opacity
-- `.deal-menu-*` — action menu dropdown
-- `.week-tabs`, `.week-tab`, `.week-tab-badge`, `.week-tab-sep` — tab bar
-- `.cal-overlay`, `.cal-modal`, `.cal-*` — calendar modal
-- `.pt-node-cell`, `.pt-connector`, `.pt-dot-*`, `.pt-node-label-*` — timeline track
-
-## Quality gate
-- Build: PASS (`npm run build`)
-- Lint: PASS (`npm run lint`)
-- Tests: PASS (161/161)
-- Commit: `4f5e2a9`
+---
 
 ## What was NOT done
-- E2E Playwright tests for new features (dev server needed separately)
-- Light theme review for new components (functional, not designed for light mode)
+
+- Visual browser QA — Brady should confirm the deployed Netlify URL looks correct
+- No BMAD tasks were touched this session
 
 ## Next session
-Review UI in browser, fix any visual polish issues, then tackle next feature batch.
-`cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions`
+
+Resume whichever BMAD task Brady specifies. Active BMAD folders: buy-box-wizard, snowflake-sync, subscriber-invite.
+
+```bash
+cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
+```
 
 ## Blockers for Brady
-None — push auto-deploys to Netlify.
+
+- Open the deployed Netlify URL, navigate to any deal (`/deal/:id`), and confirm:
+  1. addr-bar sits flush at the top (no gap under ParcylBar)
+  2. Background between cards shows the dot grid (dark `#0D0D0D` with visible dots)
+  3. Cards have a thin green border glow at rest, lift + brighter glow on hover
