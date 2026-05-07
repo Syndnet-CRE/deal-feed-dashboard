@@ -118,7 +118,7 @@ export function DealCard({ deal, onClick, selected }) {
   );
 }
 
-export function MapPinSVG({ score: _score, num, selected }) {
+export function MapPinSVG({ num, selected }) {
   const fill = selected ? '#F4B73E' : '#5BCC48';
   const stroke = "#06270A";
   return (

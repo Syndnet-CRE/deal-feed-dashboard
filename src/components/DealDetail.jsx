@@ -51,9 +51,6 @@ function scoreVariant(score) {
   if (n >= 40) return 'md';
   return 'lo';
 }
-function hasSectionData(rows) {
-  return rows.some(([, v]) => nv(v) !== null && hasVal(v));
-}
 
 function Rows({ data, wide }) {
   const visible = data.filter(([, v]) => nv(v) !== null && hasVal(v));
@@ -76,9 +73,13 @@ function SecHead({ title, date }) {
   return (
     <div className="dd-sec-head">
       <span className="dd-sec-title">{title}</span>
-      {date && <span className="dd-sec-updated">Updated {fmt(date)}</span>}
+      {date && <span className="dd-sec-updated">Updated {fmt(date)} »</span>}
     </div>
   );
+}
+
+function Chip({ color = 'gray', children }) {
+  return <span className={`dd-pill ${color}`}>{children}</span>;
 }
 
 function ConfBadge({ conf }) {
@@ -357,43 +358,6 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
         </button>
       </div>
 
-      {deals && deals.length > 1 && onNavigateDeal && (
-        <div className="dd-deal-nav">
-          <button className="dd-deal-nav-btn" onClick={() => onNavigateDeal(deals[dealIndex - 1])} disabled={dealIndex <= 0}>← Prev</button>
-          <span className="dd-deal-nav-count">Deal {dealIndex + 1} of {deals.length}</span>
-          <button className="dd-deal-nav-btn" onClick={() => onNavigateDeal(deals[dealIndex + 1])} disabled={dealIndex >= deals.length - 1}>Next →</button>
-        </div>
-      )}
-
-      <div className="dd-hero-image">
-        <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} large={true} showParcel={true} />
-        <div className="dd-hero-gradient" />
-        <div className="dd-hero-address">
-          <span className="dd-hero-addr-main">{deal.address || 'Unknown Address'}</span>
-          {line2Parts.length > 0 && <span className="dd-hero-addr-sub">{line2Parts.join(' · ')}</span>}
-        </div>
-        <div className="dd-hero-badges">
-          <span className={`dd-score-badge ${variant}`}>{scoreLabel}</span>
-          {(deal.asset_class || deal.use_type) && (
-            <span className="dd-pill gray">{deal.asset_class || deal.use_type}</span>
-          )}
-          {bj.hold_years && <span className="dd-pill blue">{bj.hold_years} yr hold</span>}
-        </div>
-      </div>
-
-      {(signals.length > 0 || deal.absentee_owner) && (
-        <div className="dd-signals-bar">
-          {deal.absentee_owner && (
-            <span className="dd-signal-pill amber">Absentee Owner</span>
-          )}
-          {signals.map((sig, i) => (
-            <span key={i} className={`dd-signal-pill ${signalColor(sig)}`}>
-              {sig.label || sig.description || sig.type || String(sig)}
-            </span>
-          ))}
-        </div>
-      )}
-
       <div className="dd-metrics-bar">
         {metrics.map(m => (
           <div key={m.label} className="dd-metric-cell">
@@ -401,6 +365,30 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
             <span className="dd-metric-value">{m.value || '—'}</span>
           </div>
         ))}
+      </div>
+
+      <div className="dd-discovery-panel">
+        <div className="dd-discovery-left">
+          <span className="dd-discovery-eyebrow">AI Property Brief</span>
+          <p className="dd-discovery-narrative">
+            {bj.narrative || 'No summary narrative available for this property.'}
+          </p>
+          {(signals.length > 0 || deal.absentee_owner) && (
+            <div className="dd-discovery-signals">
+              {deal.absentee_owner && (
+                <span className="dd-signal-pill amber">Absentee Owner</span>
+              )}
+              {signals.map((sig, i) => (
+                <span key={i} className={`dd-signal-pill ${signalColor(sig)}`}>
+                  {sig.label || sig.description || sig.type || String(sig)}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="dd-discovery-right">
+          <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} large={true} showParcel={true} />
+        </div>
       </div>
 
       <div className="dd-subtabs-outer">
@@ -419,37 +407,20 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
 
       <div className="dd-body" style={{ flex: 1 }}>
 
-        <div id="dd-summary" className="dd-sec">
-          <SecHead title="Summary" date={enriched} />
-          <div className="dd-sec-body">
-            <div className="dd-summary-grid">
-              <p className="dd-narrative">
-                {bj.narrative || 'No summary narrative available for this property.'}
-              </p>
-              <Rows data={[
-                ['Owner',         fmt(deal.owner_name)],
-                ['Asset Class',   fmt(deal.asset_class)],
-                ['Last Sale',     [mon(deal.last_sale_price), fmt(deal.last_sale_date)].filter(Boolean).join(' · ')],
-                ['Assessed',      mon(deal.assessed_value ?? bj.assessed_value)],
-                ['Tax / Year',    mon(bj.tax_amount)],
-                ['Lender',        fmt(bj.lender)],
-                ['Loan',          mon(bj.loan_amount)],
-                ['Distress Tier', fmt(deal.distress_tier)],
-              ]} />
-            </div>
-          </div>
-        </div>
-
         <div className="dd-cols">
+          {/* LEFT COLUMN: Property Record → Ownership → Financials → Capital Stack → Transactions */}
           <div className="dd-col">
 
             <div id="dd-property" className="dd-sec">
               <SecHead title="Property Record" date={enriched} />
-              <div className="dd-sec-body"><Rows data={propertyRows} /></div>
+              <div className="dd-sec-body">
+                <Rows data={propertyRows} />
+                <p className="dd-sec-source">Source: ATTOM Data Solutions · County Assessor Records</p>
+              </div>
             </div>
 
             <div id="dd-ownership" className="dd-sec">
-              <SecHead title="Ownership" date={enriched} />
+              <SecHead title="Ownership &amp; Skip Trace" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={ownershipRows} />
                 {(bj.dm?.phoneConf || bj.dm?.emailConf) && (
@@ -477,15 +448,17 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                     </div>
                   </div>
                 )}
+                <p className="dd-sec-source">Source: CoreLogic · BatchSkipTracing</p>
               </div>
             </div>
 
-            {hasSectionData(financialsRows) && (
-              <div id="dd-financials" className="dd-sec">
-                <SecHead title="Financials" date={enriched} />
-                <div className="dd-sec-body"><Rows data={financialsRows} /></div>
+            <div id="dd-financials" className="dd-sec">
+              <SecHead title="Financials" date={enriched} />
+              <div className="dd-sec-body">
+                <Rows data={financialsRows} />
+                <p className="dd-sec-source">Source: ATTOM · County Assessor · AVM Model</p>
               </div>
-            )}
+            </div>
 
             <div id="dd-capital" className="dd-sec">
               <SecHead title="Capital Stack" date={enriched} />
@@ -505,6 +478,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <Rows data={loanRows} />
                 )}
+                <p className="dd-sec-source">Source: ATTOM Mortgage Data · FFIEC HMDA</p>
               </div>
             </div>
 
@@ -538,72 +512,127 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <span style={{ color: 'var(--fg-4)', fontSize: 'var(--t-cap)' }}>No transaction history available</span>
                 )}
+                <p className="dd-sec-source">Source: County Deed Records · ATTOM</p>
               </div>
             </div>
 
           </div>
 
+          {/* RIGHT COLUMN: Site & Lot → Zoning → Site Context → Risk → Distress → Deal Intel */}
           <div className="dd-col">
 
             <div id="dd-site" className="dd-sec">
               <SecHead title="Site &amp; Lot" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={siteRows} />
-                {(deal.lat && deal.lng) && (
-                  <div className="dd-aerial-wrap">
-                    <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} large={true} />
-                  </div>
-                )}
+                <p className="dd-sec-source">Source: ATTOM · County GIS</p>
               </div>
             </div>
 
-            {hasSectionData(zoningRows) && (
-              <div id="dd-zoning" className="dd-sec">
-                <SecHead title="Zoning" date={enriched} />
-                <div className="dd-sec-body"><Rows data={zoningRows} /></div>
+            <div id="dd-zoning" className="dd-sec">
+              <SecHead title="Zoning" date={enriched} />
+              <div className="dd-sec-body">
+                <Rows data={zoningRows} />
+                <p className="dd-sec-source">Source: City/County Zoning Records</p>
               </div>
-            )}
+            </div>
 
-            {hasSectionData(contextRows) && (
-              <div id="dd-context" className="dd-sec">
-                <SecHead title="Site Context" date={enriched} />
-                <div className="dd-sec-body"><Rows data={contextRows} /></div>
+            <div id="dd-context" className="dd-sec">
+              <SecHead title="Site Context" date={enriched} />
+              <div className="dd-sec-body">
+                <Rows data={contextRows} />
+                <p className="dd-sec-source">Source: US Census · HUD · CoStar Submarket</p>
               </div>
-            )}
+            </div>
 
-            {hasSectionData(riskRows) && (
-              <div id="dd-risk" className="dd-sec">
-                <SecHead title="Risk" date={enriched} />
-                <div className="dd-sec-body"><Rows data={riskRows} /></div>
+            <div id="dd-risk" className="dd-sec">
+              <SecHead title="Risk" date={enriched} />
+              <div className="dd-sec-body">
+                <Rows data={riskRows} />
+                <p className="dd-sec-source">Source: Parcyl Distress Model · County Records</p>
               </div>
-            )}
+            </div>
 
             <div id="dd-distress" className="dd-sec">
               <SecHead title="Distress Signals" date={enriched} />
               <div className="dd-sec-body">
                 {signals.length > 0 ? (
-                  <div className="dd-signals">
-                    {signals.map((sig, i) => (
-                      <div key={i} className={`dd-signal ${signalColor(sig)}`}>
-                        <span className="dd-signal-icon">
-                          {signalColor(sig) === 'red' ? '⚠' : signalColor(sig) === 'amber' ? '⚡' : '✓'}
-                        </span>
-                        <span>{sig.label || sig.description || sig.type || String(sig)}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <table className="dd-table">
+                    <thead><tr><th>Signal</th><th>Type</th><th>Severity</th></tr></thead>
+                    <tbody>
+                      {signals.map((sig, i) => {
+                        const color = signalColor(sig);
+                        const dotColor = color === 'red' ? 'red' : color === 'amber' ? 'orange' : 'green';
+                        const label = sig.label || sig.description || sig.type || String(sig);
+                        const type = (sig.type || sig.category || '').replace(/_/g, ' ') || 'General';
+                        return (
+                          <tr key={i}>
+                            <td>
+                              <span className={`dd-signal-dot ${dotColor}`} />
+                              {label}
+                            </td>
+                            <td className="muted" style={{ textTransform: 'capitalize' }}>{type}</td>
+                            <td>
+                              <Chip color={color === 'red' ? 'red' : color === 'amber' ? 'amber' : 'green'}>
+                                {color === 'red' ? 'High' : color === 'amber' ? 'Medium' : 'Low'}
+                              </Chip>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 ) : (
                   <span style={{ color: 'var(--fg-4)', fontSize: 'var(--t-cap)' }}>No distress signals recorded</span>
                 )}
+                <p className="dd-sec-source">Source: Parcyl AI · County Lien Records · Tax Assessor</p>
               </div>
             </div>
 
             <div id="dd-dealintel" className="dd-sec">
               <SecHead title="Deal Intel" date={enriched} />
-              <div className="dd-sec-body"><Rows data={dealIntelRows} /></div>
+              <div className="dd-sec-body">
+                <Rows data={dealIntelRows} />
+                <p className="dd-sec-source">Source: Parcyl Deal Engine</p>
+              </div>
             </div>
 
           </div>
+
+          {/* IMAGE SIDEBAR */}
+          {(deal.lat && deal.lng) && (
+            <div className="dd-img-sidebar">
+              <div className="dd-img-thumb">
+                <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} large={true} />
+                <span className="dd-img-thumb-label">Satellite</span>
+              </div>
+              <div className="dd-img-thumb">
+                <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} showParcel={true} />
+                <span className="dd-img-thumb-label">Parcel</span>
+              </div>
+              <div className="dd-sidebar-links">
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('property')}>Property Record</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('ownership')}>Ownership</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('financials')}>Financials</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('capital')}>Capital Stack</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('transactions')}>Transactions</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('site')}>Site &amp; Lot</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('zoning')}>Zoning</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('distress')}>Distress</button>
+                <button className="dd-sidebar-link" onClick={() => scrollToSection('dealintel')}>Deal Intel</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="dd-footer-bar">
+          <span>
+            Data sourced from ATTOM, CoreLogic, County Records, and Parcyl AI.
+            All values are estimates and should be independently verified.
+          </span>
+          <span className="dd-footer-right">
+            Parcyl · {deal.address || 'Deal Detail'} · {enriched ? `Updated ${fmt(enriched)}` : 'Live Data'}
+          </span>
         </div>
 
         <div className="dd-sec dd-notes-log">
@@ -647,7 +676,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
       </div>
 
       {deals && deals.length > 1 && onNavigateDeal && (
-        <div className="dd-deal-nav dd-deal-nav-bottom">
+        <div className="dd-nav-float">
           <button className="dd-deal-nav-btn" onClick={() => onNavigateDeal(deals[dealIndex - 1])} disabled={dealIndex <= 0}>← Prev</button>
           <span className="dd-deal-nav-count">Deal {dealIndex + 1} of {deals.length}</span>
           <button className="dd-deal-nav-btn" onClick={() => onNavigateDeal(deals[dealIndex + 1])} disabled={dealIndex >= deals.length - 1}>Next →</button>
