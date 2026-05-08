@@ -19,6 +19,7 @@ import { LoginView } from './views/LoginView';
 import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
 import { InviteClaimView } from './views/InviteClaimView';
+import { LandingView } from './views/LandingView';
 
 (() => {
   const t = localStorage.getItem('parcyl-theme') || 'dark';
@@ -214,6 +215,7 @@ export default function App() {
   return (
     <ToastProvider>
     <Routes>
+      <Route path="/" element={<LandingView/>}/>
       <Route path="/login" element={<LoginView/>}/>
       <Route path="/forgot-password" element={<ForgotPasswordView/>}/>
       <Route path="/reset-password" element={<ResetPasswordView/>}/>
