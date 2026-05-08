@@ -8,7 +8,7 @@ import { DealStateProvider } from './contexts/DealStateContext';
 import { ParcylBar } from './components/ParcylBar';
 import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
-import { ConfigurationOverlay } from './components/ConfigurationOverlay';
+import { BuyBoxWizard } from './components/BuyBoxWizard';
 import { DashboardView } from './views/DashboardView';
 import { BuyBoxesView } from './views/BuyBoxesView';
 import { MapView } from './views/MapView';
@@ -105,6 +105,7 @@ function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const dealMatch = useMatch('/deal/:dealId');
+  const onboardingMatch = useMatch('/onboarding');
   const [view, setView] = useState('dashboard');
   const [confirmDanger, setConfirmDanger] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
@@ -202,8 +203,21 @@ function AppShell() {
         </Routes>
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
         {pausingBuyBox && <PauseBoxConfirm buyBox={pausingBuyBox} onClose={() => setPausingBuyBox(null)}/>}
-        {showWizard && <ConfigurationOverlay onClose={() => setShowWizard(false)}/>}
-        {editingBuyBox && <ConfigurationOverlay mode="edit" initialData={editingBuyBox} onClose={() => setEditingBuyBox(null)}/>}
+        {(showWizard || onboardingMatch) && (
+          <BuyBoxWizard
+            mode="create"
+            onSuccess={() => { setShowWizard(false); handleSetView('boxes'); }}
+            onCancel={() => { setShowWizard(false); if (onboardingMatch) navigate('/dashboard', { replace: true }); }}
+          />
+        )}
+        {editingBuyBox && (
+          <BuyBoxWizard
+            mode="edit"
+            initialData={editingBuyBox}
+            onSuccess={() => setEditingBuyBox(null)}
+            onCancel={() => setEditingBuyBox(null)}
+          />
+        )}
       </div>
     </DealsProvider>
     </DealStateProvider>

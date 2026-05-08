@@ -30,7 +30,8 @@ npm run dev       # dev server at localhost:5173
 npm run build     # production build to dist/
 npm run lint      # ESLint
 npm run preview   # preview production build locally
-npm test          # vitest unit tests (src/lib/*.test.js)
+npm test          # vitest unit tests (src/lib/*.test.js) — single run
+npx vitest        # vitest in watch mode (interactive, re-runs on save)
 npx vitest run src/lib/wizardHelpers.test.js   # run a single test file
 npx playwright test           # E2E smoke suite — requires dev server already running
 npx playwright test --ui      # Playwright interactive mode
@@ -123,10 +124,10 @@ src/
 | `src/components/NewBoxWizard.jsx` | Legacy wizard — defined but no longer imported in `App.jsx`. Do not add features here; use `ConfigurationOverlay.jsx` instead. |
 | `src/components/StatusSelector.jsx` | Inline deal status selector; calls `updateStatus` from DealsContext. |
 | `src/components/ContactLogModal.jsx` | Modal for logging and viewing contact attempts on a deal; calls `logContact` and `fetchContacts` from DealsContext. |
-| `src/components/tabs/DistressTab.jsx` | Extracted tab for Distress Signals — used by `DealDetail.jsx`. |
-| `src/components/tabs/MarketTab.jsx` | Extracted tab for Market & Comps — used by `DealDetail.jsx`. |
-| `src/components/tabs/OwnershipTab.jsx` | Extracted tab for Ownership & Skip — used by `DealDetail.jsx`. |
-| `src/components/tabs/SiteTab.jsx` | Extracted tab for Site & Environmental — used by `DealDetail.jsx`. |
+| `src/components/tabs/DistressTab.jsx` | Extracted tab for Distress Signals — only imported in `PropertyDetail.jsx` (dead code); `DealDetail.jsx` has all tab content inlined. |
+| `src/components/tabs/MarketTab.jsx` | Extracted tab for Market & Comps — only imported in `PropertyDetail.jsx` (dead code). |
+| `src/components/tabs/OwnershipTab.jsx` | Extracted tab for Ownership & Skip — only imported in `PropertyDetail.jsx` (dead code). |
+| `src/components/tabs/SiteTab.jsx` | Extracted tab for Site & Environmental — only imported in `PropertyDetail.jsx` (dead code). |
 | `src/components/BulkActionBar.jsx` | Bulk action toolbar shown in DealPanel when deals are selected. Props: `count`, `onStatus`, `onFeedback`, `onExport`, `onClear`. |
 | `src/components/ConfirmModal.jsx` | Generic danger-confirm modal; `kind` prop selects copy. |
 | `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
@@ -146,7 +147,7 @@ src/
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |
 | `src/lib/assetColors.js` | `getPinColor(assetClass)` → hex; exports `LEGEND_ITEMS`. |
-| `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Used by both `ConfigurationOverlay.jsx` and `NewBoxWizard.jsx`. |
+| `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Used by `ConfigurationOverlay.jsx`. |
 | `src/lib/inviteHelpers.js` | Pure functions for the invite flow: `parseInvitesFromText(text)` — parses `Name <email>` or bare email lines; `validateInvite({email, full_name})` — returns error string or null; `dedupeByEmail(invites)` — removes duplicate emails. |
 | `src/lib/format.test.js` | Unit tests for `format.js` utilities. Run with `npm test`. |
 | `src/views/LoginView.jsx` | Unauthenticated login page; submits to `POST /api/dealfeed/auth/login`. |
@@ -165,6 +166,7 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `src/components/ConfigurationOverlay.jsx` — active buy box wizard (create + edit); replaces NewBoxWizard in the live flow
 - `src/components/DealMap.jsx` — Mapbox integration; `fitDeals()` must fire after `onLoad`, not before
 - `src/styles/tokens.css` — source of truth for all colors, spacing, typography
+- `src/styles/admin.css` — styles for AdminView; separate from `styles.css` and `deal-detail.css`
 - `src/lib/wizardHelpers.js` — pure helper functions for the wizard: `canProceed(step, form)` step gate logic, `buildPayload(form)` API payload builder, `toNum(v)` null-safe numeric converter
 
 ## KNOWN LANDMINES
@@ -178,10 +180,25 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `POST /api/dealfeed/buy-boxes/preview` is called by `ConfigurationOverlay` on every form change (debounced). If this route does not exist on the backend, preview count fails silently — no error is surfaced to the user.
 - `NewBoxWizard.jsx` is dead code — defined but not imported anywhere. Do not maintain it.
 - `PropertyDetail.jsx` is dead code — replaced by `DealDetail.jsx`. Not imported anywhere. Do not maintain it.
+- `src/components/tabs/` (DistressTab, MarketTab, OwnershipTab, SiteTab) — entire directory is dead code. All tabs were extracted for `PropertyDetail.jsx`; `DealDetail.jsx` inlines everything. Do not add features to any file in this directory.
+- **Geo contract drift** — `buildPayload()` in `wizardHelpers.js` serializes `geo_cities`, `geo_zips`, and `geo_radius_*` to the DB, but the backend `matchProperties()` in `scoutgpt-api/scripts/run_deal_feed.js` only reads `geo_states` and `geo_counties`. Adding new geo modes to the wizard without updating the matcher causes silent zero-deal delivery. If you touch either file, verify both sides stay in sync. The local hookify rule `.claude/hookify.wizard-matcher-drift.local.md` will warn you.
+
+## LOCAL HOOKIFY RULES
+
+Project-specific guardrails live in `.claude/hookify.*.local.md`. Active rules:
+
+| Rule file | Trigger | Warning |
+|-----------|---------|---------|
+| `hookify.wizard-matcher-drift.local.md` | `wizardHelpers.js` or `run_deal_feed.js` edited | Geo contract: wizard save fields must match backend matcher fields |
+| `hookify.silent-zero-results.local.md` | `run_deal_feed.js` edited | Verify zero-match runs are distinguishable from successful runs in logs |
+| `hookify.unregistered-routes.local.md` | New route files created | Register routes in `server.js` |
+| `hookify.orphaned-scripts.local.md` | New scripts created | Add npm script or cron entry so the script is actually callable |
 
 ## BMAD PLANNING DOCS
 
 Feature planning docs live in `notes/bmad/` (project-local, not `~/parcyl/notes/`). Active folders: `buy-box-wizard`, `subscriber-invite`, `snowflake-sync`, `b-plus-roadmap`.
+
+Session handoff lives at `notes/HANDOFF.md` (project-local). The global rule references `~/parcyl/notes/HANDOFF.md` — for this repo, use `notes/HANDOFF.md` instead.
 
 ## BACKEND CONTRACT
 

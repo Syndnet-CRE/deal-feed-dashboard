@@ -41,7 +41,7 @@ export function InviteClaimView() {
         password: form.password,
       });
       login(res.token, res.subscriber);
-      navigate('/');
+      navigate('/onboarding');
     } catch (err) {
       setErrorMsg(err.message || 'Something went wrong. Try again.');
       setSubmitting(false);
