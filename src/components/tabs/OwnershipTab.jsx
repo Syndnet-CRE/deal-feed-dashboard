@@ -69,7 +69,7 @@ export function OwnershipTab({ deal, contacts, onLogContact }) {
       {dm?.name && (
         <div className="pd-section">
           <div className="pd-sec-head"><h3>Skip Trace — Principal</h3><span className="upd" style={{ color: "var(--green)" }}>Auto-enriched</span></div>
-          <div className="source-label">Source: Decision Maker enrichment · confidence shown per field</div>
+          <div className="source-label">Source: Parcyl Skip Trace · confidence shown per field</div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, padding: "10px 12px", background: "var(--panel-2)", borderRadius: 8 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--panel-3)", display: "grid", placeItems: "center", fontSize: 14, fontWeight: 700, color: "var(--ink-2)", flexShrink: 0 }}>
               {dm.name?.charAt(0) || "?"}

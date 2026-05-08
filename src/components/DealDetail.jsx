@@ -304,27 +304,53 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
     <div className="dd-root">
       <div className="dd-nav-band" />
 
-      <div className="dd-addr-bar">
-        <div className="dd-addr-identity">
-          <span className="dd-addr-line1">{deal.address || 'Unknown Address'}</span>
-          {line2Parts.length > 0 && (
-            <span className="dd-addr-line2">{line2Parts.join(' · ')}</span>
-          )}
-          {onClose && (
-            <button className="dd-addr-back" onClick={onClose}>← Back to deals</button>
-          )}
+      <div className="dd-sticky-header">
+        <div className="dd-addr-bar">
+          <div className="dd-addr-identity">
+            <span className="dd-addr-line1">{deal.address || 'Unknown Address'}</span>
+            {line2Parts.length > 0 && (
+              <span className="dd-addr-line2">{line2Parts.join(' · ')}</span>
+            )}
+            {onClose && (
+              <button className="dd-addr-back" onClick={onClose}>← Back to deals</button>
+            )}
+          </div>
+          <div className="dd-addr-divider" />
+          <div className="dd-addr-metrics">
+            {metrics.map(m => (
+              <div key={m.label} className="dd-addr-metric-cell">
+                <span className="dd-addr-metric-label">{m.label}</span>
+                <span className="dd-addr-metric-value">{m.value || '—'}</span>
+              </div>
+            ))}
+          </div>
+          <div className="dd-addr-divider" />
+          <div className="dd-addr-actions">
+            <span className={`dd-score-badge ${variant}`}>{scoreLabel}</span>
+            <button className="dd-btn primary" onClick={handleMarkHot} disabled={hotLoading}>
+              {deal.feedback === 'hot' ? '★ Hot' : '☆ Mark as Hot'}
+            </button>
+            <button className="dd-btn outline" onClick={() => postFeedback(deal.id, deal.feedback === 'no' ? null : 'no')}>
+              Not Relevant
+            </button>
+            {onClose && (
+              <button className="dd-btn close-btn" onClick={onClose} aria-label="Close">&times;</button>
+            )}
+          </div>
         </div>
-        <div className="dd-addr-actions">
-          <span className={`dd-score-badge ${variant}`}>{scoreLabel}</span>
-          <button className="dd-btn primary" onClick={handleMarkHot} disabled={hotLoading}>
-            {deal.feedback === 'hot' ? '★ Hot' : '☆ Mark as Hot'}
-          </button>
-          <button className="dd-btn outline" onClick={() => postFeedback(deal.id, deal.feedback === 'no' ? null : 'no')}>
-            Not Relevant
-          </button>
-          {onClose && (
-            <button className="dd-btn close-btn" onClick={onClose} aria-label="Close">&times;</button>
-          )}
+
+        <div className="dd-subtabs-outer">
+          <div className="dd-subtabs">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                className={`dd-subtab${activeTab === t.id ? ' active' : ''}`}
+                onClick={() => scrollToSection(t.id)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -358,19 +384,10 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
         </button>
       </div>
 
-      <div className="dd-metrics-bar">
-        {metrics.map(m => (
-          <div key={m.label} className="dd-metric-cell">
-            <span className="dd-metric-label">{m.label}</span>
-            <span className="dd-metric-value">{m.value || '—'}</span>
-          </div>
-        ))}
-      </div>
-
       <div className="dd-discovery-panel">
         <div className="dd-discovery-left">
           <span className="dd-discovery-eyebrow">AI Property Brief</span>
-          <p className="dd-discovery-narrative">
+          <p className={`dd-discovery-narrative${bj.narrative ? '' : ' dd-discovery-narrative--empty'}`}>
             {bj.narrative || 'No summary narrative available for this property.'}
           </p>
           {(signals.length > 0 || deal.absentee_owner) && (
@@ -387,21 +404,9 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
           )}
         </div>
         <div className="dd-discovery-right">
-          <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} large={true} showParcel={true} />
-        </div>
-      </div>
-
-      <div className="dd-subtabs-outer">
-        <div className="dd-subtabs">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              className={`dd-subtab${activeTab === t.id ? ' active' : ''}`}
-              onClick={() => scrollToSection(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
+          <div className="dd-discovery-image">
+            <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} large={true} showParcel={false} />
+          </div>
         </div>
       </div>
 
@@ -415,7 +420,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Property Record" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={propertyRows} />
-                <p className="dd-sec-source">Source: ATTOM Data Solutions · County Assessor Records</p>
+                <p className="dd-sec-source">Source: Parcyl Data · County Assessor Records</p>
               </div>
             </div>
 
@@ -448,7 +453,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                     </div>
                   </div>
                 )}
-                <p className="dd-sec-source">Source: CoreLogic · BatchSkipTracing</p>
+                <p className="dd-sec-source">Source: Parcyl Skip Trace</p>
               </div>
             </div>
 
@@ -456,7 +461,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Financials" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={financialsRows} />
-                <p className="dd-sec-source">Source: ATTOM · County Assessor · AVM Model</p>
+                <p className="dd-sec-source">Source: Parcyl AVM · County Assessor</p>
               </div>
             </div>
 
@@ -478,7 +483,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <Rows data={loanRows} />
                 )}
-                <p className="dd-sec-source">Source: ATTOM Mortgage Data · FFIEC HMDA</p>
+                <p className="dd-sec-source">Source: Parcyl Mortgage Data · FFIEC HMDA</p>
               </div>
             </div>
 
@@ -512,7 +517,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <span style={{ color: 'var(--fg-4)', fontSize: 'var(--t-cap)' }}>No transaction history available</span>
                 )}
-                <p className="dd-sec-source">Source: County Deed Records · ATTOM</p>
+                <p className="dd-sec-source">Source: Parcyl Data · County Deed Records</p>
               </div>
             </div>
 
@@ -525,7 +530,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Site &amp; Lot" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={siteRows} />
-                <p className="dd-sec-source">Source: ATTOM · County GIS</p>
+                <p className="dd-sec-source">Source: Parcyl Data · County GIS</p>
               </div>
             </div>
 
@@ -627,7 +632,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
 
         <div className="dd-footer-bar">
           <span>
-            Data sourced from ATTOM, CoreLogic, County Records, and Parcyl AI.
+            Data sourced from Parcyl, County Records, and public data.
             All values are estimates and should be independently verified.
           </span>
           <span className="dd-footer-right">
