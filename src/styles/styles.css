@@ -1394,8 +1394,8 @@ button { font-family: inherit; }
 [data-theme="light"] .score-bubble.lo { background: var(--panel-3); color: var(--ink-3); border-color: var(--hairline); }
 
 [data-theme="light"] .tag { background: var(--panel-3); color: var(--ink-2); border-color: var(--hairline); }
-[data-theme="light"] .stat-card { box-shadow: var(--shadow-card); }
-[data-theme="light"] .panel-card { box-shadow: var(--shadow-card); }
+[data-theme="light"] .stat-card { background: var(--panel); box-shadow: var(--shadow-card); }
+[data-theme="light"] .panel-card { background: var(--panel); box-shadow: var(--shadow-card); }
 [data-theme="light"] .deal-card.selected { background: #ECF7EE; box-shadow: inset 3px 0 0 var(--green); }
 [data-theme="light"] .deal-card:hover { background: #F8F9FB; }
 [data-theme="light"] .deal-row-card:hover { background: #F8F9FB; }
@@ -1430,6 +1430,13 @@ button { font-family: inherit; }
 [data-theme="light"] .scale-bar { background: rgba(255,255,255,0.92); color: var(--ink-1); }
 [data-theme="light"] .scale-bar .bar { background: var(--ink-1); border-color: var(--ink-1); }
 [data-theme="light"] .modal { box-shadow: var(--shadow-pop); }
+[data-theme="light"] .deal-panel { background: var(--panel); }
+[data-theme="light"] .pipeline-timeline { background: var(--panel); box-shadow: var(--shadow-card); }
+[data-theme="light"] .cal-modal { background: var(--panel); box-shadow: var(--shadow-pop); }
+[data-theme="light"] .cal-nav-btn:hover, [data-theme="light"] .cal-close-btn:hover, [data-theme="light"] .cal-back-btn:hover { background: var(--panel-3); }
+[data-theme="light"] .cal-cell.cal-has-deals { background: var(--panel-3); }
+[data-theme="light"] .cal-cell.cal-has-deals:hover { background: var(--hairline-soft); }
+[data-theme="light"] .mnf-panel { background: var(--panel); }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: #C9CCD6; border-color: var(--app-bg); }
 
 /* ─────────────────────────────────────────────────────────────
