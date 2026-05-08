@@ -213,6 +213,10 @@
 .dd-subtabs-outer {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
 }
 
 .dd-subtabs {
@@ -221,8 +225,18 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   gap: 0;
+  flex: 1;
+  min-width: 0;
 }
 .dd-subtabs::-webkit-scrollbar { display: none; }
+
+.dd-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-right: var(--s-4);
+  flex-shrink: 0;
+}
 
 .dd-subtab {
   padding: var(--s-3) var(--s-5);
@@ -774,15 +788,6 @@
 }
 
 /* ── Status row ──────────────────────────────────────────────── */
-.dd-status-row {
-  display: flex;
-  align-items: center;
-  gap: var(--s-3);
-  padding: var(--s-2) var(--s-6);
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border-1);
-  flex-shrink: 0;
-}
 .dd-status-chip-wrap {
   position: relative;
 }
@@ -864,7 +869,28 @@
 .dd-status-option:hover { background: var(--bg-subtle); }
 .dd-status-option.active { background: var(--bg-subtle); font-weight: var(--w-semibold); }
 
-.dd-contact-btn { margin-left: auto; }
+.dd-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: 1.5px solid var(--border-1);
+  background: var(--bg-subtle);
+  color: var(--fg-2);
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+.dd-contact-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--green);
+  color: var(--green);
+}
+.dd-status-dropdown--right { left: auto; right: 0; }
 
 /* ── Confidence badges ───────────────────────────────────────── */
 .dd-conf-row {
@@ -1021,8 +1047,7 @@
   .dd-hero-addr-main { font-size: var(--t-p2); }
   .dd-metrics-bar { grid-template-columns: repeat(3, 1fr); }
   .dd-metric-cell:nth-child(n+4) { border-top: 1px solid var(--border-1); }
-  .dd-status-row { padding: var(--s-2) var(--s-4); flex-wrap: wrap; }
-  .dd-contact-btn { margin-left: 0; }
+  .dd-tab-actions { padding-right: var(--s-2); gap: var(--s-1); }
 }
 
 /* ── Medium breakpoint: collapse sidebar at 1100px ───────────── */

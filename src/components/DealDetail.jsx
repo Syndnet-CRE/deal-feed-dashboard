@@ -1,4 +1,5 @@
 import { Fragment, useState, useEffect, useRef } from 'react';
+import { Phone } from 'lucide-react';
 import { AerialThumb } from './AerialThumb.jsx';
 import { ContactLogModal } from './ContactLogModal.jsx';
 import { fmt, fmtMoney, hasVal } from '../lib/format.js';
@@ -351,37 +352,37 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               </button>
             ))}
           </div>
-        </div>
-      </div>
-
-      <div className="dd-status-row">
-        <div className="dd-status-chip-wrap" ref={statusRef}>
-          <button
-            className={`dd-status-chip ${statusColor}`}
-            onClick={() => setShowStatusDropdown(p => !p)}
-          >
-            <span className="dd-status-dot" />
-            {statusLabel}
-            <span className="dd-status-caret">▾</span>
-          </button>
-          {showStatusDropdown && (
-            <div className="dd-status-dropdown">
-              {STATUS_OPTIONS.map(s => (
-                <button
-                  key={s}
-                  className={`dd-status-option ${STATUS_COLORS[s] || 'gray'}${s === currentStatus ? ' active' : ''}`}
-                  onClick={() => handleStatusChange(s)}
-                >
-                  <span className="dd-status-dot" />
-                  {STATUS_LABELS[s]}
-                </button>
-              ))}
+          <div className="dd-tab-actions">
+            <div className="dd-status-chip-wrap" ref={statusRef}>
+              <button
+                className={`dd-status-chip ${statusColor}`}
+                onClick={() => setShowStatusDropdown(p => !p)}
+              >
+                <span className="dd-status-dot" />
+                {statusLabel}
+                <span className="dd-status-caret">▾</span>
+              </button>
+              {showStatusDropdown && (
+                <div className="dd-status-dropdown dd-status-dropdown--right">
+                  {STATUS_OPTIONS.map(s => (
+                    <button
+                      key={s}
+                      className={`dd-status-option ${STATUS_COLORS[s] || 'gray'}${s === currentStatus ? ' active' : ''}`}
+                      onClick={() => handleStatusChange(s)}
+                    >
+                      <span className="dd-status-dot" />
+                      {STATUS_LABELS[s]}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+            <button className="dd-contact-btn" onClick={() => setContactModalOpen(true)}>
+              <Phone size={13} strokeWidth={2.2} />
+              Log Contact
+            </button>
+          </div>
         </div>
-        <button className="dd-btn outline dd-contact-btn" onClick={() => setContactModalOpen(true)}>
-          📞 Log Contact
-        </button>
       </div>
 
       <div className="dd-discovery-panel">
