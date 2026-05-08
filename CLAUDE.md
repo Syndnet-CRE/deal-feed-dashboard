@@ -19,6 +19,7 @@ Deal Feed Dashboard is a React SPA for CRE investors to review distressed proper
 - React 19 + Vite 8 (JSX, no TypeScript)
 - react-router-dom v7 (BrowserRouter, Routes/Route)
 - react-map-gl v8 + mapbox-gl v3 (Mapbox GL JS)
+- lucide-react (used directly in ParcylBar + AdminView; most icons live in `Icons.jsx`)
 - Plain CSS (no Tailwind) — design tokens in `src/styles/tokens.css`
 - Netlify (SPA redirect via `netlify.toml`)
 
@@ -30,6 +31,7 @@ npm run build     # production build to dist/
 npm run lint      # ESLint
 npm run preview   # preview production build locally
 npm test          # vitest unit tests (src/lib/*.test.js)
+npx vitest run src/lib/wizardHelpers.test.js   # run a single test file
 npx playwright test           # E2E smoke suite — requires dev server already running
 npx playwright test --ui      # Playwright interactive mode
 npx playwright show-report    # view last HTML report
@@ -78,7 +80,7 @@ BrowserRouter
 
 ### Navigation model — hybrid
 
-- Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Primary sidebar views: `dashboard`, `map`, `boxes`, `settings`.
+- Most navigation is **view-state only**: `view` is a string in `AppShell`; sidebar clicks call `setView(...)`. Primary sidebar views: `dashboard`, `map`, `boxes`, `settings`. AppShell also owns all wizard/modal state: `showWizard`, `editingBuyBox`, `pausingBuyBox`, `confirmDanger`.
 - **Avatar dropdown views**: `invites` and `admin` are accessed via the avatar menu in the top-right of ParcylBar. Both are gated to `isAdmin` (`subscriber.email === 'brady@parcyl.ai'`).
 - Deal detail is **URL-based**: navigating to a deal calls `navigate('/deal/' + deal.id)`. Two rendering modes exist:
   - **DealDetailPage** — cold load or navigation from any non-map view. Renders full-screen, replacing the view switcher.
@@ -111,7 +113,6 @@ src/
 |------|------|
 | `src/components/DealDetail.jsx` | Active full-page deal detail with 12 tabs: Summary, Property Record, Ownership, Financials, Capital Stack, Transactions, Site & Lot, Zoning, Site Context, Risk, Distress, Deal Intel. Styled by `src/styles/deal-detail.css`. |
 | `src/components/PropertyDetail.jsx` | **Dead code** — replaced by `DealDetail.jsx`. Not imported anywhere. Do not add features here. |
-| `src/components/DealDrawer.jsx` | **Dead code** — not imported anywhere. Do not add features here. |
 | `src/components/DealMap.jsx` | Reusable Mapbox map. Auto-fits to deal markers via `fitDeals()`. Props: `deals`, `selectedId`, `hoverId`, `onClickDeal`, `mapStyle`, `withPopup`. |
 | `src/components/DealPanel.jsx` | Collapsible sidebar inside MapView listing filtered/sorted deals. Owns filter state, sort, owner-type chips, CSV export. Persists collapsed state to `localStorage` key `dealfeed.mapPanel.collapsed`; filters to `parcyl-deals-filters`. |
 | `src/components/DealPanelCard.jsx` | Individual deal card within DealPanel. Expandable inline preview (signals, score, aerial thumb). Calls `onOpenDeal` to navigate to full PropertyDetail. |
@@ -157,6 +158,7 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 
 ## KEY FILES
 
+- `src/App.jsx` — defines AppShell, DealDetailPage, DealDetailModal, and all wizard/modal state; over 400 lines, edit carefully
 - `src/contexts/DealsContext.jsx` — central data fetch; touching this breaks all views
 - `src/components/DealDetail.jsx` — active full deal detail (12 tabs); powers both page and modal rendering modes
 - `src/styles/deal-detail.css` — styles for DealDetail; separate from the main `styles.css`
@@ -176,7 +178,10 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `POST /api/dealfeed/buy-boxes/preview` is called by `ConfigurationOverlay` on every form change (debounced). If this route does not exist on the backend, preview count fails silently — no error is surfaced to the user.
 - `NewBoxWizard.jsx` is dead code — defined but not imported anywhere. Do not maintain it.
 - `PropertyDetail.jsx` is dead code — replaced by `DealDetail.jsx`. Not imported anywhere. Do not maintain it.
-- `DealDrawer.jsx` is dead code — not imported anywhere. Do not maintain it.
+
+## BMAD PLANNING DOCS
+
+Feature planning docs live in `notes/bmad/` (project-local, not `~/parcyl/notes/`). Active folders: `buy-box-wizard`, `subscriber-invite`, `snowflake-sync`, `b-plus-roadmap`.
 
 ## BACKEND CONTRACT
 
