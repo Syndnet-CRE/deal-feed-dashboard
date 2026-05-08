@@ -6,14 +6,51 @@ import { useReadState } from '../contexts/ReadStateContext';
 import { useDealState } from '../contexts/DealStateContext';
 
 function getAssetChipStyle(asset) {
+  const dark = (document.documentElement.dataset.theme || 'dark') !== 'light';
   const a = (asset || '').toLowerCase();
-  if (a.includes('storage'))                                                      return { background: 'rgba(245,158,11,0.15)', color: '#F59E0B', borderColor: 'rgba(245,158,11,0.3)' };
-  if (a.includes('industrial') || a.includes('flex') || a.includes('warehouse')) return { background: 'rgba(59,130,246,0.15)',  color: '#60A5FA', borderColor: 'rgba(59,130,246,0.3)' };
-  if (a.includes('multifamily'))                                                  return { background: 'rgba(139,92,246,0.15)', color: '#A78BFA', borderColor: 'rgba(139,92,246,0.3)' };
-  if (a.includes('land'))                                                         return { background: 'rgba(91,204,72,0.15)',  color: '#5BCC48', borderColor: 'rgba(91,204,72,0.3)' };
-  if (a.includes('retail'))                                                       return { background: 'rgba(249,115,22,0.15)', color: '#FB923C', borderColor: 'rgba(249,115,22,0.3)' };
-  if (a.includes('mixed'))                                                        return { background: 'rgba(20,184,166,0.15)', color: '#2DD4BF', borderColor: 'rgba(20,184,166,0.3)' };
-  return { background: 'rgba(100,100,120,0.15)', color: '#9DA2B3', borderColor: 'rgba(100,100,120,0.3)' };
+  if (a.includes('storage'))
+    return { background: dark ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.10)', color: dark ? '#F59E0B' : '#B45309', borderColor: dark ? 'rgba(245,158,11,0.3)' : 'rgba(180,83,9,0.3)', accent: '#F59E0B' };
+  if (a.includes('industrial') || a.includes('flex') || a.includes('warehouse'))
+    return { background: dark ? 'rgba(59,130,246,0.15)' : 'rgba(37,99,235,0.10)', color: dark ? '#60A5FA' : '#1D4ED8', borderColor: dark ? 'rgba(59,130,246,0.3)' : 'rgba(37,99,235,0.3)', accent: '#3B82F6' };
+  if (a.includes('multifamily'))
+    return { background: dark ? 'rgba(139,92,246,0.15)' : 'rgba(124,58,237,0.10)', color: dark ? '#A78BFA' : '#6D28D9', borderColor: dark ? 'rgba(139,92,246,0.3)' : 'rgba(109,40,217,0.3)', accent: '#8B5CF6' };
+  if (a.includes('land'))
+    return { background: dark ? 'rgba(91,204,72,0.15)' : 'rgba(29,175,41,0.10)', color: dark ? '#5BCC48' : '#1B7A2A', borderColor: dark ? 'rgba(91,204,72,0.3)' : 'rgba(29,175,41,0.3)', accent: '#1DAF29' };
+  if (a.includes('retail'))
+    return { background: dark ? 'rgba(249,115,22,0.15)' : 'rgba(234,88,12,0.10)', color: dark ? '#FB923C' : '#C2410C', borderColor: dark ? 'rgba(249,115,22,0.3)' : 'rgba(234,88,12,0.3)', accent: '#F97316' };
+  if (a.includes('mixed'))
+    return { background: dark ? 'rgba(20,184,166,0.15)' : 'rgba(15,118,110,0.10)', color: dark ? '#2DD4BF' : '#0F766E', borderColor: dark ? 'rgba(20,184,166,0.3)' : 'rgba(15,118,110,0.3)', accent: '#14B8A6' };
+  return { background: dark ? 'rgba(100,100,120,0.15)' : 'rgba(100,100,120,0.08)', color: dark ? '#9DA2B3' : '#6E7180', borderColor: dark ? 'rgba(100,100,120,0.3)' : 'rgba(110,113,128,0.3)', accent: '#9DA2B3' };
+}
+
+export function ScoreRing({ score }) {
+  const pct = Math.max(0, Math.min(100, Number(score) || 0));
+  const size = 44;
+  const r = 17;
+  const cx = size / 2;
+  const cy = size / 2;
+  const circ = 2 * Math.PI * r;
+  const filled = (pct / 100) * circ;
+  const sc = scoreClass(score);
+  const fillColor = sc === 'hi' ? '#1DAF29' : sc === 'md' ? '#F4B73E' : '#E5484D';
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(229,72,77,0.22)" strokeWidth="3"/>
+      <circle
+        cx={cx} cy={cy} r={r}
+        fill="none"
+        stroke={fillColor}
+        strokeWidth="3"
+        strokeDasharray={`${filled} ${circ}`}
+        strokeLinecap="butt"
+        transform={`rotate(-90 ${cx} ${cy})`}
+      />
+      <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central"
+        fontFamily="Manrope" fontSize="9" fontWeight="800" fill={fillColor}>
+        {pct}%
+      </text>
+    </svg>
+  );
 }
 
 export function ScoreBubble({ score, size = "md" }) {
@@ -54,6 +91,8 @@ export function DealCard({ deal, onClick, selected }) {
   const isLOI = dealState === 'loi';
   const isArchived = dealState === 'archived';
   const unread = !isRead(deal.id);
+  const chipStyle = getAssetChipStyle(deal.asset);
+  const signals = deal.signals || [];
 
   return (
     <div
@@ -61,7 +100,7 @@ export function DealCard({ deal, onClick, selected }) {
       onClick={onClick}
       role="button"
       tabIndex={0}
-      style={{ position: 'relative' }}
+      style={{ position: 'relative', '--dc-accent': chipStyle.accent }}
     >
       {unread && <span className="deal-unread-dot" aria-label="Unread"/>}
 
@@ -78,15 +117,23 @@ export function DealCard({ deal, onClick, selected }) {
             {isDead     && <span className="deal-state-badge danger">Dead</span>}
             {isLOI      && <span className="deal-state-badge amber">LOI</span>}
             {isArchived && <span className="deal-state-badge neutral">Pipeline</span>}
-            <ScoreBubble score={deal.score} size="sm"/>
+            <ScoreRing score={deal.score}/>
           </div>
         </div>
         <FactRow deal={deal}/>
-        {deal.days != null && (
-          <span className="aging-chip" style={{ color: agingColor(deal.days) }}>
-            {deal.days === 0 ? 'Today' : `${deal.days}d ago`}
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 1 }}>
+          {deal.days != null && (
+            <span className="aging-chip" style={{ color: agingColor(deal.days) }}>
+              {deal.days === 0 ? 'Today' : `${deal.days}d ago`}
+            </span>
+          )}
+          {signals.length > 0 && (
+            <span className="deal-signals">
+              ⚠ {signals[0]}{signals.length > 1 && <span className="deal-signals-count"> +{signals.length - 1}</span>}
+            </span>
+          )}
+        </div>
+        <span className="deal-open-hint">Open Details →</span>
       </div>
 
       <div className="deal-thumb"><AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng}/></div>
