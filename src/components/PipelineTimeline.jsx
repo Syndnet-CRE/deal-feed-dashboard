@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { Rocket } from 'lucide-react';
 import { I } from './Icons.jsx';
 
 const TZ = 'America/Chicago';
@@ -79,7 +78,7 @@ const S = {
   trackBg:   { position: 'absolute', left: 0, right: 0, top: 27, height: 6, background: '#40424D', borderRadius: 3 },
   fill:      { position: 'absolute', left: 0, top: 27, height: 6, width: '0%', background: 'linear-gradient(90deg, #1DAF29, #3DE346)', borderRadius: 3, transition: 'width 0.25s linear', animation: 'timelineGlow 2s ease-in-out infinite', overflow: 'hidden' },
   particle:  { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.75)', animation: 'particleFlow 2s linear infinite' },
-  marker:    { position: 'absolute', top: 12, left: '0%', transform: 'translateX(-50%)', zIndex: 4, transition: 'left 0.25s linear', animation: 'markerPulse 2s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F4B73E' },
+  marker:    { position: 'absolute', top: 8, left: '0%', transform: 'translateX(-50%)', zIndex: 4, transition: 'left 0.25s linear', animation: 'markerPulse 2s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   // Nodes
   nodeWrap:     { position: 'absolute', top: 16, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 },
@@ -206,7 +205,16 @@ export function PipelineTimeline() {
           <div style={{ ...S.particle, animationDelay: '1.2s' }} />
         </div>
         <div ref={markerRef} style={S.marker}>
-          <Rocket size={36} strokeWidth={1.5} style={{ transform: 'rotate(45deg)', fill: '#F4B73E' }} />
+          <svg width={44} height={44} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}>
+            {/* Right fin */}
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" fill="rgba(29,175,41,0.22)" stroke="#1DAF29" strokeWidth="1.5" />
+            {/* Flame — fire color */}
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" fill="#F97316" stroke="#EA580C" strokeWidth="1.5" />
+            {/* Main body */}
+            <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" fill="rgba(29,175,41,0.22)" stroke="#1DAF29" strokeWidth="1.5" />
+            {/* Left fin */}
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" fill="rgba(29,175,41,0.22)" stroke="#1DAF29" strokeWidth="1.5" />
+          </svg>
         </div>
         {NODE_LABELS.map((label, i) => (
           <div key={label} style={{ ...S.nodeWrap, left: `${NODE_PCTS[i]}%` }}>
