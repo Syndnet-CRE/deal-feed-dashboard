@@ -14,11 +14,16 @@
   flex-shrink: 0;
 }
 
-/* ── Address bar ─────────────────────────────────────────────── */
-.dd-addr-bar {
+/* ── Sticky header wrapper (addr bar + tab strip together) ───── */
+.dd-sticky-header {
   position: sticky;
   top: 0;
   z-index: 20;
+  background: var(--bg-card);
+}
+
+/* ── Address bar ─────────────────────────────────────────────── */
+.dd-addr-bar {
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-1);
   padding: var(--s-2) var(--s-6);
@@ -73,8 +78,43 @@
 .dd-addr-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--s-2);
+  flex: 1;
+}
+
+/* Inline metrics strip inside addr bar */
+.dd-addr-metrics {
+  display: flex;
+  align-items: stretch;
   flex-shrink: 0;
+}
+
+.dd-addr-metric-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px var(--s-4);
+  border-right: 1px solid var(--border-1);
+}
+.dd-addr-metric-cell:last-child { border-right: none; }
+
+.dd-addr-metric-label {
+  font-size: 9px;
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+
+.dd-addr-metric-value {
+  font-size: var(--t-cap);
+  font-weight: var(--w-semibold);
+  color: var(--green);
+  white-space: nowrap;
+  font-feature-settings: "tnum", "ss01";
 }
 
 /* Score badge */
@@ -171,9 +211,6 @@
 
 /* ── Sub-tab strip ───────────────────────────────────────────── */
 .dd-subtabs-outer {
-  position: sticky;
-  top: 60px;
-  z-index: 19;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-1);
 }
@@ -217,8 +254,15 @@
   flex-direction: column;
   gap: var(--s-6);
   max-width: 1400px;
-  margin: 0 auto;
+  margin: var(--s-5) auto;
   width: 100%;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .dd-body {
+  background: #0D0D0D;
 }
 
 /* Summary — full width 2-col grid */
@@ -584,7 +628,9 @@
 /* ── Discovery panel (AI brief + aerial) ─────────────────────── */
 .dd-discovery-panel {
   display: flex;
-  min-height: 480px;
+  flex-direction: row;
+  gap: var(--s-5);
+  padding: var(--s-5) var(--s-7);
   border-bottom: 1px solid var(--border-1);
   flex-shrink: 0;
   background: rgba(255, 255, 255, 0.82);
@@ -593,13 +639,31 @@
 }
 
 .dd-discovery-left {
-  flex: 0 0 50%;
-  padding: var(--s-6) var(--s-7);
+  flex: 0 0 70%;
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
-  overflow-y: auto;
-  border-right: 1px solid var(--border-1);
+  min-width: 0;
+}
+
+.dd-discovery-right {
+  flex: 0 0 calc(30% - var(--s-5));
+  display: flex;
+  align-items: stretch;
+}
+
+.dd-discovery-image {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 140px;
+}
+
+.dd-discovery-image > * {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .dd-discovery-eyebrow {
@@ -618,26 +682,17 @@
   margin: 0;
 }
 
+.dd-discovery-narrative--empty {
+  font-size: 11px;
+  color: var(--fg-3);
+  font-style: italic;
+}
+
 .dd-discovery-signals {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s-2);
-  margin-top: auto;
-  padding-top: var(--s-3);
-}
-
-.dd-discovery-right {
-  flex: 0 0 50%;
-  position: relative;
-  overflow: hidden;
-  background: var(--bg-subtle);
-}
-
-.dd-discovery-right > * {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
+  padding-top: var(--s-1);
 }
 
 [data-theme="dark"] .dd-discovery-panel {
@@ -647,17 +702,15 @@
 @media (max-width: 768px) {
   .dd-discovery-panel {
     flex-direction: column;
-    min-height: auto;
+    padding: var(--s-4) var(--s-5);
   }
   .dd-discovery-left,
   .dd-discovery-right {
     flex: none;
     width: 100%;
-    border-right: none;
   }
-  .dd-discovery-right {
-    height: 260px;
-    border-top: 1px solid var(--border-1);
+  .dd-discovery-image {
+    min-height: 180px;
   }
 }
 
@@ -1015,27 +1068,6 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-
-.dd-sidebar-links {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: var(--s-1);
-}
-
-.dd-sidebar-link {
-  font-size: var(--t-micro);
-  color: var(--link);
-  text-decoration: none;
-  padding: 3px 0;
-  cursor: pointer;
-  background: none;
-  border: none;
-  text-align: left;
-  font-family: var(--font-sans);
-  transition: color var(--dur-fast) var(--ease-out);
-}
-.dd-sidebar-link:hover { color: var(--parcyl-green-700, #1a7f7a); text-decoration: underline; text-underline-offset: 2px; }
 
 /* ── Signal dot ──────────────────────────────────────────────── */
 .dd-signal-dot {

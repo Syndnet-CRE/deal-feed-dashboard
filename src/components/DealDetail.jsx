@@ -615,17 +615,6 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 <AerialThumb id={deal.id} lat={deal.lat} lng={deal.lng} showParcel={true} />
                 <span className="dd-img-thumb-label">Parcel</span>
               </div>
-              <div className="dd-sidebar-links">
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('property')}>Property Record</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('ownership')}>Ownership</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('financials')}>Financials</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('capital')}>Capital Stack</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('transactions')}>Transactions</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('site')}>Site &amp; Lot</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('zoning')}>Zoning</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('distress')}>Distress</button>
-                <button className="dd-sidebar-link" onClick={() => scrollToSection('dealintel')}>Deal Intel</button>
-              </div>
             </div>
           )}
         </div>
