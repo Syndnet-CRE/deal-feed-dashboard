@@ -3321,8 +3321,8 @@ button { font-family: inherit; }
   transition: left 0.25s linear;
 }
 @keyframes markerPulse {
-  0%, 100% { filter: drop-shadow(0 0 3px rgba(29,175,41,0.7)); }
-  50%       { filter: drop-shadow(0 0 10px rgba(29,175,41,1)); }
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(244,183,62,0.7)); }
+  50%       { filter: drop-shadow(0 0 12px rgba(244,183,62,1)); }
 }
 .pt2-nodes { position: absolute; left: 0; right: 0; top: 0; }
 .pt2-node-wrap {

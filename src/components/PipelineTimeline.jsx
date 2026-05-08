@@ -79,7 +79,7 @@ const S = {
   trackBg:   { position: 'absolute', left: 0, right: 0, top: 27, height: 6, background: '#40424D', borderRadius: 3 },
   fill:      { position: 'absolute', left: 0, top: 27, height: 6, width: '0%', background: 'linear-gradient(90deg, #1DAF29, #3DE346)', borderRadius: 3, transition: 'width 0.25s linear', animation: 'timelineGlow 2s ease-in-out infinite', overflow: 'hidden' },
   particle:  { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,0.75)', animation: 'particleFlow 2s linear infinite' },
-  marker:    { position: 'absolute', top: 16, left: '0%', transform: 'translateX(-50%)', zIndex: 4, transition: 'left 0.25s linear', animation: 'markerPulse 2s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1DAF29' },
+  marker:    { position: 'absolute', top: 12, left: '0%', transform: 'translateX(-50%)', zIndex: 4, transition: 'left 0.25s linear', animation: 'markerPulse 2s ease-in-out infinite', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F4B73E' },
 
   // Nodes
   nodeWrap:     { position: 'absolute', top: 16, transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 },
@@ -206,7 +206,7 @@ export function PipelineTimeline() {
           <div style={{ ...S.particle, animationDelay: '1.2s' }} />
         </div>
         <div ref={markerRef} style={S.marker}>
-          <Rocket size={28} strokeWidth={2} style={{ transform: 'rotate(45deg)' }} />
+          <Rocket size={36} strokeWidth={1.5} style={{ transform: 'rotate(45deg)', fill: '#F4B73E' }} />
         </div>
         {NODE_LABELS.map((label, i) => (
           <div key={label} style={{ ...S.nodeWrap, left: `${NODE_PCTS[i]}%` }}>
