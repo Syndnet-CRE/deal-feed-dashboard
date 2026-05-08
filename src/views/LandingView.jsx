@@ -1,485 +1,543 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/landing.css';
+import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import '../styles/landing.css'
+import {
+  AiCodeReviews,
+  RealtimeCodePreviews,
+  OneClickIntegrations,
+  McpConnectivity,
+  ParallelAgents,
+  EasyDeployment,
+} from './LandingBento.jsx'
 
-function LandingHeader() {
-  const [menuOpen, setMenuOpen] = useState(false);
+/* ─── Animated section wrapper ──────────────────────────────────────────── */
+
+function AnimatedSection({ children, className = '', delay = 0 }) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold: 0.12 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+
   return (
-    <header className="lp-header">
-      <div className="lp-header-inner">
-        <Link to="/" className="lp-logo">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <circle cx="14" cy="14" r="13" stroke="#5BCC48" strokeWidth="2"/>
-            <path d="M14 6 L14 22 M8 12 L14 6 L20 12" stroke="#5BCC48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span>Nightdrop</span>
-        </Link>
-        <nav className="lp-nav">
+    <div
+      ref={ref}
+      className={`nd-animated${visible ? ' nd-visible' : ''} ${className}`}
+      style={delay ? { transitionDelay: `${delay}ms` } : undefined}
+    >
+      {children}
+    </div>
+  )
+}
+
+/* ─── Header ────────────────────────────────────────────────────────────── */
+
+function Header() {
+  return (
+    <header className="nd-header">
+      <div className="nd-header-inner">
+        <div className="nd-logo">
+          <img src="/logos/nightdrop-logo.png" alt="Nightdrop" />
+        </div>
+        <nav className="nd-nav">
           <a href="#how-it-works">How it works</a>
           <a href="#testimonials">Reviews</a>
           <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
         </nav>
-        <div className="lp-header-actions">
-          <Link to="/login" className="lp-btn-ghost">Sign In</Link>
-          <Link to="/login" className="lp-btn-primary">Join the Waitlist</Link>
+        <div className="nd-header-cta">
+          <Link to="/login"><button className="nd-btn-ghost">Sign In</button></Link>
+          <Link to="/login"><button className="nd-btn-primary">Join the Waitlist</button></Link>
         </div>
-        <button className="lp-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
-          <span /><span /><span />
-        </button>
       </div>
-      {menuOpen && (
-        <div className="lp-mobile-menu">
-          <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
-          <a href="#testimonials" onClick={() => setMenuOpen(false)}>Reviews</a>
-          <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
-          <a href="#faq" onClick={() => setMenuOpen(false)}>FAQ</a>
-          <Link to="/login" onClick={() => setMenuOpen(false)}>Sign In</Link>
-          <Link to="/login" className="lp-btn-primary" onClick={() => setMenuOpen(false)}>Join the Waitlist</Link>
-        </div>
-      )}
     </header>
-  );
+  )
 }
 
-function HeroSection() {
+/* ─── Hero ──────────────────────────────────────────────────────────────── */
+
+function HeroSVG() {
+  const COLS = 35
+  const ROWS = 22
+  const W = 1220
+  const H = 810
+  const cw = W / COLS
+  const ch = H / ROWS
+
+  const filledCells = [
+    [3,4],[3,5],[4,4],[4,5],
+    [8,10],[8,11],[9,10],[9,11],
+    [15,3],[15,4],[16,3],[16,4],
+    [20,14],[20,15],[21,14],[21,15],
+    [28,7],[28,8],[29,7],[29,8],
+    [31,17],[31,18],[32,17],[32,18],
+  ]
+  const filledSet = new Set(filledCells.map(([c,r]) => `${c}-${r}`))
+
+  const filterGroups = [
+    { id:'g1', x:2*cw, y:3*ch, w:4*cw, h:4*ch, blur:40, color:'#5BCC48', op:0.18 },
+    { id:'g2', x:14*cw, y:2*ch, w:5*cw, h:4*ch, blur:50, color:'#5BCC48', op:0.12 },
+    { id:'g3', x:19*cw, y:13*ch, w:5*cw, h:4*ch, blur:45, color:'#4ab83a', op:0.14 },
+    { id:'g4', x:27*cw, y:6*ch, w:5*cw, h:5*ch, blur:55, color:'#5BCC48', op:0.10 },
+  ]
+
   return (
-    <section className="lp-hero">
-      <div className="lp-hero-grid" aria-hidden="true" />
-      <div className="lp-hero-content">
-        <div className="lp-badge">Now accepting early access</div>
-        <h1 className="lp-hero-headline">
-          Tell us what you're looking for.<br />
-          <span className="lp-hero-accent">Deals in your inbox every morning.</span>
-        </h1>
-        <p className="lp-hero-sub">
-          Submit your acquisition criteria once. Every morning we deliver a curated digest of matched
-          off-market properties — scored by distress signals, written up as actionable deal briefs,
-          with owner contact info attached. No searching. No platforms.
-        </p>
-        <div className="lp-hero-cta">
-          <Link to="/login" className="lp-btn-primary lp-btn-lg">Join the Waitlist</Link>
-          <a href="#how-it-works" className="lp-btn-ghost lp-btn-lg">See how it works</a>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="nd-hero-svg" style={{ display:'block' }}>
+      <defs>
+        {filterGroups.map(g => (
+          <filter key={g.id} id={g.id} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation={g.blur} />
+          </filter>
+        ))}
+        <linearGradient id="svgFade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="60%" stopColor="#0f1211" stopOpacity="0" />
+          <stop offset="100%" stopColor="#0f1211" stopOpacity="1" />
+        </linearGradient>
+      </defs>
+
+      {/* glow blobs */}
+      {filterGroups.map(g => (
+        <rect key={g.id} x={g.x} y={g.y} width={g.w} height={g.h}
+          fill={g.color} opacity={g.op} filter={`url(#${g.id})`} />
+      ))}
+
+      {/* grid */}
+      {Array.from({ length: COLS }, (_, c) =>
+        Array.from({ length: ROWS }, (_, r) => {
+          const filled = filledSet.has(`${c}-${r}`)
+          return (
+            <rect key={`${c}-${r}`}
+              x={c * cw + 1} y={r * ch + 1}
+              width={cw - 2} height={ch - 2}
+              rx="3"
+              fill={filled ? 'rgba(91,204,72,0.18)' : 'none'}
+              stroke={filled ? 'rgba(91,204,72,0.4)' : 'rgba(255,255,255,0.04)'}
+              strokeWidth="1"
+              strokeDasharray={filled ? '0' : '4 4'}
+            />
+          )
+        })
+      )}
+
+      {/* fade-to-background at bottom */}
+      <rect x="0" y="0" width={W} height={H} fill="url(#svgFade)" />
+    </svg>
+  )
+}
+
+function Hero() {
+  return (
+    <section className="nd-hero">
+      <AnimatedSection>
+        <div className="nd-hero-badge">
+          <span className="nd-hero-badge-dot" />
+          Early access now open
         </div>
-        <div className="lp-stats">
-          <div className="lp-stat">
-            <span className="lp-stat-value">$2.3T</span>
-            <span className="lp-stat-label">in off-market CRE tracked</span>
-          </div>
-          <div className="lp-stat-divider" />
-          <div className="lp-stat">
-            <span className="lp-stat-value">70%+</span>
-            <span className="lp-stat-label">of deals never hit the MLS</span>
-          </div>
-          <div className="lp-stat-divider" />
-          <div className="lp-stat">
-            <span className="lp-stat-value">12hrs</span>
-            <span className="lp-stat-label">before your competition wakes up</span>
-          </div>
+        <h1 className="nd-hero-title">
+          Tell us what you're looking for.<br />
+          Deals in your inbox every morning.
+        </h1>
+        <p className="nd-hero-sub">
+          A curated digest of distressed commercial properties matched to your exact buy box.
+          No dashboards. No searching. Just deals.
+        </p>
+        <div className="nd-hero-actions">
+          <Link to="/login"><button className="nd-btn-primary-lg">Get Early Access →</button></Link>
+          <a href="#how-it-works"><button className="nd-btn-outline-lg">See how it works</button></a>
+        </div>
+      </AnimatedSection>
+      <AnimatedSection delay={150}>
+        <HeroSVG />
+      </AnimatedSection>
+    </section>
+  )
+}
+
+/* ─── Social proof ──────────────────────────────────────────────────────── */
+
+const socialLogos = [
+  'Self-Storage Investors',
+  'Industrial Operators',
+  'CRE Funds',
+  'Multifamily Buyers',
+  'Land Developers',
+]
+
+function SocialProof() {
+  return (
+    <AnimatedSection>
+      <div className="nd-social">
+        <p className="nd-social-label">Trusted by investors across asset classes</p>
+        <div className="nd-social-logos">
+          {socialLogos.map(l => (
+            <span key={l} className="nd-social-logo">{l}</span>
+          ))}
         </div>
       </div>
-    </section>
-  );
+    </AnimatedSection>
+  )
 }
 
-const BENTO_CARDS = [
+/* ─── Bento section ─────────────────────────────────────────────────────── */
+
+const bentoCards = [
   {
-    num: '01',
-    title: 'Submit your buy box',
-    desc: 'Tell us your asset class, geography, price range, and deal criteria. Takes five minutes.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <rect x="4" y="6" width="24" height="20" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M10 12h12M10 17h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <circle cx="23" cy="22" r="5" fill="#5BCC48"/>
-        <path d="M21 22l1.5 1.5L25 20" stroke="#111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    wide: false,
+    title: 'Submit your buy box.',
+    desc: 'Tell us your asset class, geography, lot size, value range, and distress criteria. Takes five minutes.',
+    Component: AiCodeReviews,
   },
   {
-    num: '02',
-    title: 'We search every night',
-    desc: 'Our agents scan county records, distress databases, permit filings, and off-market signals while you sleep.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="16" r="10" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M16 8v8l5 3" stroke="#5BCC48" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    wide: false,
+    title: 'We search every night.',
+    desc: 'Our pipeline runs at 2am against 160 million parcels with 900 data points per property — geospatial, demographic, ownership, transaction, and assessment data.',
+    Component: RealtimeCodePreviews,
   },
   {
-    num: '03',
-    title: 'AI scores every match',
-    desc: 'Each property is ranked against your criteria — distress depth, deal velocity, ownership motivation, and market comps.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M6 24 L12 16 L18 20 L26 8" stroke="#5BCC48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <circle cx="26" cy="8" r="2.5" fill="#5BCC48"/>
-      </svg>
-    ),
-    wide: true,
+    title: 'AI scores every match.',
+    desc: 'Each property is evaluated against your exact criteria and assigned a confidence score. Weak matches are dropped before they ever reach you.',
+    Component: OneClickIntegrations,
   },
   {
-    num: '04',
-    title: 'Distress signals surfaced',
-    desc: 'Tax delinquency, code violations, foreclosure filings, loan maturities — every signal that matters, pre-pulled.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M16 5 L28 26 H4 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-        <path d="M16 13v6M16 22v1" stroke="#F4B73E" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    wide: false,
+    title: 'Distress signals surfaced.',
+    desc: 'Tax delinquency, absentee ownership, long holds with no permits, inactive entities — every signal is flagged and explained.',
+    Component: McpConnectivity,
   },
   {
-    num: '05',
-    title: 'Owner contact attached',
-    desc: 'Verified owner name, entity structure, mailing address, and skip-traced phone — ready to reach out the moment you read it.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <circle cx="16" cy="12" r="5" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M6 26c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <circle cx="24" cy="22" r="4" fill="#5BCC48"/>
-        <path d="M22.5 22h3M24 20.5v3" stroke="#111" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-    ),
-    wide: false,
+    title: 'Owner contact attached.',
+    desc: 'Each deal brief includes the best available owner contact — name, phone, and email — with confidence percentages on each.',
+    Component: ParallelAgents,
   },
   {
-    num: '06',
-    title: 'In your inbox by 6am',
-    desc: 'A clean deal brief for every match, delivered before the workday starts. Your morning edge, automated.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <rect x="4" y="8" width="24" height="16" rx="3" stroke="currentColor" strokeWidth="1.5"/>
-        <path d="M4 12l12 8 12-8" stroke="#5BCC48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-    wide: false,
+    title: 'In your inbox by 6am.',
+    desc: 'Matched deals land every morning as a clean email digest. Read it, make calls, move on.',
+    Component: EasyDeployment,
   },
-];
+]
 
 function BentoSection() {
   return (
-    <section className="lp-bento" id="how-it-works">
-      <div className="lp-section-inner">
-        <div className="lp-section-label">How Nightdrop Works</div>
-        <h2 className="lp-section-title">Six steps. Zero effort on your part.</h2>
-        <div className="lp-bento-grid">
-          {BENTO_CARDS.map((card) => (
-            <div key={card.num} className={`lp-bento-card${card.wide ? ' lp-bento-card--wide' : ''}`}>
-              <div className="lp-bento-num">{card.num}</div>
-              <div className="lp-bento-icon">{card.icon}</div>
-              <h3 className="lp-bento-title">{card.title}</h3>
-              <p className="lp-bento-desc">{card.desc}</p>
-            </div>
-          ))}
+    <section id="how-it-works" className="nd-section">
+      <AnimatedSection>
+        <div className="nd-bento-header">
+          <span className="nd-section-label">How It Works</span>
+          <h2 className="nd-section-title">Fully autonomous.<br />Zero dashboards.</h2>
+          <p className="nd-section-sub" style={{ margin: '0 auto' }}>
+            Your buy box runs every night and deals land in your inbox every morning.
+          </p>
         </div>
-      </div>
-    </section>
-  );
-}
-
-const TESTIMONIALS = [
-  {
-    quote: "I used to spend half my week driving for dollars and pulling lists. Nightdrop replaced all of that. I get better deals with better intel before I've had my first coffee.",
-    name: "Marcus T.",
-    role: "Multifamily Investor, Phoenix",
-    large: true,
-  },
-  {
-    quote: "The distress signal data alone is worth the subscription. I closed two deals in 90 days that I never would have found otherwise.",
-    name: "Sarah K.",
-    role: "CRE Broker, Dallas",
-    large: false,
-  },
-  {
-    quote: "Our acquisition pipeline went from reactive to proactive. We're finding deals before they're deals.",
-    name: "James R.",
-    role: "Private Equity, Chicago",
-    large: false,
-  },
-  {
-    quote: "The owner contact info is accurate. That's the thing that surprised me most. Skip-tracing used to eat two hours a day.",
-    name: "Priya M.",
-    role: "Industrial Investor, Atlanta",
-    large: false,
-  },
-  {
-    quote: "Set up my buy box on a Tuesday. Had three qualified leads in my inbox by Wednesday morning.",
-    name: "Derek L.",
-    role: "Net Lease Specialist, Denver",
-    large: false,
-  },
-  {
-    quote: "I've tried every deal sourcing platform. Nightdrop is the first one that actually fits how I work.",
-    name: "Angela W.",
-    role: "Office/Flex Investor, Austin",
-    large: false,
-  },
-];
-
-function TestimonialsSection() {
-  return (
-    <section className="lp-testimonials" id="testimonials">
-      <div className="lp-section-inner">
-        <div className="lp-section-label">What investors are saying</div>
-        <h2 className="lp-section-title">From early access members</h2>
-        <div className="lp-testimonials-grid">
-          {TESTIMONIALS.map((t, i) => (
-            <div key={i} className={`lp-testimonial-card${t.large ? ' lp-testimonial-card--large' : ''}`}>
-              <div className="lp-testimonial-quote-mark">&ldquo;</div>
-              <blockquote className="lp-testimonial-text">{t.quote}</blockquote>
-              <div className="lp-testimonial-author">
-                <div className="lp-testimonial-avatar">{t.name[0]}</div>
-                <div>
-                  <div className="lp-testimonial-name">{t.name}</div>
-                  <div className="lp-testimonial-role">{t.role}</div>
-                </div>
+      </AnimatedSection>
+      <div className="nd-bento-grid">
+        {bentoCards.map((card, i) => (
+          <AnimatedSection key={card.title} delay={i * 60}>
+            <div className="nd-bento-card">
+              <div className="nd-bento-text">
+                <p className="nd-bento-card-title">{card.title}</p>
+                <p className="nd-bento-card-desc">{card.desc}</p>
+              </div>
+              <div className="nd-bento-illus">
+                <card.Component />
               </div>
             </div>
-          ))}
-        </div>
+          </AnimatedSection>
+        ))}
       </div>
     </section>
-  );
+  )
 }
 
-const PLANS = [
+/* ─── Large testimonial ─────────────────────────────────────────────────── */
+
+function LargeTestimonial() {
+  return (
+    <AnimatedSection>
+      <div className="nd-large-testimonial">
+        <div className="nd-large-testimonial-inner">
+          <blockquote className="nd-large-quote">
+            "We tried building our own sourcing pipeline internally. It took months and it was never this good.
+            Nightdrop was running in five minutes."
+          </blockquote>
+          <div className="nd-large-attr">
+            <div className="nd-large-avatar">RF</div>
+            <div>
+              <div className="nd-large-name">Real Estate Fund Manager</div>
+              <div className="nd-large-co">Houston, TX</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </AnimatedSection>
+  )
+}
+
+/* ─── Pricing ───────────────────────────────────────────────────────────── */
+
+const plans = [
   {
-    name: 'Starter',
+    plan: 'Starter',
     monthlyPrice: 150,
-    annualPrice: 125,
-    desc: 'Perfect for individual investors focused on one market.',
-    features: [
-      '1 buy box',
-      'Up to 10 deals/day',
-      'Distress signal scoring',
-      'Owner contact info',
-      'Email delivery by 6am',
-      '30-day deal history',
-    ],
-    cta: 'Join Waitlist',
+    annualPrice: 135,
+    desc: 'One buy box. Perfect for focused investors with a clear strategy.',
+    features: ['1 active buy box', 'Daily email digest', 'Owner contact info', 'Distress signal breakdown', 'Up to 5 deals/day'],
     popular: false,
+    cta: 'Get Started',
   },
   {
-    name: 'Investor',
+    plan: 'Investor',
     monthlyPrice: 200,
-    annualPrice: 167,
-    desc: 'For active investors running multiple strategies.',
-    features: [
-      '3 buy boxes',
-      'Unlimited deals/day',
-      'Advanced distress scoring',
-      'Owner contact + skip trace',
-      'Priority email delivery',
-      '90-day deal history',
-      'CSV export',
-      'Slack integration (coming soon)',
-    ],
-    cta: 'Join Waitlist',
+    annualPrice: 180,
+    desc: 'Multiple buy boxes across markets. Built for serious operators.',
+    features: ['Up to 5 active buy boxes', 'Daily email digest', 'Owner contact info', 'Distress signal breakdown', 'Up to 20 deals/day', 'Priority support'],
     popular: true,
+    cta: 'Get Started',
   },
   {
-    name: 'Enterprise',
+    plan: 'Enterprise',
     monthlyPrice: null,
     annualPrice: null,
-    desc: 'Custom setup for teams, funds, and brokerages.',
-    features: [
-      'Unlimited buy boxes',
-      'Unlimited deals/day',
-      'Custom scoring models',
-      'API access',
-      'Team seats',
-      'Dedicated onboarding',
-      'SLA support',
-    ],
-    cta: 'Contact Us',
+    desc: 'Custom coverage for funds and teams sourcing at scale.',
+    features: ['Unlimited buy boxes', 'Custom geographies', 'API access', 'Dedicated support', 'Custom integrations', 'Team accounts'],
     popular: false,
+    cta: 'Contact Us',
   },
-];
+]
 
 function PricingSection() {
-  const [annual, setAnnual] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(true)
+
   return (
-    <section className="lp-pricing" id="pricing">
-      <div className="lp-section-inner">
-        <div className="lp-section-label">Pricing</div>
-        <h2 className="lp-section-title">Simple, transparent pricing</h2>
-        <div className="lp-pricing-toggle">
-          <span className={!annual ? 'active' : ''}>Monthly</span>
-          <button
-            className={`lp-toggle-switch${annual ? ' on' : ''}`}
-            onClick={() => setAnnual(!annual)}
-            aria-label="Toggle annual billing"
-          >
-            <span className="lp-toggle-knob" />
-          </button>
-          <span className={annual ? 'active' : ''}>Annual <span className="lp-savings-badge">Save 17%</span></span>
-        </div>
-        <div className="lp-plans-grid">
-          {PLANS.map((plan) => (
-            <div key={plan.name} className={`lp-plan-card${plan.popular ? ' lp-plan-card--popular' : ''}`}>
-              {plan.popular && <div className="lp-popular-badge">Most Popular</div>}
-              <div className="lp-plan-name">{plan.name}</div>
-              <div className="lp-plan-price">
-                {plan.monthlyPrice ? (
-                  <>
-                    <span className="lp-plan-amount">${annual ? plan.annualPrice : plan.monthlyPrice}</span>
-                    <span className="lp-plan-period">/mo{annual ? ', billed annually' : ''}</span>
-                  </>
-                ) : (
-                  <span className="lp-plan-amount">Custom</span>
-                )}
-              </div>
-              <p className="lp-plan-desc">{plan.desc}</p>
-              <ul className="lp-plan-features">
-                {plan.features.map((f, i) => (
-                  <li key={i}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                      <circle cx="8" cy="8" r="7" fill="#5BCC48" fillOpacity="0.15"/>
-                      <path d="M5 8l2 2 4-4" stroke="#5BCC48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/login" className={`lp-plan-cta${plan.popular ? ' lp-btn-primary' : ' lp-btn-outline'}`}>
-                {plan.cta}
-              </Link>
+    <section id="pricing" className="nd-pricing-wrap">
+      <AnimatedSection>
+        <div className="nd-pricing-header">
+          <span className="nd-section-label">Pricing</span>
+          <h2 className="nd-section-title">Simple, transparent pricing</h2>
+          <p className="nd-section-sub" style={{ margin: '0 auto' }}>
+            No setup fees. No long-term contracts. Cancel any time.
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div className="nd-pricing-toggle">
+              <button
+                className={`nd-toggle-btn${!isAnnual ? ' active' : ''}`}
+                onClick={() => setIsAnnual(false)}
+              >Monthly</button>
+              <button
+                className={`nd-toggle-btn${isAnnual ? ' active' : ''}`}
+                onClick={() => setIsAnnual(true)}
+              >Annual <span style={{ fontSize: 11, opacity: 0.8 }}>Save 10%</span></button>
             </div>
-          ))}
+          </div>
+        </div>
+      </AnimatedSection>
+      <div className="nd-pricing-grid">
+        {plans.map((p, i) => {
+          const price = isAnnual ? p.annualPrice : p.monthlyPrice
+          return (
+            <AnimatedSection key={p.plan} delay={i * 80}>
+              <div className={`nd-pricing-card${p.popular ? ' popular' : ''}`}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="nd-pricing-plan">{p.plan}</div>
+                  {p.popular && <span className="nd-pricing-popular-badge">Most Popular</span>}
+                </div>
+                <div className="nd-pricing-price">
+                  {price ? (
+                    <><sup>$</sup>{price}<span className="nd-price-period">/mo</span></>
+                  ) : (
+                    <span style={{ fontSize: 28 }}>Custom</span>
+                  )}
+                </div>
+                <p className="nd-pricing-desc">{p.desc}</p>
+                <hr className="nd-pricing-divider" />
+                <ul className="nd-pricing-features">
+                  {p.features.map(f => <li key={f}>{f}</li>)}
+                </ul>
+                <button className="nd-pricing-cta">{p.cta}</button>
+              </div>
+            </AnimatedSection>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+/* ─── Testimonial grid ──────────────────────────────────────────────────── */
+
+const testimonials = [
+  { quote: "I set my buy box for self-storage in the Austin metro and had three legit off-market leads in my inbox the next morning. One of them turned into a deal.", name: "Early Access Investor", company: "Austin, TX", type: "large-teal" },
+  { quote: "The distress signal breakdown alone is worth the subscription. I know exactly why each deal is flagged before I pick up the phone.", name: "CRE Operator", company: "Dallas, TX", type: "small-dark" },
+  { quote: "I was spending 15 hours a week pulling lists and skip tracing. Nightdrop cut that to zero.", name: "Wholesaler", company: "Phoenix, AZ", type: "small-dark" },
+  { quote: "Finally a tool built for people who actually buy commercial real estate, not just browse it.", name: "Acquisitions Director", company: "Denver, CO", type: "small-dark" },
+  { quote: "The owner contact info comes attached to every brief. Name, phone, email. I just make the call.", name: "Private Investor", company: "Nashville, TN", type: "small-dark" },
+  { quote: "I have three buy boxes running across two states. Deals hit my inbox every morning before I've had my coffee.", name: "Portfolio Operator", company: "Atlanta, GA", type: "small-dark" },
+  { quote: "We tried building our own sourcing pipeline internally. It took months and it was never this good. Nightdrop was running in five minutes.", name: "Real Estate Fund Manager", company: "Houston, TX", type: "large-light" },
+]
+
+function TestimonialCard({ quote, name, company, type }) {
+  const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  return (
+    <div className={`nd-tcard ${type}`}>
+      <div className="nd-tcard-quote">"{quote}"</div>
+      <div className="nd-tcard-attr">
+        <div className="nd-tcard-avatar">{initials}</div>
+        <div>
+          <div className="nd-tcard-name">{name}</div>
+          <div className="nd-tcard-co">{company}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TestimonialGridSection() {
+  return (
+    <section id="testimonials" className="nd-testimonials">
+      <AnimatedSection>
+        <div className="nd-testimonials-header">
+          <h2 className="nd-section-title">Investors who tried it, kept it</h2>
+          <p className="nd-section-sub" style={{ margin: '8px auto 0' }}>
+            Early access feedback from real estate investors and operators using Nightdrop
+          </p>
+        </div>
+      </AnimatedSection>
+      <div className="nd-testimonial-grid">
+        <div className="nd-testimonial-col">
+          <TestimonialCard {...testimonials[0]} />
+          <TestimonialCard {...testimonials[1]} />
+        </div>
+        <div className="nd-testimonial-col">
+          <TestimonialCard {...testimonials[2]} />
+          <TestimonialCard {...testimonials[3]} />
+          <TestimonialCard {...testimonials[4]} />
+        </div>
+        <div className="nd-testimonial-col">
+          <TestimonialCard {...testimonials[5]} />
+          <TestimonialCard {...testimonials[6]} />
         </div>
       </div>
     </section>
-  );
+  )
 }
 
-const FAQS = [
-  {
-    q: 'What markets do you cover?',
-    a: 'We currently cover the top 50 US metros with full distress data coverage. Smaller markets are available on request for Enterprise plans.',
-  },
-  {
-    q: 'Where does the property data come from?',
-    a: 'We aggregate county recorder data, tax assessor records, foreclosure filings, code violation databases, permit records, and proprietary distress signal feeds — updated nightly.',
-  },
-  {
-    q: 'How accurate is the owner contact info?',
-    a: 'We run skip-trace verification on every owner record before delivery. Accuracy rates are consistently above 85% for phone numbers and above 95% for mailing addresses.',
-  },
-  {
-    q: 'Can I change my buy box after I sign up?',
-    a: 'Yes, at any time. Changes take effect the next nightly run.',
-  },
-  {
-    q: "What if I don't find any matches?",
-    a: "We'll notify you and suggest adjustments to your criteria. If you go 30 days without a match, we'll refund that month.",
-  },
-  {
-    q: "Is there a free trial?",
-    a: "We're in early access, so we're working directly with waitlist members to get you set up. Reach out after joining.",
-  },
-];
+/* ─── FAQ ───────────────────────────────────────────────────────────────── */
+
+const faqs = [
+  { q: 'What asset classes does Nightdrop cover?', a: 'Self-storage, industrial, multifamily, retail, office, land, and mixed-use. You specify your asset class when you create your buy box.' },
+  { q: 'How does the matching work?', a: 'Our pipeline scans 160 million parcels every night. Each property is scored against your exact buy box criteria — geography, lot size, value range, distress signals — and only strong matches are included in your digest.' },
+  { q: 'Where does the owner contact info come from?', a: 'We aggregate from public records, skip-trace databases, and entity registries. Each contact comes with a confidence percentage. We surface the best available contact, not a list you have to sort through.' },
+  { q: 'What counts as a distress signal?', a: 'Tax delinquency, absentee ownership, long holds with no permits or renovations, inactive registered entities, and properties with motivated-seller language in public filings.' },
+  { q: 'Can I run multiple buy boxes?', a: 'Yes. The Investor plan supports up to 5 simultaneous buy boxes. Enterprise has no limit. Each box can target a different geography, asset class, or distress profile.' },
+  { q: 'What if I don\'t get any matches on a given day?', a: 'We only send a digest when there are real matches. No filler, no padding. If your market is quiet, your inbox is quiet.' },
+  { q: 'Is there a setup fee or contract?', a: 'No setup fee. No annual contract required (though we offer 10% off for annual billing). Cancel any time from your account settings.' },
+]
 
 function FAQSection() {
-  const [open, setOpen] = useState(null);
+  const [open, setOpen] = useState(null)
+
   return (
-    <section className="lp-faq" id="faq">
-      <div className="lp-section-inner lp-faq-inner">
-        <div className="lp-section-label">FAQ</div>
-        <h2 className="lp-section-title">Common questions</h2>
-        <div className="lp-faq-list">
-          {FAQS.map((item, i) => (
-            <div key={i} className={`lp-faq-item${open === i ? ' open' : ''}`}>
-              <button className="lp-faq-question" onClick={() => setOpen(open === i ? null : i)}>
-                {item.q}
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="lp-faq-chevron">
-                  <path d="M5 8l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              {open === i && <div className="lp-faq-answer">{item.a}</div>}
-            </div>
-          ))}
+    <section id="faq" className="nd-faq">
+      <AnimatedSection>
+        <div className="nd-faq-header">
+          <span className="nd-section-label">FAQ</span>
+          <h2 className="nd-section-title">Common questions</h2>
         </div>
+      </AnimatedSection>
+      <div className="nd-faq-list">
+        {faqs.map((f, i) => (
+          <div key={i} className={`nd-faq-item${open === i ? ' open' : ''}`}>
+            <div className="nd-faq-q" onClick={() => setOpen(open === i ? null : i)}>
+              <span className="nd-faq-q-text">{f.q}</span>
+              <svg className="nd-faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+            <div className="nd-faq-a">{f.a}</div>
+          </div>
+        ))}
       </div>
     </section>
-  );
+  )
 }
+
+/* ─── CTA ───────────────────────────────────────────────────────────────── */
 
 function CTASection() {
   return (
-    <section className="lp-cta">
-      <div className="lp-cta-bg" aria-hidden="true" />
-      <div className="lp-cta-content">
-        <h2 className="lp-cta-title">Stop chasing deals.<br />Start receiving them.</h2>
-        <p className="lp-cta-sub">
-          Join the Nightdrop waitlist. Early access is limited — we're onboarding investors one market at a time.
-        </p>
-        <Link to="/login" className="lp-btn-primary lp-btn-lg">Join the Waitlist</Link>
+    <AnimatedSection>
+      <div className="nd-cta">
+        <div className="nd-cta-glow" />
+        <h2 className="nd-cta-title">Ready to stop searching and start buying?</h2>
+        <p className="nd-cta-sub">Set your buy box once. Let Nightdrop do the rest.</p>
+        <div className="nd-cta-actions">
+          <Link to="/login"><button className="nd-btn-primary-lg">Get Early Access →</button></Link>
+        </div>
+        <p className="nd-cta-note">No credit card required · Cancel anytime</p>
       </div>
-    </section>
-  );
+    </AnimatedSection>
+  )
 }
 
-function LandingFooter() {
+/* ─── Footer ────────────────────────────────────────────────────────────── */
+
+function Footer() {
   return (
-    <footer className="lp-footer">
-      <div className="lp-footer-inner">
-        <div className="lp-footer-brand">
-          <Link to="/" className="lp-logo">
-            <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
-              <circle cx="14" cy="14" r="13" stroke="#5BCC48" strokeWidth="2"/>
-              <path d="M14 6 L14 22 M8 12 L14 6 L20 12" stroke="#5BCC48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>Nightdrop</span>
-          </Link>
-          <p className="lp-footer-tagline">Off-market CRE deals, every morning.</p>
+    <footer className="nd-footer">
+      <div className="nd-footer-inner">
+        <div className="nd-footer-top">
+          <div className="nd-footer-brand">
+            <div className="nd-logo">
+              <img src="/logos/nightdrop-logo.png" alt="Nightdrop" />
+            </div>
+            <p className="nd-footer-tagline">Distressed commercial deal flow, automated.</p>
+          </div>
+          <div className="nd-footer-links">
+            <div className="nd-footer-col">
+              <span className="nd-footer-col-label">Product</span>
+              <a href="#how-it-works">How it works</a>
+              <a href="#pricing">Pricing</a>
+              <a href="#faq">FAQ</a>
+            </div>
+            <div className="nd-footer-col">
+              <span className="nd-footer-col-label">Company</span>
+              <a href="#">About</a>
+              <a href="#">Contact</a>
+            </div>
+            <div className="nd-footer-col">
+              <span className="nd-footer-col-label">Legal</span>
+              <a href="#">Privacy</a>
+              <a href="#">Terms</a>
+            </div>
+          </div>
         </div>
-        <nav className="lp-footer-links">
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Product</div>
-            <a href="#how-it-works">How it works</a>
-            <a href="#pricing">Pricing</a>
-            <a href="#faq">FAQ</a>
-          </div>
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Company</div>
-            <a href="mailto:brady@parcyl.ai">Contact</a>
-          </div>
-          <div className="lp-footer-col">
-            <div className="lp-footer-col-title">Account</div>
-            <Link to="/login">Sign In</Link>
-            <Link to="/login">Join Waitlist</Link>
-          </div>
-        </nav>
-      </div>
-      <div className="lp-footer-bottom">
-        <span>&copy; {new Date().getFullYear()} Parcyl Inc. All rights reserved.</span>
-        <div className="lp-footer-legal">
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
+        <div className="nd-footer-bottom">
+          <span>© {new Date().getFullYear()} Nightdrop. All rights reserved.</span>
+          <span>Built for CRE investors who move fast.</span>
         </div>
       </div>
     </footer>
-  );
+  )
 }
+
+/* ─── Root ──────────────────────────────────────────────────────────────── */
 
 export function LandingView() {
   return (
-    <div className="lp-root">
-      <LandingHeader />
-      <main>
-        <HeroSection />
-        <BentoSection />
-        <TestimonialsSection />
-        <PricingSection />
-        <FAQSection />
-        <CTASection />
-      </main>
-      <LandingFooter />
+    <div className="nightdrop-landing">
+      <Header />
+      <Hero />
+      <SocialProof />
+      <BentoSection />
+      <LargeTestimonial />
+      <PricingSection />
+      <TestimonialGridSection />
+      <FAQSection />
+      <CTASection />
+      <Footer />
     </div>
-  );
+  )
 }
