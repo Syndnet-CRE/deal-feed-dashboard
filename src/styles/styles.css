@@ -1394,11 +1394,12 @@ button { font-family: inherit; }
 [data-theme="light"] .score-bubble.lo { background: var(--panel-3); color: var(--ink-3); border-color: var(--hairline); }
 
 [data-theme="light"] .tag { background: var(--panel-3); color: var(--ink-2); border-color: var(--hairline); }
-[data-theme="light"] .stat-card { background: var(--panel); box-shadow: var(--shadow-card); }
-[data-theme="light"] .panel-card { background: var(--panel); box-shadow: var(--shadow-card); }
+[data-theme="light"] .stat-card { background: linear-gradient(160deg, #F2F9F3 0%, #EDF7EE 100%); box-shadow: var(--shadow-card); }
+[data-theme="light"] .stat-card:hover { background: linear-gradient(160deg, #EBF6EC 0%, #E5F4E7 100%); }
+[data-theme="light"] .panel-card { background: #F5F7FA; box-shadow: var(--shadow-card); }
 [data-theme="light"] .deal-card.selected { background: #ECF7EE; box-shadow: inset 3px 0 0 var(--green); }
-[data-theme="light"] .deal-card:hover { background: #F8F9FB; }
-[data-theme="light"] .deal-row-card:hover { background: #F8F9FB; }
+[data-theme="light"] .deal-card:hover { background: #E9EEF5; }
+[data-theme="light"] .deal-row-card:hover { background: #E9EEF5; }
 [data-theme="light"] .deal-row-card.selected { background: #ECF7EE; }
 [data-theme="light"] .row-num { background: #E2F5E5; color: #1B7A2A; border-color: rgba(29,175,41,0.35); }
 [data-theme="light"] .topbar-search { background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.18); color: rgba(255,255,255,0.85); }
@@ -1430,13 +1431,13 @@ button { font-family: inherit; }
 [data-theme="light"] .scale-bar { background: rgba(255,255,255,0.92); color: var(--ink-1); }
 [data-theme="light"] .scale-bar .bar { background: var(--ink-1); border-color: var(--ink-1); }
 [data-theme="light"] .modal { box-shadow: var(--shadow-pop); }
-[data-theme="light"] .deal-panel { background: var(--panel); }
-[data-theme="light"] .pipeline-timeline { background: var(--panel); box-shadow: var(--shadow-card); }
-[data-theme="light"] .cal-modal { background: var(--panel); box-shadow: var(--shadow-pop); }
+[data-theme="light"] .deal-panel { background: #F5F7FA; }
+[data-theme="light"] .pipeline-timeline { background: #F5F7FA; box-shadow: var(--shadow-card); }
+[data-theme="light"] .cal-modal { background: #F5F7FA; box-shadow: var(--shadow-pop); }
 [data-theme="light"] .cal-nav-btn:hover, [data-theme="light"] .cal-close-btn:hover, [data-theme="light"] .cal-back-btn:hover { background: var(--panel-3); }
 [data-theme="light"] .cal-cell.cal-has-deals { background: var(--panel-3); }
 [data-theme="light"] .cal-cell.cal-has-deals:hover { background: var(--hairline-soft); }
-[data-theme="light"] .mnf-panel { background: var(--panel); }
+[data-theme="light"] .mnf-panel { background: #F5F7FA; }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: #C9CCD6; border-color: var(--app-bg); }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1482,7 +1483,7 @@ button { font-family: inherit; }
   transition: color 0.15s, background 0.15s;
   gap: 8px;
 }
-.pb-tab:hover { color: var(--green-bright); background: rgba(91,204,72,0.10); }
+.pb-tab:hover { color: #FFF; background: rgba(255,255,255,0.15); }
 .pb-tab.active { color: #7ADE58; background: transparent; }
 .pb-tab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 0; height: 2px; background: var(--green); border-radius: 2px; box-shadow: 0 0 6px var(--green); }
 .pb-tab.disabled { color: rgba(255,255,255,0.5); cursor: not-allowed; }
@@ -1492,7 +1493,7 @@ button { font-family: inherit; }
 .pb-search-mini { display: inline-flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.85); font-size: 12.5px; padding: 4px 10px; border-radius: 6px; background: rgba(0,0,0,0.18); cursor: pointer; }
 .pb-search-mini:hover { background: rgba(0,0,0,0.30); }
 .pb-icon-btn { width: 28px; height: 28px; border-radius: 6px; display: grid; place-items: center; cursor: pointer; color: rgba(255,255,255,0.85); background: transparent; border: 0; }
-.pb-icon-btn:hover { background: rgba(255,255,255,0.10); color: #FFF; }
+.pb-icon-btn:hover { background: rgba(255,255,255,0.18); color: #FFF; }
 .pb-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); margin: 0 4px; }
 .pb-link { color: rgba(255,255,255,0.85); font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 0 6px; }
 .pb-link:hover { color: #FFF; }
