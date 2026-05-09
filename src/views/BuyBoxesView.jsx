@@ -160,7 +160,7 @@ export function BuyBoxesView({ onCreate, onEdit, onPause }) {
                     <button className="btn sm" style={{ flex: 1 }} disabled>Activating…</button>
                   )}
                   {statusNorm === 'coverage failed' && (
-                    <button className="btn sm" style={{ flex: 1, color: '#FF7378', borderColor: 'rgba(229,72,77,0.4)' }}>
+                    <button className="btn sm" style={{ flex: 1, color: '#FF7378', borderColor: 'rgba(229,72,77,0.4)' }} onClick={() => onEdit?.(b)}>
                       Edit Geo
                     </button>
                   )}

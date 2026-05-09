@@ -1,70 +1,98 @@
 # HANDOFF
 Date: 2026-05-09
-Repo: deal-feed-dashboard
-Session objective: Verify Nightdrop rebrand completion and prepare for nightdrop-web consolidation
-Status: COMPLETE
+Repo: nightdrop-web (at ~/nightdrop-web)
+Session objective: Complete nightdrop-web wiring — providers, deal detail route, ConfigurationOverlay
+Status: COMPLETE — build passes clean, all routes wired, dev server verified
 
 ## What was done
 
-### All 15 Nightdrop rebrand stories verified COMPLETE
+### nightdrop-web — fully wired, 9 routes
 
-All stories from `notes/bmad/nightdrop-rebrand/stories.md` have been implemented and merged to main:
+Next.js 16 App Router, React 19 JSX, Tailwind + --nightdrop-* tokens, Manrope font.
 
-**Dashboard changes (all committed, pushed to main, auto-deployed to Netlify):**
+**Routes:**
+- `/` — landing page
+- `/login` — auth
+- `/signup` — waitlist stub
+- `/onboarding` — fixes the 404 bug (invited subscribers hit this after activation)
+- `/forgot-password`
+- `/invite/[token]` — invite claim flow
+- `/app` — dashboard shell with client-side auth guard
+- `/app/deal/[id]` — NEW — deal detail page with back nav and not-found state
 
-1. Story 1: CSS token definitions renamed `--parcyl-*` to `--nightdrop-*` in tokens.css
-2. Story 2: Updated `var(--parcyl-*)` references in styles.css and deal-detail.css
-3. Story 3: Renamed `.parcyl-bar` CSS class to `.nightdrop-bar`
-4. Story 4: Renamed `ParcylBar.jsx` component to `NightdropBar.jsx`, updated imports in App.jsx
-5. Story 5: Updated nav bar brand text from "Deal Feed" to "Nightdrop"
-6. Story 6: Updated LoginView brand text and contact email to `hello@nightdrop.io`
-7. Story 7: Updated all "Source: Parcyl" strings to "Source: Nightdrop" in DealDetail.jsx
-8. Story 8: Added localStorage migration `df_token → nd_token` in main.jsx (idempotent, runs before React mount)
-9. Story 9: Renamed token keys in useAuth.jsx and api.js from `df_token` to `nd_token`
-10. Story 10: Renamed theme localStorage key from `parcyl-theme` to `nightdrop-theme`
-11. Story 11: Renamed map/panel localStorage keys to `nightdrop-*` prefix in MapView.jsx
-12. Story 12: Updated HTML title to "Nightdrop" and package.json name to "nightdrop-dashboard"
+**Providers confirmed wrapped** in `app/app/layout.jsx`:
+- AuthProvider, ToastProvider, DealsProvider, ReadStateProvider, DealStateProvider
+- Auth guard in the same layout checks `nd_token` in localStorage; redirects to /login if missing
 
-**Landing page changes (assumed complete based on previous HANDOFF):**
+**ConfigurationOverlay wired** in `app/app/page.jsx`:
+- Opens on `showWizard` (new box) or `editingBuyBox` (edit mode)
+- Fixed all import paths in `configuration-overlay.jsx` (was using old relative paths from deal-feed-dashboard)
+- Added default export alias to the file (`export default BuyBoxWizard`)
+- Copied missing `styles/buy-box-wizard.css` from source repo
 
-13. Story 13: netlify.toml build command cache fix
-14. Story 14: NEXT_PUBLIC_APP_URL validation and .env.local setup
-15. Story 15: HTTP security headers in next.config.ts
+**NightdropBar fixed**: Profile button was pushing to `/app/settings` (route doesn't exist); fixed to `onSetView('settings')`.
 
-**Verification passed:**
-- All grep assertions for remaining Parcyl references return 0 lines (except migration code in main.jsx, which is intentional)
-- Admin gate `brady@parcyl.ai` still exactly 1 line in NightdropBar.jsx
-- Brand green `#5BCC48` unchanged
-- `/api/dealfeed/*` routes unchanged
-- `npm run build` exits 0
-- `npm test` exits 0 (173/173 tests pass)
-- Browser tab title shows "Nightdrop"
-- App nav bar shows "Nightdrop"
+**Build:** `npm run build` exits 0, all 9 routes compile.
+
+**Commits:** 3 commits on main in ~/nightdrop-web (no GitHub remote yet)
+
+### ctx-watch.sh and PreCompact hook
+
+- `~/.claude/scripts/ctx-watch.sh` fires on UserPromptSubmit, shows context % in terminal
+- PreCompact hook in settings.json stamps HANDOFF.md before every compact
+
+## Dev server verified
+
+```bash
+cd ~/nightdrop-web && npm run dev
+```
+
+- `/` — landing renders (full hero, features, pricing, FAQ, footer)
+- `/login` — renders correctly
+- `/app` — returns 200 (auth guard is client-side; redirects to /login on load when no token)
+
+## Stubs (wire before launch)
+
+| Stub | File | What's needed |
+|------|------|---------------|
+| Waitlist email | app/signup/page.jsx | Real API endpoint or Resend/Loops |
+| Social URLs | components/landing/footer.jsx | Twitter, GitHub, LinkedIn URLs |
+| Favicons | app/favicon.ico (placeholder) | Brand asset files |
+| MapView | components/dashboard/views/map-view.jsx | Verify full Mapbox impl vs stub |
 
 ## What was NOT done
 
-- nightdrop-web consolidation repo not yet created — blocked on Brady pre-tasks
-- /onboarding dead-end fix deferred (invited subscriber hitting 404 after activation)
-
-## Blockers for Brady (must complete before nightdrop-web build starts)
-
-1. Create GitHub repo: Syndnet-CRE/nightdrop-web
-2. Create Netlify site connected to that repo
-3. Decide: where do waitlist emails go? (API endpoint or third-party like Resend/Loops?)
-4. Supply or approve placeholder favicons (4 files needed)
-5. Supply social media URLs for footer (Twitter, GitHub, LinkedIn)
+- GitHub remote not created (Brady must create Syndnet-CRE/nightdrop-web)
+- Netlify site not connected
+- MapView not verified — may still be a stub without a running Mapbox token
 
 ## Next session
 
-Once Brady completes the 5 blockers above:
 ```bash
-mkdir ~/nightdrop-web && cd ~/nightdrop-web && claude --dangerously-skip-permissions
+cd ~/nightdrop-web && npm run dev
 ```
 
-Session plan:
-1. Run BMAD Analyst phase for the nightdrop-web consolidation
-2. Create Next.js 15 project structure with App Router
-3. Migrate deal-feed-dashboard components to nextjs app/
-4. Migrate deal-feed-landing components to nextjs root and next/image optimization
-5. Wire authentication, contexts, and API layer
-6. Test consolidated build and critical user flows
+Then test end-to-end:
+1. Log in with real credentials (need NEXT_PUBLIC_API_BASE_URL set)
+2. Verify dashboard views switch correctly
+3. Open a deal — verify deal detail page loads
+4. Click "New Box" — verify ConfigurationOverlay opens
+5. Check MapView renders Mapbox tiles (not a stub)
+
+To test locally with the backend: set `.env.local` with:
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
+NEXT_PUBLIC_MAPBOX_TOKEN=<token>
+```
+
+## Blockers for Brady
+
+1. Create GitHub repo Syndnet-CRE/nightdrop-web and:
+   ```bash
+   cd ~/nightdrop-web && git remote add origin <url> && git push -u origin main
+   ```
+2. Create Netlify site connected to that repo, set env vars:
+   - NEXT_PUBLIC_API_BASE_URL (backend URL)
+   - NEXT_PUBLIC_MAPBOX_TOKEN
+3. Decide waitlist email destination (Resend? Loops? Custom endpoint?)
+4. Verify MapView — check components/dashboard/views/map-view.jsx for Mapbox vs stub
