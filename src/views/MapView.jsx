@@ -18,10 +18,10 @@ const STYLE_THUMBS = {
   standard:  { label: 'Standard',  styleId: 'streets-v12' },
 };
 
-const STYLE_KEY    = 'parcyl-map-style';
-const VIEWPORT_KEY = 'parcyl-map-viewport';
-const PANEL_KEY    = 'dealfeed.mapPanel.collapsed';
-const FILTERS_KEY  = 'parcyl-deals-filters';
+const STYLE_KEY    = 'nightdrop-map-style';
+const VIEWPORT_KEY = 'nightdrop-map-viewport';
+const PANEL_KEY    = 'nightdrop.mapPanel.collapsed';
+const FILTERS_KEY  = 'nightdrop-deals-filters';
 
 const DEFAULT_FILTERS = {
   box: 'all', range: 'all', klass: 'all', sort: 'recent',
