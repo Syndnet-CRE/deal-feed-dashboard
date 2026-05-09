@@ -41,6 +41,17 @@ Modified:
 
 Both repos pushed to main. Netlify + Render deploying.
 
+## Post-launch fixes applied (2026-05-09 evening)
+
+After the redesign deploy, login worked but the feed center column showed only horizontal lines instead of cards. Root cause + fixes:
+
+- **Layout bug (commit 3f255cf):** `.feed-center` is a flex-column with `overflow-y:auto`. Default `flex-shrink:1` was crushing 170+ deal cards down to ~20px slivers showing only borders. Fix: `flex-shrink:0` on `.feed-center > *` and `.feed-deal-card`, plus `min-height: 220px` on `.feed-deal-image-wrap`. Single CSS file change.
+- **Asset class lookup (same commit):** `'Self Storage / Mini-Warehouse'` did not match `QUICK_FACTS_CONFIG['self_storage']` because of the `/` and trailing words. Added `normalizeAssetClass()` in FeedDealCard that recognizes substrings like 'self storage', 'multifamily', 'industrial', 'land', 'retail'.
+- **GMaps key (same commit):** Image src had empty `key=`, causing 403s on every card. Now reads `VITE_GOOGLE_MAPS_KEY`; if absent, the `<img>` is omitted and a styled green-tinted placeholder fills the 220px slot.
+- **Silent API errors (same commit):** Added `console.error()` in DealsContext fetchAll catch so future regressions are visible.
+- **Empty narratives in pipeline (commit be21724 in scoutgpt-api):** The deal-feed pipeline was writing `narrative: ''` for every deal — there is no AI brief generation step yet (the spec called for Claude Sonnet but it was never wired). Added `composeFallbackNarrative(prop)` to `run_deal_feed.js` that builds a deterministic 2-3 sentence narrative from parcel data. Marked `TODO(brief-ai)` so a future sprint can swap it for the real Sonnet pipeline. Also added `deriveDistressSignals(prop)` so cards show distress pills.
+- **Backfill (commit be21724):** Ran `scripts/backfill_brief_narratives.js --force` against prod — 358 already-sent deals rewritten with composed narratives so the user sees content immediately, not just on tomorrow's run.
+
 ## Blockers for Brady
 
 1. Run migrations on Render Postgres manually:
