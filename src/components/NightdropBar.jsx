@@ -86,8 +86,8 @@ export function NightdropBar({ view, setView, theme, onToggleTheme }) {
   return (
     <nav className="nightdrop-bar">
       <div className="pb-brand">
-        <div className="mark">D</div>
-        Deal Feed
+        <div className="mark">N</div>
+        Nightdrop
       </div>
       <div className="pb-tabs">
         {tabs.map(t => (
