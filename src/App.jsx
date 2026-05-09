@@ -20,7 +20,7 @@ import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
 import { InviteClaimView } from './views/InviteClaimView';
 (() => {
-  const t = localStorage.getItem('parcyl-theme') || 'dark';
+  const t = localStorage.getItem('nightdrop-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
 
@@ -109,7 +109,7 @@ function AppShell() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingBuyBox, setEditingBuyBox] = useState(null);
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
-  const [theme, setTheme] = useState(() => localStorage.getItem('parcyl-theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('nightdrop-theme') || 'dark');
 
   const isOnDeal = !!dealMatch;
   // Modal mode: deal URL reached from map panel (navigate passes fromMap state)
@@ -118,7 +118,7 @@ function AppShell() {
   const toggleTheme = useCallback(() => {
     setTheme(prev => {
       const next = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('parcyl-theme', next);
+      localStorage.setItem('nightdrop-theme', next);
       document.documentElement.setAttribute('data-theme', next);
       return next;
     });
