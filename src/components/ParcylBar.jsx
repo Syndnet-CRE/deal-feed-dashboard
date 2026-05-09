@@ -84,7 +84,7 @@ export function ParcylBar({ view, setView, theme, onToggleTheme }) {
   }
 
   return (
-    <nav className="parcyl-bar">
+    <nav className="nightdrop-bar">
       <div className="pb-brand">
         <div className="mark">D</div>
         Deal Feed

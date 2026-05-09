@@ -1478,7 +1478,7 @@ button { font-family: inherit; }
    PARCYL green top bar
    ───────────────────────────────────────────────────────────── */
 .app.has-topbar { grid-template-columns: 1fr; grid-template-rows: 44px 1fr; }
-.parcyl-bar {
+.nightdrop-bar {
   position: relative;
   z-index: 100;
   background: linear-gradient(180deg, var(--topbar-bg) 0%, var(--topbar-bg-2) 100%);
@@ -1490,7 +1490,7 @@ button { font-family: inherit; }
   font-weight: 600;
   border-bottom: 1px solid rgba(0,0,0,0.2);
 }
-.parcyl-bar .pb-brand {
+.nightdrop-bar .pb-brand {
   display: flex; align-items: center; gap: 8px;
   padding: 0 18px;
   font-weight: 800; font-size: 15px; letter-spacing: 0.04em;
@@ -1498,7 +1498,7 @@ button { font-family: inherit; }
   background: rgba(0,0,0,0.18);
   border-right: 1px solid rgba(0,0,0,0.25);
 }
-.parcyl-bar .pb-brand .mark {
+.nightdrop-bar .pb-brand .mark {
   width: 22px; height: 22px; border-radius: 4px; background: #FFF; color: var(--green-deep);
   display: grid; place-items: center; font-weight: 800; font-size: 13px;
 }
