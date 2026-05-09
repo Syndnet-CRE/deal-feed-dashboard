@@ -61,6 +61,7 @@ export function DealsProvider({ children }) {
       setDeals(dealsRes.deals || []);
       setBuyBoxes((boxesRes.buy_boxes || []).map(normalizeBuyBox));
     } catch (err) {
+      console.error('[DealsContext] fetchAll failed:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);

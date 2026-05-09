@@ -467,7 +467,13 @@
   overflow: hidden;
   transition: border-color var(--dur-base);
   position: relative;
+  flex-shrink: 0;
 }
+
+/* Every direct child of .feed-center must keep its intrinsic height.
+   Without this, flex-shrink: 1 (default) crushes 170+ cards into thin
+   border slivers when total content > viewport height. */
+.feed-center > * { flex-shrink: 0; }
 
 .feed-deal-card:hover { border-color: var(--border-strong); }
 
@@ -513,6 +519,7 @@
 .feed-deal-image-wrap {
   position: relative;
   height: 220px;
+  min-height: 220px;
   margin-top: var(--s-3);
   cursor: pointer;
   background: var(--bg-subtle);
@@ -533,15 +540,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--bg-subtle) 0%, var(--bg-card) 100%);
+  background:
+    linear-gradient(135deg, rgba(29, 175, 41, 0.08) 0%, rgba(29, 175, 41, 0.02) 100%),
+    radial-gradient(circle at 25% 30%, rgba(29, 175, 41, 0.06), transparent 40%),
+    var(--bg-subtle);
 }
 
 .feed-deal-image-placeholder {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: var(--w-semibold);
   letter-spacing: var(--track-eyebrow);
   text-transform: uppercase;
-  color: var(--fg-4);
+  color: var(--fg-3);
+  padding: 6px 12px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-pill);
+  background: var(--bg-card);
 }
 
 /* ScoreBadge positioning on card image */

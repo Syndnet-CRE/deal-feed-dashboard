@@ -6,6 +6,8 @@ import OverflowMenu from '../OverflowMenu';
 import { fmt, fmtMoney } from '../../lib/format';
 import { api } from '../../lib/api';
 
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || '';
+
 function fmtTimestamp(sentAt) {
   if (!sentAt) return '';
   const d = new Date(sentAt);
@@ -53,8 +55,18 @@ const DEFAULT_FACTS = [
   { label: 'Years Held',    key: 'owner_since', format: v => v ? `${new Date().getFullYear() - new Date(v).getFullYear()} yrs` : '—' },
 ];
 
+function normalizeAssetClass(raw) {
+  const s = (raw || '').toLowerCase();
+  if (s.includes('self storage') || s.includes('mini-warehouse') || s.includes('mini warehouse')) return 'self_storage';
+  if (s.includes('vacant land') || s.includes('agricultural') || s.includes('ranch') || s.includes('cropland') || s.includes('pastureland') || s.includes('timberland') || s === 'land') return 'land';
+  if (s.includes('multifamily') || s.includes('duplex') || s.includes('triplex') || s.includes('quadruplex') || s.includes('apartment') || s.includes('residential income')) return 'multifamily';
+  if (s.includes('industrial') || s.includes('warehouse') || s.includes('manufacturing') || s.includes('flex')) return 'industrial';
+  if (s.includes('retail') || s.includes('shopping') || s.includes('storefront') || s.includes('restaurant') || s.includes('grocery')) return 'retail';
+  return s.replace(/\s+/g, '_');
+}
+
 function quickFacts(deal) {
-  const ac = (deal.asset_class || deal.asset || '').toLowerCase().replace(/\s+/g, '_');
+  const ac = normalizeAssetClass(deal.asset_class || deal.asset);
   return QUICK_FACTS_CONFIG[ac] || DEFAULT_FACTS;
 }
 
@@ -191,15 +203,22 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
       </div>
 
       <div className="feed-deal-image-wrap" onClick={() => navigate(`/deal/${deal.id}`)}>
-        {deal.lat && deal.lng ? (
+        {GOOGLE_MAPS_KEY && deal.lat && deal.lng ? (
           <img
             className="feed-deal-image"
-            src={`https://maps.googleapis.com/maps/api/staticmap?center=${deal.lat},${deal.lng}&zoom=18&size=720x220&maptype=satellite&key=`}
+            src={`https://maps.googleapis.com/maps/api/staticmap?center=${deal.lat},${deal.lng}&zoom=18&size=720x220&maptype=satellite&key=${GOOGLE_MAPS_KEY}`}
             alt={deal.addr || deal.address}
-            onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+            onError={e => {
+              e.target.style.display = 'none';
+              const fb = e.target.nextElementSibling;
+              if (fb) fb.style.display = 'flex';
+            }}
           />
         ) : null}
-        <div className="feed-deal-image-fallback" style={{ display: deal.lat ? 'none' : 'flex' }}>
+        <div
+          className="feed-deal-image-fallback"
+          style={{ display: GOOGLE_MAPS_KEY && deal.lat && deal.lng ? 'none' : 'flex' }}
+        >
           <span className="feed-deal-image-placeholder">{deal.asset_class || deal.asset || 'Property'}</span>
         </div>
         <ScoreBadge score={deal.score || deal.match_score} className="feed-deal-score" />
