@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('df_token');
+    const token = localStorage.getItem('nd_token');
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!token) { setLoading(false); return; }
     api.get('/api/dealfeed/auth/me')

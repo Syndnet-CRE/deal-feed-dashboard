@@ -1,15 +1,15 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || '';
 
 function getToken() {
-  return localStorage.getItem('df_token');
+  return localStorage.getItem('nd_token');
 }
 
 export function setToken(token) {
-  localStorage.setItem('df_token', token);
+  localStorage.setItem('nd_token', token);
 }
 
 export function clearToken() {
-  localStorage.removeItem('df_token');
+  localStorage.removeItem('nd_token');
 }
 
 async function request(path, options = {}) {
