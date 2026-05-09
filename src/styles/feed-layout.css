@@ -292,6 +292,126 @@
 .left-panel-stat-label { color: var(--fg-4); }
 .left-panel-stat-value { color: var(--fg-1); font-weight: var(--w-semibold); }
 
+/* ── Countdown Tile ─────────────────────────────────────────── */
+.left-panel-countdown-wrap { padding: 0 var(--s-3); }
+
+.left-panel-countdown-tile {
+  background: linear-gradient(180deg, rgba(29,175,41,0.10) 0%, rgba(29,175,41,0.02) 100%);
+  border: 1px solid rgba(29,175,41,0.22);
+  border-radius: var(--r-md);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.left-panel-countdown-tile.collapsed {
+  padding: var(--s-2);
+  align-items: center;
+  justify-content: center;
+  color: var(--nightdrop-green-700);
+}
+
+.left-panel-countdown-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--nightdrop-green-700);
+}
+
+.left-panel-countdown-clock {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--font-sans);
+  font-weight: var(--w-extrabold);
+  color: var(--fg-1);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.left-panel-countdown-clock .cd-num {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.left-panel-countdown-clock .cd-sep {
+  font-size: 18px;
+  color: var(--fg-4);
+  margin: 0 1px;
+}
+
+.left-panel-countdown-foot {
+  font-size: 10px;
+  color: var(--fg-4);
+  font-weight: var(--w-medium);
+}
+
+/* ── Metric Tiles ───────────────────────────────────────────── */
+.left-panel-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 0 var(--s-3);
+}
+
+.metric-tile {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+  cursor: default;
+  overflow: hidden;
+  min-height: 56px;
+}
+
+.metric-tile:hover {
+  border-color: var(--border-strong);
+}
+
+.metric-tile-icon {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  color: var(--fg-4);
+  opacity: 0.6;
+}
+
+.metric-tile.accent-green .metric-tile-icon { color: var(--nightdrop-green-700); opacity: 0.85; }
+.metric-tile.accent-orange .metric-tile-icon { color: #F4B73E; opacity: 0.85; }
+.metric-tile.accent-blue .metric-tile-icon { color: #3E7BFA; opacity: 0.85; }
+.metric-tile.accent-violet .metric-tile-icon { color: #8B5CF6; opacity: 0.85; }
+
+.metric-tile-value {
+  font-size: 18px;
+  font-weight: var(--w-extrabold);
+  color: var(--fg-1);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.metric-tile-label {
+  font-size: 9px;
+  font-weight: var(--w-semibold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--fg-4);
+  line-height: 1.3;
+}
+
 .left-panel-buy-boxes { padding: 0 var(--s-2); }
 
 .left-panel-section-header {
@@ -1110,6 +1230,294 @@
 /* ── Utility ─────────────────────────────────────────────────── */
 .muted { color: var(--fg-4); }
 .sm { font-size: 12px; }
+
+/* ── Feed Filter Chips ──────────────────────────────────────── */
+.feed-filter-chips {
+  display: flex;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4) 0;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.feed-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--r-pill);
+  background: transparent;
+  border: 1px solid var(--border-1);
+  color: var(--fg-3);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: var(--w-semibold);
+  cursor: pointer;
+  transition: all var(--dur-fast);
+}
+
+.feed-filter-chip:hover {
+  background: var(--bg-subtle);
+  color: var(--fg-1);
+  border-color: var(--border-strong);
+}
+
+.feed-filter-chip.active {
+  background: rgba(29,175,41,0.12);
+  border-color: rgba(29,175,41,0.35);
+  color: var(--nightdrop-green-700);
+}
+
+.feed-filter-chip-count {
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  padding: 1px 6px;
+  background: var(--bg-subtle);
+  border-radius: var(--r-pill);
+  color: var(--fg-4);
+  font-variant-numeric: tabular-nums;
+}
+
+.feed-filter-chip.active .feed-filter-chip-count {
+  background: rgba(29,175,41,0.20);
+  color: var(--nightdrop-green-700);
+}
+
+/* ── Empty State ────────────────────────────────────────────── */
+.feed-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--s-10) var(--s-5);
+  gap: var(--s-2);
+}
+
+.feed-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-3);
+  margin-bottom: var(--s-2);
+}
+
+.feed-empty-title {
+  font-size: 16px;
+  font-weight: var(--w-bold);
+  color: var(--fg-1);
+}
+
+.feed-empty-sub {
+  font-size: 13px;
+  color: var(--fg-4);
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+/* ── Per-Deal Chat Thread ──────────────────────────────────── */
+.feed-deal-reaction-btn.active-chat {
+  color: var(--info);
+  border-color: var(--info);
+}
+.feed-deal-reaction-btn.active-saved {
+  color: var(--warning);
+  border-color: var(--warning);
+}
+
+.deal-chat-thread {
+  margin-top: var(--s-4);
+  padding: var(--s-3);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-height: 480px;
+}
+
+.deal-chat-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--border-2);
+}
+
+.deal-chat-title {
+  font-size: 11px;
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--nightdrop-green-700);
+}
+
+.deal-chat-sub {
+  font-size: 12px;
+  color: var(--fg-4);
+  font-weight: var(--w-medium);
+}
+
+.deal-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  overflow-y: auto;
+  max-height: 300px;
+  padding-right: 4px;
+}
+
+.deal-chat-loading,
+.deal-chat-empty {
+  font-size: 12px;
+  color: var(--fg-4);
+  text-align: center;
+  padding: var(--s-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  font-style: italic;
+}
+
+.deal-chat-loading .spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.deal-chat-msg { display: flex; }
+.deal-chat-msg.user { justify-content: flex-end; }
+.deal-chat-msg.agent { justify-content: flex-start; }
+
+.deal-chat-msg-bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  max-width: 85%;
+}
+
+.deal-chat-msg-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--nightdrop-green-700);
+  color: #fff;
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.deal-chat-msg-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deal-chat-msg-text {
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-3);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-1);
+}
+
+.deal-chat-msg.user .deal-chat-msg-text {
+  background: var(--nightdrop-green-700);
+  border-color: var(--nightdrop-green-700);
+  color: #fff;
+}
+
+.deal-chat-msg-ts {
+  font-size: 10px;
+  color: var(--fg-4);
+}
+
+.deal-chat-msg.user .deal-chat-msg-ts {
+  text-align: right;
+}
+
+.deal-chat-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  padding: var(--s-3);
+}
+
+.deal-chat-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg-4);
+  animation: typingBounce 1.2s infinite;
+}
+.deal-chat-typing span:nth-child(2) { animation-delay: 0.15s; }
+.deal-chat-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-3px); }
+}
+
+.deal-chat-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-2);
+}
+
+.deal-chat-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--fg-1);
+  resize: none;
+  min-height: 36px;
+  max-height: 120px;
+  transition: border-color var(--dur-fast);
+}
+
+.deal-chat-input:focus { outline: none; border-color: var(--nightdrop-green-700); }
+
+.deal-chat-send {
+  width: 32px;
+  height: 32px;
+  background: var(--nightdrop-green-700);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+  flex-shrink: 0;
+}
+
+.deal-chat-send:hover { background: var(--accent-hover); }
+.deal-chat-send:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Right Rail Market Pulse ────────────────────────────────── */
+.right-rail-pulse { padding: 0; border-top: 1px solid var(--border-1); }
+.right-rail-pulse .mnf-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: var(--s-4);
+}
 
 /* responsive: hide right rail below 1100px */
 @media (max-width: 1100px) {

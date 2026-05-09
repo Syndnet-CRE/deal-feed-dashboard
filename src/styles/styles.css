@@ -3203,17 +3203,19 @@ button { font-family: inherit; }
 .iv-send-result { background: rgba(29,175,41,0.08); border: 1px solid rgba(29,175,41,0.25); color: var(--green); border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; }
 
 /* ── Pipeline Timeline (A1) ───────────────────────────────── */
-/* ── Pipeline Timeline v2 ──────────────────────────────────── */
+/* ── Pipeline Timeline v2 — slim band ──────────────────────── */
 .pipeline-timeline {
   background: linear-gradient(180deg, var(--topbar-bg) 0%, var(--topbar-bg-2) 100%);
-  border: 1px solid rgba(91,204,72,0.28);
-  border-radius: 10px;
-  padding: 16px 20px 20px;
-  margin-bottom: 18px;
-  box-shadow: 0 0 0 1px rgba(91,204,72,0.08), inset 0 1px 0 rgba(91,204,72,0.06);
+  border: 0;
+  border-bottom: 1px solid rgba(91,204,72,0.18);
+  border-radius: 0;
+  padding: 10px 24px 6px;
+  margin: 0;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+  flex-shrink: 0;
 }
 .pt2-top {
   display: flex;

@@ -1,5 +1,6 @@
 import { useDeals } from '../contexts/DealsContext';
 import { DealMap } from './DealMap';
+import { MarketNewsfeed } from './MarketNewsfeed';
 
 function BuyBoxHealthCard({ box }) {
   const statusColor = {
@@ -47,6 +48,10 @@ export default function RightRail({ deals, selectedDealId, onSelectDeal }) {
         ) : (
           buyBoxes.map(bb => <BuyBoxHealthCard key={bb.id} box={bb} />)
         )}
+      </div>
+
+      <div className="right-rail-section right-rail-pulse">
+        <MarketNewsfeed />
       </div>
     </aside>
   );

@@ -1,9 +1,78 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Map, Layers, Calendar, Settings,
-  UserCircle, ChevronLeft, ChevronRight, Plus, BarChart2
+  UserCircle, ChevronLeft, ChevronRight, Plus,
+  TrendingUp, Flame, Target, Clock, Timer
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
+
+const TZ = 'America/Chicago';
+
+function getCTSecondsUntil2am() {
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: TZ, hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
+  });
+  const parts = fmt.formatToParts(new Date());
+  const get = (t) => parseInt(parts.find(p => p.type === t)?.value ?? '0', 10);
+  const nowSecs = get('hour') * 3600 + get('minute') * 60 + get('second');
+  const target = 2 * 3600;
+  return nowSecs < target ? target - nowSecs : 86400 - nowSecs + target;
+}
+
+function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
+
+function useNextRunCountdown() {
+  const [secs, setSecs] = useState(() => getCTSecondsUntil2am());
+
+  useEffect(() => {
+    const id = setInterval(() => setSecs(getCTSecondsUntil2am()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  return { hh: pad(h), mm: pad(m), ss: pad(s) };
+}
+
+function CountdownTile({ collapsed }) {
+  const { hh, mm, ss } = useNextRunCountdown();
+
+  if (collapsed) {
+    return (
+      <div className="left-panel-countdown-tile collapsed" title={`Next run in ${hh}:${mm}:${ss}`}>
+        <Timer size={16} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="left-panel-countdown-tile">
+      <div className="left-panel-countdown-label">
+        <Timer size={11} />
+        <span>Next Run In</span>
+      </div>
+      <div className="left-panel-countdown-clock">
+        <span className="cd-num">{hh}</span>
+        <span className="cd-sep">:</span>
+        <span className="cd-num">{mm}</span>
+        <span className="cd-sep">:</span>
+        <span className="cd-num">{ss}</span>
+      </div>
+      <div className="left-panel-countdown-foot">2:00 AM CT</div>
+    </div>
+  );
+}
+
+function MetricTile({ Icon, label, value, accent }) {
+  return (
+    <div className={`metric-tile${accent ? ` accent-${accent}` : ''}`}>
+      <div className="metric-tile-icon"><Icon size={14} /></div>
+      <div className="metric-tile-value">{value}</div>
+      <div className="metric-tile-label">{label}</div>
+    </div>
+  );
+}
 
 function StatusDot({ status }) {
   const colorMap = {
@@ -53,6 +122,10 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
     { id: 'calendar',  label: 'Calendar',  Icon: Calendar },
   ];
 
+  const responseRateValue = kpis?.response_rate != null && kpis.response_rate > 0
+    ? `${kpis.response_rate}%`
+    : '—';
+
   return (
     <aside className={`left-panel ${collapsed ? 'collapsed' : ''}`}>
       <div className="left-panel-inner">
@@ -90,22 +163,42 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
 
         <div className="left-panel-divider" />
 
-        <div className="left-panel-stats">
-          {!collapsed && <div className="left-panel-section-label">Stats</div>}
-          {[
-            { label: 'New This Week', value: kpis?.new_this_week ?? '—' },
-            { label: 'Hot Deals',     value: kpis?.hot_deals ?? '—' },
-            { label: 'Response Rate', value: kpis?.response_rate != null && kpis.response_rate > 0 ? `${kpis.response_rate}%` : null },
-            { label: 'Awaiting',      value: kpis?.awaiting_response ?? '—' },
-          ].map(({ label, value }) => (
-            <div key={label} className="left-panel-stat-row" title={collapsed ? label : undefined}>
-              {!collapsed && <span className="left-panel-stat-label">{label}</span>}
-              <span className="left-panel-stat-value">
-                {value === null ? <span className="muted">No outreach yet</span> : value}
-              </span>
-            </div>
-          ))}
+        <div className="left-panel-countdown-wrap">
+          <CountdownTile collapsed={collapsed} />
         </div>
+
+        {!collapsed && (
+          <>
+            <div className="left-panel-divider" />
+
+            <div className="left-panel-metric-grid">
+              <MetricTile
+                Icon={TrendingUp}
+                label="New This Week"
+                value={kpis?.new_this_week ?? '—'}
+                accent="green"
+              />
+              <MetricTile
+                Icon={Flame}
+                label="Hot Deals"
+                value={kpis?.hot_deals ?? '—'}
+                accent="orange"
+              />
+              <MetricTile
+                Icon={Target}
+                label="Response Rate"
+                value={responseRateValue}
+                accent="blue"
+              />
+              <MetricTile
+                Icon={Clock}
+                label="Awaiting"
+                value={kpis?.awaiting_response ?? '—'}
+                accent="violet"
+              />
+            </div>
+          </>
+        )}
 
         <div className="left-panel-divider" />
 
@@ -135,13 +228,14 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
           )}
         </div>
 
-        <div className="left-panel-divider" />
-
-        {!collapsed && (
-          <div className="left-panel-run-history">
-            <div className="left-panel-section-label">Last 7 Nights</div>
-            <MiniBarChart data={kpis?.run_history || []} />
-          </div>
+        {!collapsed && kpis?.run_history?.length > 0 && (
+          <>
+            <div className="left-panel-divider" />
+            <div className="left-panel-run-history">
+              <div className="left-panel-section-label">Last 7 Nights</div>
+              <MiniBarChart data={kpis.run_history} />
+            </div>
+          </>
         )}
 
         <div className="left-panel-bottom">

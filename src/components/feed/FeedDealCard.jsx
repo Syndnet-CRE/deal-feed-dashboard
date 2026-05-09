@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Star, Download, Link2, EyeOff, Flag } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, ChevronDown, ChevronUp, Star, Download, Link2, EyeOff, Flag, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ScoreBadge from '../ScoreBadge';
 import OverflowMenu from '../OverflowMenu';
+import DealChatThread from './DealChatThread';
 import { fmt, fmtMoney } from '../../lib/format';
 import { api } from '../../lib/api';
 
@@ -121,6 +122,7 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
   const [saved, setSaved] = useState(deal.saved || false);
   const [hidden, setHidden] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [notRelevantUndo, setNotRelevantUndo] = useState(false);
   const cardRef = useRef(null);
   const readTimerRef = useRef(null);
@@ -264,6 +266,20 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
               >
                 <ThumbsDown size={16} />
               </button>
+              <button
+                className={`feed-deal-reaction-btn ${chatOpen ? 'active-chat' : ''}`}
+                onClick={() => setChatOpen(o => !o)}
+                title="Discuss this deal"
+              >
+                <MessageCircle size={16} />
+              </button>
+              <button
+                className={`feed-deal-reaction-btn ${saved ? 'active-saved' : ''}`}
+                onClick={handleSave}
+                title={saved ? 'Saved' : 'Save deal'}
+              >
+                <Star size={16} fill={saved ? 'currentColor' : 'none'} />
+              </button>
             </div>
             <span className="feed-deal-box-pill">Box: {deal.box || deal.buy_box_name}</span>
             <button
@@ -276,6 +292,14 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
         )}
 
         {expanded && <ExpandedDetail deal={deal} />}
+
+        {chatOpen && (
+          <DealChatThread
+            dealId={deal.id}
+            dealAddress={deal.addr || deal.address || ''}
+            autoFocus
+          />
+        )}
       </div>
     </article>
   );
