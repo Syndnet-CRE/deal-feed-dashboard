@@ -1,22 +1,22 @@
 /* ─────────────────────────────────────────────────────────────
-   Parcyl Design System — Colors & Type
-   Source: PARCYL Brand Guidelines (2026)
+   Nightdrop Design System — Colors & Type
+   Source: Nightdrop Brand Guidelines (2026)
    ───────────────────────────────────────────────────────────── */
 
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
 
 :root {
   /* ── Brand / Primary Greens ─────────────────────────────── */
-  --parcyl-ink:        #0D0D0D;   /* Primary "black" from guidelines */
-  --parcyl-green-900:  #0E7A18;   /* Decorative nav band / deep accent */
-  --parcyl-green-700:  #1DAF29;   /* Deep brand green */
-  --parcyl-green-500:  #5BCC48;   /* Mid brand green */
-  --parcyl-green-300:  #89EA60;   /* Light brand green / accent */
+  --nightdrop-ink:        #0D0D0D;   /* Primary "black" from guidelines */
+  --nightdrop-green-900:  #0E7A18;   /* Decorative nav band / deep accent */
+  --nightdrop-green-700:  #1DAF29;   /* Deep brand green */
+  --nightdrop-green-500:  #5BCC48;   /* Mid brand green */
+  --nightdrop-green-300:  #89EA60;   /* Light brand green / accent */
 
   /* Convenience aliases */
-  --green:             var(--parcyl-green-500);
-  --green-deep:        var(--parcyl-green-700);
-  --green-bright:      var(--parcyl-green-300);
+  --green:             var(--nightdrop-green-500);
+  --green-deep:        var(--nightdrop-green-700);
+  --green-bright:      var(--nightdrop-green-300);
 
   /* ── Grayscale (named per brand guide) ──────────────────── */
   --cloud:    #EDEFF7;   /* 01 — page bg, hairlines on light */
@@ -29,7 +29,7 @@
   --black:    #000000;   /* 08 */
 
   /* ── Semantic foreground ────────────────────────────────── */
-  --fg-1: var(--parcyl-ink);    /* primary text / headings */
+  --fg-1: var(--nightdrop-ink);    /* primary text / headings */
   --fg-2: var(--arsenic);       /* body */
   --fg-3: var(--graphite);      /* secondary / captions */
   --fg-4: var(--space);          /* tertiary / placeholder */
@@ -39,7 +39,7 @@
   --bg-page:    #FFFFFF;
   --bg-subtle:  var(--cloud);
   --bg-card:    #FFFFFF;
-  --bg-inverse: var(--parcyl-ink);
+  --bg-inverse: var(--nightdrop-ink);
 
   /* ── Borders / dividers ─────────────────────────────────── */
   --border-1: var(--smoke);
@@ -47,7 +47,7 @@
   --border-strong: var(--arsenic);
 
   /* ── Accent / interaction ───────────────────────────────── */
-  --accent:        var(--parcyl-green-700);   /* primary CTA bg */
+  --accent:        var(--nightdrop-green-700);   /* primary CTA bg */
   --accent-hover:  #18991F;                    /* derived: ~darken green-700 */
   --accent-press:  #14801A;
   --accent-soft:   #E8FAE6;                    /* tint surface */
@@ -55,7 +55,7 @@
   --link:          #1366CC;                    /* light mode link */
 
   /* Status (derived for product UI; not in brand guide) */
-  --success: var(--parcyl-green-700);
+  --success: var(--nightdrop-green-700);
   --warning: #F4B73E;
   --danger:  #E5484D;
   --info:    #3E7BFA;
@@ -252,4 +252,4 @@ code, .mono {
 }
 
 /* Selection */
-::selection { background: var(--green-bright); color: var(--parcyl-ink); }
+::selection { background: var(--green-bright); color: var(--nightdrop-ink); }
