@@ -204,6 +204,18 @@ describe('activeGeoHasData', () => {
       expect(activeGeoHasData(form)).toBe(false);
     });
   });
+
+  it('returns false for unknown geoMode', () => {
+    const form = {
+      geoMode: 'county',
+      geo_states: ['TX'],
+      geo_cities: ['Austin'],
+      geo_zips: ['78701'],
+      geo_radius_address: '123 Main St',
+      geo_radius_miles: '10',
+    };
+    expect(activeGeoHasData(form)).toBe(false);
+  });
 });
 
 describe('canProceedStep', () => {
@@ -504,6 +516,16 @@ describe('buildPayload', () => {
         geo_radius_miles: '10',
       });
       expect(payload.geo_radius_address).toBe(null);
+    });
+  });
+
+  describe('geo modes: unknown', () => {
+    it('omits all geo fields for unrecognized geoMode', () => {
+      const payload = buildPayload({ ...baseForm, geoMode: 'county' });
+      expect(payload.geo_states).toBeUndefined();
+      expect(payload.geo_cities).toBeUndefined();
+      expect(payload.geo_zips).toBeUndefined();
+      expect(payload.geo_radius_address).toBeUndefined();
     });
   });
 

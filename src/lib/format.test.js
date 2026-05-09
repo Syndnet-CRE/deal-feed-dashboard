@@ -404,6 +404,11 @@ describe('fmtRelativeTime', () => {
     expect(result.days).toBe(31);
     expect(result.label).toBe('31 days ago');
   });
+
+  it('returns null for a future date', () => {
+    const future = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString();
+    expect(fmtRelativeTime(future)).toBeNull();
+  });
 });
 
 describe('agingColor', () => {
