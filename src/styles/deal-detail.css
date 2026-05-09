@@ -10,7 +10,7 @@
 /* ── Decorative nav band ─────────────────────────────────────── */
 .dd-nav-band {
   height: 6px;
-  background: var(--parcyl-green-900);
+  background: var(--nightdrop-green-900);
   flex-shrink: 0;
 }
 
@@ -38,7 +38,7 @@
   font-weight: var(--w-bold);
   letter-spacing: var(--track-eyebrow);
   text-transform: uppercase;
-  color: var(--parcyl-green-900);
+  color: var(--nightdrop-green-900);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -256,8 +256,8 @@
 }
 .dd-subtab:hover { color: var(--fg-1); }
 .dd-subtab.active {
-  color: var(--parcyl-green-700);
-  border-bottom-color: var(--parcyl-green-700);
+  color: var(--nightdrop-green-700);
+  border-bottom-color: var(--nightdrop-green-700);
   font-weight: var(--w-semibold);
 }
 
@@ -324,7 +324,7 @@
   font-weight: var(--w-bold);
   letter-spacing: 0;
   text-transform: none;
-  color: var(--parcyl-green-700, #1a7f7a);
+  color: var(--nightdrop-green-700, #1a7f7a);
 }
 
 .dd-sec-updated {
@@ -402,7 +402,7 @@
   font-weight: var(--w-bold);
   letter-spacing: var(--track-eyebrow);
   text-transform: uppercase;
-  color: var(--parcyl-green-700, #1a7f7a);
+  color: var(--nightdrop-green-700, #1a7f7a);
   text-align: left;
   padding: var(--s-1) var(--s-2) var(--s-2) 0;
   border-bottom: 1px solid var(--border-1);
@@ -530,7 +530,7 @@
   text-decoration: none;
 }
 .dd-addr-back:hover {
-  color: var(--parcyl-green-700);
+  color: var(--nightdrop-green-700);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -1014,7 +1014,7 @@
   background: var(--bg-subtle);
   border-radius: var(--r-sm);
   padding: var(--s-3) var(--s-4);
-  border-left: 2px solid var(--parcyl-green-900);
+  border-left: 2px solid var(--nightdrop-green-900);
 }
 .dd-note-header {
   display: flex;
