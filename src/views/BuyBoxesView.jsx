@@ -1,175 +1,218 @@
 import { useState } from 'react';
 import { useDeals } from '../contexts/DealsContext';
 import { I } from '../components/Icons';
-import { formatGeo, formatUseCodes, formatSchedule, getAssetClass } from '../lib/buyBoxTaxonomy';
+import { Plus, Settings2 } from 'lucide-react';
+import { formatGeo, formatSchedule } from '../lib/buyBoxTaxonomy';
 
-function fmtDate(iso) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const COLUMNS = [
+  { id: 'pending',           label: 'Pending',       description: 'Awaiting first run' },
+  { id: 'validating',        label: 'Validating',    description: 'Coverage check in progress' },
+  { id: 'active',            label: 'Active',        description: 'Running nightly' },
+  { id: 'paused',            label: 'Paused',        description: 'Manually paused' },
+  { id: 'coverage_failed',   label: 'Coverage Gap',  description: 'No parcel data for this geo' },
+];
+
+function normalizeStatus(status) {
+  const s = (status || '').toLowerCase().replace(/\s+/g, '_');
+  if (s === 'coverage failed') return 'coverage_failed';
+  return s;
+}
+
+const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+const DAY_LABELS = { mon: 'M', tue: 'T', wed: 'W', thu: 'T', fri: 'F', sat: 'S', sun: 'S' };
+
+function ScheduleRow({ schedule, boxId, onToggleDay }) {
+  const activeDays = schedule?.days || DAYS;
+  return (
+    <div className="kanban-schedule-row">
+      {DAYS.map(d => (
+        <button
+          key={d}
+          className={`kanban-day-btn ${activeDays.includes(d) ? 'on' : ''}`}
+          onClick={e => { e.stopPropagation(); onToggleDay(boxId, d, activeDays); }}
+          title={d}
+        >
+          {DAY_LABELS[d]}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function KanbanCard({ box, onEdit, onPause, onResume, onToggleDay }) {
+  const status = normalizeStatus(box.status);
+  const geoDisplay = formatGeo(box);
+
+  return (
+    <div
+      className={`kanban-card kanban-card-${status}`}
+      draggable
+      onDragStart={e => e.dataTransfer.setData('boxId', String(box.id))}
+    >
+      <div className="kanban-card-head">
+        <div className="kanban-card-name">{box.label || box.name || 'Untitled'}</div>
+        <button className="kanban-card-settings" onClick={() => onEdit?.(box)} title="Edit">
+          <Settings2 size={13} />
+        </button>
+      </div>
+
+      {geoDisplay && (
+        <div className="kanban-card-geo"><I.Pin size={10} /> {geoDisplay}</div>
+      )}
+
+      <div className="kanban-card-stats">
+        <span>{box.deals_sent_total ?? 0} delivered</span>
+        <span>{box.asset_class || '—'}</span>
+      </div>
+
+      <ScheduleRow
+        schedule={box.run_schedule}
+        boxId={box.id}
+        onToggleDay={onToggleDay}
+      />
+
+      <div className="kanban-card-actions">
+        {status === 'active' && (
+          <button className="kanban-btn pause" onClick={() => onPause?.(box)}>Pause</button>
+        )}
+        {status === 'paused' && (
+          <button className="kanban-btn resume" onClick={() => onResume?.(box)}>Resume</button>
+        )}
+        {status === 'coverage_failed' && (
+          <button className="kanban-btn edit" onClick={() => onEdit?.(box)}>Edit Geo</button>
+        )}
+        {status === 'pending' && (
+          <span className="kanban-btn-status">Activating…</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function KanbanColumn({ column, boxes, onEdit, onPause, onResume, onToggleDay, onDrop }) {
+  const [dragOver, setDragOver] = useState(false);
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    const boxId = parseInt(e.dataTransfer.getData('boxId'), 10);
+    if (boxId) onDrop?.(boxId, column.id);
+  }
+
+  return (
+    <div
+      className={`kanban-column ${dragOver ? 'drag-over' : ''}`}
+      onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+    >
+      <div className="kanban-col-head">
+        <span className="kanban-col-title">{column.label}</span>
+        <span className="kanban-col-count">{boxes.length}</span>
+      </div>
+      <div className="kanban-col-desc">{column.description}</div>
+      <div className="kanban-col-cards">
+        {boxes.map(box => (
+          <KanbanCard
+            key={box.id}
+            box={box}
+            onEdit={onEdit}
+            onPause={onPause}
+            onResume={onResume}
+            onToggleDay={onToggleDay}
+          />
+        ))}
+        {boxes.length === 0 && (
+          <div className="kanban-col-empty">No boxes</div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function BuyBoxesView({ onCreate, onEdit, onPause }) {
   const { buyBoxes, loading, patchBuyBox } = useDeals();
-  const [resumeError, setResumeError] = useState(null);
-  const failed = buyBoxes.filter(b => b.status === 'Coverage Failed');
-  const activeCount = buyBoxes.filter(b => b.status === 'active' || b.status === 'Active').length;
 
   async function handleResume(b) {
     try {
-      setResumeError(null);
       await patchBuyBox(b.id, { status: 'active' });
-    } catch (err) {
-      setResumeError(err?.message || 'Resume failed. Please try again.');
-    }
+    } catch (_) {}
+  }
+
+  async function handleDrop(boxId, targetColumnId) {
+    const statusMap = {
+      pending:         'pending',
+      validating:      'pending',
+      active:          'active',
+      paused:          'paused',
+      coverage_failed: 'Coverage Failed',
+    };
+    const newStatus = statusMap[targetColumnId];
+    if (!newStatus) return;
+    try {
+      await patchBuyBox(boxId, { status: newStatus });
+    } catch (_) {}
+  }
+
+  async function handleToggleDay(boxId, day, currentDays) {
+    const box = buyBoxes.find(b => b.id === boxId);
+    if (!box) return;
+    const activeDays = currentDays.includes(day)
+      ? currentDays.filter(d => d !== day)
+      : [...currentDays, day];
+    const newSchedule = { ...(box.run_schedule || {}), days: activeDays };
+    try {
+      await patchBuyBox(boxId, { run_schedule: newSchedule });
+    } catch (_) {}
   }
 
   if (loading) {
     return (
       <div className="page">
         <div className="page-head">
-          <div>
-            <h1 className="page-title">Buy Boxes</h1>
-            <div className="page-sub">Loading…</div>
-          </div>
+          <div><h1 className="page-title">Buy Boxes</h1></div>
         </div>
+        <div className="feed-loading">Loading…</div>
       </div>
     );
   }
 
+  const grouped = {};
+  COLUMNS.forEach(col => { grouped[col.id] = []; });
+  buyBoxes.forEach(b => {
+    const key = normalizeStatus(b.status);
+    if (grouped[key]) grouped[key].push(b);
+    else grouped['pending'].push(b);
+  });
+
   return (
-    <div className="page">
+    <div className="page kanban-page">
       <div className="page-head">
         <div>
           <h1 className="page-title">Buy Boxes</h1>
           <div className="page-sub">
-            Manage the criteria that drive each nightly deal-feed run · {activeCount} active
+            {buyBoxes.filter(b => normalizeStatus(b.status) === 'active').length} active
           </div>
         </div>
-        <div className="spaced">
-          <button className="btn primary" onClick={onCreate}><I.Plus size={13}/> New Buy Box</button>
-        </div>
+        <button className="btn primary" onClick={onCreate}>
+          <Plus size={13} /> New Buy Box
+        </button>
       </div>
 
-      {resumeError && (
-        <div className="callout">
-          <div className="cal-ico"><I.Alert size={16}/></div>
-          <div className="cal-text">{resumeError}</div>
-        </div>
-      )}
-
-      {failed.length > 0 && (
-        <div className="callout">
-          <div className="cal-ico"><I.Alert size={16}/></div>
-          <div className="cal-text">
-            <b>Coverage Failed:</b>{' '}
-            {failed.map(b => b.label || b.name).join(', ')} could not be activated.
-            We do not yet have parcel data for that geography.{' '}
-            <a href="#" style={{ color: '#FF7378', fontWeight: 700, textDecoration: 'underline' }}>
-              Edit geography
-            </a>{' '}
-            or contact support.
-          </div>
-        </div>
-      )}
-
-      {buyBoxes.length === 0 ? (
-        <div className="empty" style={{ marginTop: 48 }}>
-          <div className="empty-ico"><I.Building size={22}/></div>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>No buy boxes yet</div>
-          <div className="empty-msg">
-            Create your first buy box to start receiving nightly deals.
-          </div>
-          <button className="btn primary sm" onClick={onCreate}>
-            <I.Plus size={13}/> New Buy Box
-          </button>
-        </div>
-      ) : (
-        <div className="bb-grid">
-          {buyBoxes.map(b => {
-            const statusNorm = (b.status || '').toLowerCase();
-            const intent = statusNorm === 'active' ? 'green'
-              : statusNorm === 'pending' ? 'amber'
-              : statusNorm === 'coverage failed' ? 'red'
-              : 'gray';
-            const statusLabel = b.status || 'Unknown';
-            const boxName = b.label || b.name || 'Untitled';
-            const geoDisplay = formatGeo(b);
-            const cls = getAssetClass(b.asset_class);
-            const subtypes = b.asset_class && b.asset_use_codes?.length
-              ? formatUseCodes(b.asset_class, b.asset_use_codes)
-              : (b.asset_classes?.join(', ') || '—');
-            const schedule = b.run_schedule ? formatSchedule(b.run_schedule) : 'Runs daily';
-
-            return (
-              <div className="bb-card" key={b.id}>
-                <div className="bb-head">
-                  <div>
-                    <div className="bb-name">{boxName}</div>
-                    <div className="bb-geo"><I.Pin size={11}/> {geoDisplay}</div>
-                  </div>
-                  <span className={`pill ${intent}`}>
-                    <span className="pip"/>{statusLabel}
-                  </span>
-                </div>
-                <div className="bb-tags">
-                  {cls && <span className="tag">{cls.label}</span>}
-                  {!cls && (b.asset_classes || []).map(c => <span key={c} className="tag">{c}</span>)}
-                </div>
-                {subtypes && subtypes !== '—' && (
-                  <div style={{ fontSize: 11, color: 'var(--ink-3)', marginTop: 6, lineHeight: 1.5 }}>
-                    {subtypes}
-                  </div>
-                )}
-                <div className="bb-detail-grid">
-                  <span className="k">Schedule</span>
-                  <span className="v">{schedule}</span>
-                  <span className="k">Last Run</span>
-                  <span className="v" style={{ fontSize: 11, color: statusNorm === 'coverage failed' ? '#FF7378' : undefined }}>
-                    {fmtDate(b.last_run_at)}
-                  </span>
-                  <span className="k">Created</span>
-                  <span className="v">{fmtDate(b.created_at)}</span>
-                </div>
-                <div className="bb-stats">
-                  <div className="bb-stat">
-                    <div className="num">{b.deals_sent_total ?? 0}</div>
-                    <div className="lbl">Deals Delivered</div>
-                  </div>
-                  <div className="bb-stat">
-                    <div className="num" style={{ fontSize: 14, fontWeight: 700 }}>
-                      {statusNorm === 'active' ? 'Nightly' : statusNorm === 'pending' ? "Q'd" : '—'}
-                    </div>
-                    <div className="lbl">Cadence</div>
-                  </div>
-                </div>
-                <div className="bb-actions">
-                  <button className="btn sm" style={{ flex: 1 }} onClick={() => onEdit?.(b)}>
-                    <I.Edit size={12}/> Edit
-                  </button>
-                  {statusNorm === 'active' && (
-                    <button className="btn sm" style={{ flex: 1 }} onClick={() => onPause?.(b)}>
-                      <I.Pause size={12}/> Pause
-                    </button>
-                  )}
-                  {statusNorm === 'paused' && (
-                    <button className="btn outline-green sm" style={{ flex: 1 }} onClick={() => handleResume(b)}>
-                      <I.Play size={12}/> Resume
-                    </button>
-                  )}
-                  {statusNorm === 'pending' && (
-                    <button className="btn sm" style={{ flex: 1 }} disabled>Activating…</button>
-                  )}
-                  {statusNorm === 'coverage failed' && (
-                    <button className="btn sm" style={{ flex: 1, color: '#FF7378', borderColor: 'rgba(229,72,77,0.4)' }} onClick={() => onEdit?.(b)}>
-                      Edit Geo
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      <div className="kanban-board">
+        {COLUMNS.map(col => (
+          <KanbanColumn
+            key={col.id}
+            column={col}
+            boxes={grouped[col.id]}
+            onEdit={onEdit}
+            onPause={onPause}
+            onResume={handleResume}
+            onToggleDay={handleToggleDay}
+            onDrop={handleDrop}
+          />
+        ))}
+      </div>
     </div>
   );
 }

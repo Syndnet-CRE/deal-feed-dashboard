@@ -146,6 +146,17 @@
   /* Dot grid background */
   --dot-grid-color: rgba(0, 0, 0, 0.055);
   --dot-grid-size: 24px;
+
+  /* ── Feed / layout surface tokens ──────────────────────────── */
+  --bg-card-hover:  #F0F2F8;
+  --bg-agent-card:  #F0FAF0;
+  --bg-user-card:   #F5F7FF;
+  --bg-nav-active:  #E8FAE6;
+  --left-panel-w:   240px;
+  --left-panel-collapsed-w: 60px;
+  --top-header-h:   56px;
+  --pipeline-h:     80px;
+  --right-rail-w:   280px;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -176,6 +187,12 @@
 
   /* Dot grid background — visible dots on dark */
   --dot-grid-color: #2a2a2a;
+
+  /* ── Feed / layout surface tokens (dark overrides) ─────────── */
+  --bg-card-hover:  #252530;
+  --bg-agent-card:  #1E2A1F;
+  --bg-user-card:   #2A2A35;
+  --bg-nav-active:  #0E1A10;
 }
 
 /* ─────────────────────────────────────────────────────────────

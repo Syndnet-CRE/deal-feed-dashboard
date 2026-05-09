@@ -1,303 +1,96 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useDeals } from '../contexts/DealsContext';
-import { useDealState } from '../contexts/DealStateContext';
-import { I } from '../components/Icons';
-import { DealCard } from '../components/DealComponents';
-import { DealMap } from '../components/DealMap';
 import { PipelineTimeline } from '../components/PipelineTimeline';
-import { CalendarModal } from '../components/CalendarModal';
-import { MarketNewsfeed } from '../components/MarketNewsfeed';
-import { fmtRelativeTime } from '../lib/format';
+import TonightsRunCard from '../components/feed/TonightsRunCard';
+import FeedDealCard from '../components/feed/FeedDealCard';
+import AgentMessageCard from '../components/feed/AgentMessageCard';
+import MessageInputBar from '../components/feed/MessageInputBar';
+import RightRail from '../components/RightRail';
 
-const TZ = 'America/Chicago';
-const SESSION_NOW = Date.now();
+export function DashboardView({ kpis, searchQuery }) {
+  const { deals, loading } = useDeals();
+  const [agentMessages, setAgentMessages] = useState([]);
+  const [hiddenIds, setHiddenIds] = useState(new Set());
+  const [selectedDealId, setSelectedDealId] = useState(null);
 
-function ctTodayStr() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(new Date());
-}
+  const filteredDeals = useMemo(() => {
+    const q = (searchQuery || '').toLowerCase().trim();
+    return deals
+      .filter(d => !hiddenIds.has(d.id))
+      .filter(d => {
+        if (!q) return true;
+        const addr = (d.addr || d.address || '').toLowerCase();
+        const asset = (d.asset_class || d.asset || '').toLowerCase();
+        return addr.includes(q) || asset.includes(q);
+      });
+  }, [deals, hiddenIds, searchQuery]);
 
-function getDealDateStr(deal) {
-  if (deal.sent_at) return deal.sent_at.slice(0, 10);
-  if (deal.days != null) {
-    const d = new Date(Date.now() - deal.days * 86400000);
-    return d.toISOString().slice(0, 10);
+  function handleHide(id) {
+    setHiddenIds(prev => new Set([...prev, id]));
   }
-  return null;
-}
 
-function buildWeekDays() {
-  const todayStr = ctTodayStr();
-  const [y, m, d] = todayStr.split('-').map(Number);
-  const today = new Date(y, m - 1, d);
-  const dow = today.getDay(); // 0=Sun
-  const mondayOffset = dow === 0 ? -6 : 1 - dow;
-  return ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map((name, i) => {
-    const dt = new Date(today);
-    dt.setDate(today.getDate() + mondayOffset + i);
-    const ds = `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
-    return { name, ds };
-  });
-}
+  function handleMessage(msg) {
+    setAgentMessages(prev => [...prev, { ...msg, id: Date.now() + Math.random() }]);
+  }
 
-function getAccentColor(label, num) {
-  const n = typeof num === 'string' && num.endsWith('%') ? parseInt(num) : (typeof num === 'number' ? num : null);
-  if (label === 'New This Week') return '#1DAF29';
-  if (label === 'Hot Deals') return n > 0 ? '#1DAF29' : '#4A4D5E';
-  if (label === 'Contacted') return n > 0 ? '#1DAF29' : '#F59E0B';
-  if (label === 'Response Rate') return n >= 50 ? '#1DAF29' : n >= 10 ? '#F59E0B' : '#4A4D5E';
-  if (label === 'Awaiting Response') return n > 0 ? '#F59E0B' : '#4A4D5E';
-  return '#4A4D5E';
-}
-
-function StatCard({ label, num, sub, emptyHint }) {
-  const isPct = typeof num === 'string' && num.endsWith('%');
-  const rawNum = isPct ? parseInt(num) : (typeof num === 'number' ? num : null);
-  const shouldAnimate = rawNum !== null && rawNum > 0;
-  const [display, setDisplay] = useState(shouldAnimate ? 0 : num);
-  const accentColor = getAccentColor(label, num);
-
-  useEffect(() => {
-    if (!shouldAnimate) return;
-    const start = performance.now();
-    let rafId;
-    function tick(now) {
-      const t = Math.min((now - start) / 600, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      const current = Math.round(ease * rawNum);
-      setDisplay(isPct ? `${current}%` : current);
-      if (t < 1) rafId = requestAnimationFrame(tick);
-    }
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [shouldAnimate, rawNum, isPct]);
-
-  const zeroish = num === 0 || num === '0%' || num === '—';
-
-  return (
-    <div className="stat-card" style={{ '--accent': accentColor }}>
-      <div className="stat-accent-band"/>
-      <div className="label">{label}</div>
-      <div className="num" style={{ color: accentColor }}>{display}</div>
-      <div className="trend flat">
-        {emptyHint && zeroish
-          ? <span style={{ color: '#F59E0B', fontWeight: 600, fontSize: 11 }}>{emptyHint}</span>
-          : <span>{sub}</span>
-        }
-      </div>
-    </div>
-  );
-}
-
-export function DashboardView({ onOpenDeal, onNavigateBoxes, onSetView, selectedId }) {
-  const { deals, buyBoxes, contacts, loading } = useDeals();
-  const { getDealState } = useDealState();
-  const [showCalendar, setShowCalendar] = useState(false);
-
-  const today = useMemo(() => ctTodayStr(), []);
-  const weekDays = useMemo(() => buildWeekDays(), []);
-
-  const [activeTab, setActiveTab] = useState(() => {
-    const todayDay = buildWeekDays().find(w => w.ds === ctTodayStr());
-    return todayDay ? todayDay.name : 'Mon';
-  });
-
-  const dealsByDate = useMemo(() => {
-    const map = {};
-    for (const d of deals) {
-      const ds = getDealDateStr(d);
-      if (!ds) continue;
-      if (!map[ds]) map[ds] = [];
-      map[ds].push(d);
-    }
-    return map;
-  }, [deals]);
-
-  const archivedDeals = useMemo(
-    () => deals.filter(d => getDealState(d.id) === 'archived'),
-    [deals, getDealState]
-  );
-
-  const tabDeals = useMemo(() => {
-    if (activeTab === 'pipeline') return archivedDeals;
-    const day = weekDays.find(w => w.name === activeTab);
-    return day ? (dealsByDate[day.ds] || []) : [];
-  }, [activeTab, archivedDeals, weekDays, dealsByDate]);
-
-  const newThisWeek = deals.filter(d => d.days != null && d.days <= 7).length;
-  const contactedCount = deals.filter(d => (contacts[d.id] || []).length > 0).length;
-  const responseRate = deals.length > 0 ? Math.round(contactedCount / deals.length * 100) : 0;
-  const hotDeals = deals.filter(d => d.feedback === 'hot' && getDealState(d.id) !== 'dead').length;
-
-  const awaitingCount = useMemo(() => {
-    return deals.filter(d => {
-      const dc = contacts[d.id] || [];
-      if (dc.length === 0) return false;
-      return Math.floor((SESSION_NOW - new Date(dc[0].contacted_at).getTime()) / 86400000) >= 7;
-    }).length;
-  }, [deals, contacts]);
-
-  const mapDeals = useMemo(() => (
-    [...deals].filter(d => d.lat && d.lng).sort((a, b) => (b.score || 0) - (a.score || 0)).slice(0, 15)
-  ), [deals]);
-
-  const activityFeed = useMemo(() => {
-    const entries = [];
-    for (const [dealId, dealContacts] of Object.entries(contacts)) {
-      const deal = deals.find(d => String(d.id) === dealId);
-      if (!deal) continue;
-      for (const c of dealContacts) entries.push({ ...c, dealId, dealAddr: deal.addr });
-    }
-    return entries.sort((a, b) => new Date(b.contacted_at) - new Date(a.contacted_at)).slice(0, 5);
-  }, [contacts, deals]);
-
-  const isReady = buyBoxes.some(b => b.status === 'Active');
-
-  return (
-    <div className="page">
-      <div className="page-head">
-        <div>
-          <h1 className="page-title">Dashboard</h1>
-          <div className="page-sub">
-            {loading ? 'Loading…' : <><span style={{ color: '#1DAF29', fontWeight: 600 }}>{deals.length}</span><span style={{ color: '#9DA2B3' }}> total deals across all buy boxes</span></>}
-          </div>
-        </div>
-        <div className="spaced">
-          <span className={`pill ${isReady ? 'green' : 'amber'}`}>
-            <span className="pip"/>
-            {isReady ? 'Ready for Midnight Run' : 'No Active Buy Boxes'}
-          </span>
-          <button className="btn icon" onClick={() => setShowCalendar(true)} aria-label="Deal calendar">
-            <I.Calendar size={14}/>
-          </button>
-        </div>
-      </div>
-
-      <PipelineTimeline/>
-
-      <div className="stat-grid stat-grid-5">
-        <StatCard label="New This Week"     num={loading ? '…' : newThisWeek}                                     isNew={true} sub="deals delivered ≤ 7 days"/>
-        <StatCard label="Contacted"         num={loading ? '…' : contactedCount}                                              sub="deals with contact log"      emptyHint="→ Start outreach"/>
-        <StatCard label="Response Rate"     num={loading ? '…' : (responseRate === 0 ? '—' : `${responseRate}%`)}             sub="contacted vs. total"/>
-        <StatCard label="Hot Deals"         num={loading ? '…' : hotDeals}                                                     sub="marked hot, not dead"/>
-        <StatCard label="Awaiting Response" num={loading ? '…' : awaitingCount}                                               sub="contacted, no reply 7+ days"/>
-      </div>
-
-      {activityFeed.length > 0 && (
-        <div className="panel-card" style={{ marginBottom: 16 }}>
-          <div className="panel-head">
-            <div>
-              <div className="panel-title">Recent Activity</div>
-              <div className="panel-sub">Your last contact log entries</div>
+  if (loading) {
+    return (
+      <div className="feed-layout">
+        <PipelineTimeline />
+        <div className="feed-columns">
+          <div className="feed-center-wrap">
+            <div className="feed-center">
+              <div className="feed-loading">Loading your deals…</div>
             </div>
           </div>
-          <div>
-            {activityFeed.map((entry, i) => {
-              const rel = fmtRelativeTime(entry.contacted_at);
-              return (
-                <button
-                  key={i}
-                  onClick={() => onOpenDeal({ id: entry.dealId })}
-                  style={{
-                    display: 'grid', gridTemplateColumns: '1fr auto', gap: 8,
-                    padding: '10px 16px', width: '100%',
-                    borderTop: i === 0 ? 'none' : '1px solid var(--hairline-soft)',
-                    background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', alignItems: 'center',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-1)', marginBottom: 2 }}>{entry.dealAddr}</div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-3)', display: 'flex', gap: 6, alignItems: 'center' }}>
-                      <span className="tag" style={{ fontSize: 10 }}>{entry.channel}</span>
-                      {entry.outcome}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-4)', whiteSpace: 'nowrap' }}>
-                    {rel ? rel.label : '—'}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
         </div>
-      )}
+      </div>
+    );
+  }
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px 260px', gap: 16, alignItems: 'start' }}>
-        <div className="panel-card">
-          <div className="panel-head">
-            <div>
-              <div className="panel-title">Deals</div>
-              <div className="panel-sub">Click any deal to open detail</div>
-            </div>
-          </div>
+  return (
+    <div className="feed-layout">
+      <PipelineTimeline />
 
-          <div className="week-tabs">
-            {weekDays.map(w => (
-              <button
-                key={w.name}
-                className={`week-tab${activeTab === w.name ? ' active' : ''}${w.ds === today ? ' today' : ''}`}
-                onClick={() => setActiveTab(w.name)}
-              >
-                {w.name}
-                {(dealsByDate[w.ds] || []).length > 0 && (
-                  <span className="week-tab-badge">{(dealsByDate[w.ds] || []).length}</span>
-                )}
-              </button>
+      <div className="feed-columns">
+        <div className="feed-center-wrap">
+          <div className="feed-center" id="feed-scroll">
+            <TonightsRunCard kpis={kpis} />
+
+            {agentMessages.map(msg =>
+              msg.role === 'agent'
+                ? <AgentMessageCard key={msg.id} message={msg} />
+                : (
+                  <div key={msg.id} className="user-message-card">
+                    <span className="user-message-content">{msg.content}</span>
+                  </div>
+                )
+            )}
+
+            {filteredDeals.length === 0 && (
+              <div className="feed-empty">
+                {searchQuery ? 'No deals match your search.' : "No deals yet — check back after tonight's run."}
+              </div>
+            )}
+
+            {filteredDeals.map(deal => (
+              <FeedDealCard
+                key={deal.id}
+                deal={deal}
+                onHide={handleHide}
+              />
             ))}
-            <div className="week-tab-sep"/>
-            <button
-              className={`week-tab pipeline-tab${activeTab === 'pipeline' ? ' active' : ''}`}
-              onClick={() => setActiveTab('pipeline')}
-            >
-              Pipeline
-              {archivedDeals.length > 0 && <span className="week-tab-badge">{archivedDeals.length}</span>}
-            </button>
           </div>
 
-          {loading ? (
-            <div style={{ padding: 24, color: 'var(--ink-4)', fontSize: 13 }}>Loading deals…</div>
-          ) : tabDeals.length === 0 ? (
-            <div style={{ padding: '28px 24px', textAlign: 'center' }}>
-              <div style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 10 }}>
-                {activeTab === 'pipeline'
-                  ? 'No archived deals. Use the action menu on a deal card to archive.'
-                  : 'No deals delivered this day.'}
-              </div>
-              {activeTab !== 'pipeline' && onNavigateBoxes && (
-                <button className="btn sm" onClick={onNavigateBoxes}><I.Boxes size={12}/> View Buy Boxes</button>
-              )}
-            </div>
-          ) : (
-            <div>
-              {tabDeals.map(d => (
-                <DealCard key={d.id} deal={d} selected={selectedId === d.id} onClick={() => onOpenDeal(d)}/>
-              ))}
-            </div>
-          )}
+          <MessageInputBar onMessage={handleMessage} activeDealId={selectedDealId} />
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="panel-card" style={{ position: 'sticky', top: 0 }}>
-            <div className="panel-head">
-              <div>
-                <div className="panel-title">Deal Map · Top Matches</div>
-                <div className="panel-sub">{mapDeals.length} deals mapped by score</div>
-              </div>
-              <button className="btn sm" onClick={() => onSetView('map')}><I.External size={11}/> Open Map</button>
-            </div>
-            <div style={{ height: 240, borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
-              {!loading && (
-                <DealMap deals={mapDeals} selectedId={selectedId} withPopup={true} onClickDeal={onOpenDeal} mapStyle="dark"/>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <MarketNewsfeed />
+        <RightRail
+          deals={filteredDeals}
+          selectedDealId={selectedDealId}
+          onSelectDeal={id => setSelectedDealId(id === selectedDealId ? null : id)}
+        />
       </div>
-
-      {showCalendar && (
-        <CalendarModal deals={deals} onClose={() => setShowCalendar(false)} onOpenDeal={onOpenDeal}/>
-      )}
     </div>
   );
 }

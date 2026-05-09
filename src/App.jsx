@@ -5,7 +5,8 @@ import { useDeals, DealsProvider } from './contexts/DealsContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ReadStateProvider } from './contexts/ReadStateContext';
 import { DealStateProvider } from './contexts/DealStateContext';
-import { NightdropBar } from './components/NightdropBar';
+import TopHeader from './components/TopHeader';
+import LeftPanel from './components/LeftPanel';
 import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
 import { BuyBoxWizard } from './components/BuyBoxWizard';
@@ -19,12 +20,13 @@ import { LoginView } from './views/LoginView';
 import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
 import { InviteClaimView } from './views/InviteClaimView';
+import { api } from './lib/api';
+
 (() => {
   const t = localStorage.getItem('nightdrop-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
 
-// Standalone deal page — cold load or direct navigation from non-map surface
 function DealDetailPage({ dealId }) {
   const { deals, loading } = useDeals();
   const navigate = useNavigate();
@@ -60,7 +62,6 @@ function DealDetailPage({ dealId }) {
   );
 }
 
-// Full-screen modal overlay — opened from map panel via navigate('/deal/:id', { state: { fromMap: true } })
 function DealDetailModal({ dealId }) {
   const { deals, loading } = useDeals();
   const navigate = useNavigate();
@@ -109,20 +110,12 @@ function AppShell() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingBuyBox, setEditingBuyBox] = useState(null);
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
-  const [theme, setTheme] = useState(() => localStorage.getItem('nightdrop-theme') || 'dark');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [kpis, setKpis] = useState(null);
 
   const isOnDeal = !!dealMatch;
-  // Modal mode: deal URL reached from map panel (navigate passes fromMap state)
   const isModal  = isOnDeal && !!location.state?.fromMap;
-
-  const toggleTheme = useCallback(() => {
-    setTheme(prev => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('nightdrop-theme', next);
-      document.documentElement.setAttribute('data-theme', next);
-      return next;
-    });
-  }, []);
+  const noScroll = view === 'map';
 
   const handleSetView = useCallback((v) => {
     setView(v);
@@ -130,7 +123,6 @@ function AppShell() {
   }, [isOnDeal, navigate]);
 
   const handleOpenDeal = useCallback((deal) => {
-    // From map: open as modal overlay so MapView stays mounted
     const state = view === 'map' ? { fromMap: true } : undefined;
     navigate('/deal/' + deal.id, state ? { state } : {});
   }, [navigate, view]);
@@ -151,9 +143,16 @@ function AppShell() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  useEffect(() => {
+    if (!subscriber) return;
+    api.get('/api/dealfeed/deals/dashboard/kpis')
+      .then(data => setKpis(data))
+      .catch(() => {});
+  }, [subscriber]);
+
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', color: '#9DA2B3', fontSize: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg-page)', color: '#9DA2B3', fontSize: 14 }}>
         Loading…
       </div>
     );
@@ -161,44 +160,67 @@ function AppShell() {
 
   if (!subscriber) return null;
 
-  const noScroll = view === 'map';
-
   return (
     <ReadStateProvider>
     <DealStateProvider>
     <DealsProvider>
-      <div className="app has-topbar">
-        <NightdropBar
-          view={isOnDeal && !isModal ? null : view}
-          setView={handleSetView}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-        />
-        <Routes>
-          <Route path="/*" element={
-            <>
-              {/* Standalone full-page deal: cold load or navigation from non-map views */}
-              {isOnDeal && !isModal && (
-                <DealDetailPage dealId={dealMatch.params.dealId}/>
-              )}
+      <div className="app has-sidebar">
+        <TopHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
-              {/* Main view switcher — always mounted when not standalone deal page */}
-              {(!isOnDeal || isModal) && (
-                <div className={`content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
-                  {view === 'dashboard' && <DashboardView onOpenDeal={handleOpenDeal} onNavigateBoxes={() => handleSetView('boxes')} onSetView={handleSetView}/>}
-                  {view === 'map'       && <MapView        onOpenDeal={handleOpenDeal}/>}
-                  {view === 'boxes'     && <BuyBoxesView   onCreate={() => setShowWizard(true)} onEdit={setEditingBuyBox} onPause={setPausingBuyBox}/>}
-                  {view === 'settings'  && <SettingsView   onConfirmDanger={setConfirmDanger}/>}
-                  {view === 'invites'   && <InviteView/>}
-                  {view === 'admin'     && <AdminView/>}
-                </div>
-              )}
+        <div className="app-body">
+          <LeftPanel
+            view={isOnDeal && !isModal ? null : view}
+            setView={handleSetView}
+            kpis={kpis}
+            onCreateBuyBox={() => setShowWizard(true)}
+            unreadCount={kpis?.unread_count || 0}
+          />
 
-              {/* Full-screen modal over map — opened from deal panel "Open Deal" button */}
-              {isModal && <DealDetailModal dealId={dealMatch.params.dealId}/>}
-            </>
-          }/>
-        </Routes>
+          <main className={`app-content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
+            <Routes>
+              <Route path="/*" element={
+                <>
+                  {isOnDeal && !isModal && (
+                    <DealDetailPage dealId={dealMatch.params.dealId}/>
+                  )}
+
+                  {(!isOnDeal || isModal) && (
+                    <>
+                      {view === 'dashboard' && (
+                        <DashboardView
+                          kpis={kpis}
+                          searchQuery={searchQuery}
+                          onOpenDeal={handleOpenDeal}
+                        />
+                      )}
+                      {view === 'map'      && <MapView onOpenDeal={handleOpenDeal}/>}
+                      {view === 'boxes'    && (
+                        <BuyBoxesView
+                          onCreate={() => setShowWizard(true)}
+                          onEdit={setEditingBuyBox}
+                          onPause={setPausingBuyBox}
+                        />
+                      )}
+                      {view === 'calendar' && (
+                        <DashboardView
+                          kpis={kpis}
+                          searchQuery={searchQuery}
+                          onOpenDeal={handleOpenDeal}
+                        />
+                      )}
+                      {view === 'settings' && <SettingsView onConfirmDanger={setConfirmDanger}/>}
+                      {view === 'invites'  && <InviteView/>}
+                      {view === 'admin'    && <AdminView/>}
+                    </>
+                  )}
+
+                  {isModal && <DealDetailModal dealId={dealMatch.params.dealId}/>}
+                </>
+              }/>
+            </Routes>
+          </main>
+        </div>
+
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
         {pausingBuyBox && <PauseBoxConfirm buyBox={pausingBuyBox} onClose={() => setPausingBuyBox(null)}/>}
         {(showWizard || onboardingMatch) && (
