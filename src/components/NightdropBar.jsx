@@ -26,7 +26,7 @@ function matchesDeal(deal, q) {
   );
 }
 
-export function ParcylBar({ view, setView, theme, onToggleTheme }) {
+export function NightdropBar({ view, setView, theme, onToggleTheme }) {
   const { subscriber } = useAuth();
   const { deals } = useDeals();
   const navigate = useNavigate();

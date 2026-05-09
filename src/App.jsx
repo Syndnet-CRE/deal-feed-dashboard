@@ -5,7 +5,7 @@ import { useDeals, DealsProvider } from './contexts/DealsContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ReadStateProvider } from './contexts/ReadStateContext';
 import { DealStateProvider } from './contexts/DealStateContext';
-import { ParcylBar } from './components/ParcylBar';
+import { NightdropBar } from './components/NightdropBar';
 import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
 import { BuyBoxWizard } from './components/BuyBoxWizard';
@@ -168,7 +168,7 @@ function AppShell() {
     <DealStateProvider>
     <DealsProvider>
       <div className="app has-topbar">
-        <ParcylBar
+        <NightdropBar
           view={isOnDeal && !isModal ? null : view}
           setView={handleSetView}
           theme={theme}
