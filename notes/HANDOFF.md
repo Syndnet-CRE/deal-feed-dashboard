@@ -1,52 +1,68 @@
 # HANDOFF
-Date: 2026-05-08
-Repo: deal-feed-dashboard + global ~/.claude config
-Session objective: Post-mortem — enforce BMAD gate globally + add E2E critical flow coverage
+Date: 2026-05-09
+Repo: deal-feed-dashboard + deal-feed-landing
+Session objective: Nightdrop rebrand — all 15 BMAD stories implemented and pushed
 Status: COMPLETE
 
 ## What was done
 
-### Global (~/.claude config)
+### All 15 Nightdrop rebrand stories implemented (each as its own commit)
 
-- Built `~/.claude/hooks/bmad-gate.sh` — BMAD enforcement hook. Fires on every Write/Edit tool call in every repo. Warns at 3 source files edited with no BMAD docs, hard blocks (exit 2) at 5+. Skips markdown, config, test files, and BMAD docs themselves from the count.
-- Registered hook in `~/.claude/settings.json` under `PreToolUse` matcher `Write|Edit` with 10s timeout. Global — applies to all sessions everywhere.
-- Verified working: tested from clean temp dir, warning fires at 3 files, hard block at 5. Existing projects with BMAD docs (like deal-feed-dashboard with 17 docs) pass cleanly.
+**deal-feed-dashboard** (pushed to main, Netlify auto-deploys):
 
-### deal-feed-dashboard (commit 305fde2, pushed to main)
+- **Story 1** (df38d10): `tokens.css` — renamed all `--parcyl-*` CSS variables to `--nightdrop-*`. Updated header comment. Hex values unchanged.
+- **Story 2** (187a1b1): `styles.css` + `deal-detail.css` — updated all `var(--parcyl-*)` references to `var(--nightdrop-*)`.
+- **Story 3** (b7c52e7): `styles.css` + `ParcylBar.jsx` — renamed `.parcyl-bar` CSS class to `.nightdrop-bar`.
+- **Story 4** (21d4b64): Created `NightdropBar.jsx`, updated `App.jsx` import/JSX, deleted `ParcylBar.jsx`. Git detected rename automatically.
+- **Story 5** (26eaf1c): `NightdropBar.jsx` — nav bar brand text changed from "Deal Feed" to "Nightdrop". Mark letter D → N. Admin gate (`brady@parcyl.ai`) unchanged.
+- **Story 6** (8c2132b): `LoginView.jsx` — heading changed from "Deal Feed" to "Nightdrop". Contact email updated to `hello@nightdrop.io`.
+- **Story 7** (5eb950b): `DealDetail.jsx` — all 9 "Source: Parcyl" strings replaced with "Source: Nightdrop".
+- **Story 8** (9077694): `main.jsx` — localStorage migration `df_token → nd_token` inserted before `createRoot()`. Idempotent.
+- **Story 9** (b3cbeb8): `useAuth.jsx` + `api.js` — all `df_token` references renamed to `nd_token`.
+- **Story 10** (9993567): `App.jsx` — `parcyl-theme` localStorage key renamed to `nightdrop-theme`.
+- **Story 11** (11ab126): `MapView.jsx` — map/panel localStorage keys renamed to `nightdrop-*` prefix.
+- **Story 12** (199bc2d): `index.html` title → "Nightdrop". `package.json` name → "nightdrop-dashboard".
 
-- Created `tests/critical-flows.spec.js` — 13 Playwright E2E tests, 13 passing.
-  - Login Flow (5 tests): unauthenticated redirect, valid login, invalid login, submit disabled during request, session restore on reload.
-  - Invite Claim Flow (4 tests): valid token shows form, invalid token shows error, all fields required, successful claim redirects.
-  - Buy Box Wizard (4 tests): wizard opens, step 1 blocks without name, step 1 to 2 navigation, cancel without submit.
-  - All API calls mocked via page.route() — dev server only, no backend needed.
+**deal-feed-landing** (pushed to main, Netlify auto-deploys):
 
-### Key discoveries this session
+- **Story 13** (8111c9b): `netlify.toml` — build command updated to `rm -rf .next && npm ci && npm run build`.
+- **Story 14** (c0167c2): `lib/config.ts` — removed `?? ''` fallback, added startup throw if `NEXT_PUBLIC_APP_URL` is unset. `.env.local` created locally (gitignored).
+- **Story 15** (0f50305): `next.config.ts` — added HTTP security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy).
 
-- BuyBoxWizard button text is "Continue" (not "Next"). Primary CTA is `.bbwiz-btn-primary`. Steps 1-8 are never `disabled` — validation fires inside `handleNext()`.
-- InviteClaimView name input has no `name` attribute — correct selector is `input[placeholder="Jane Smith"]`.
-- CLAUDE.md listed ConfigurationOverlay.jsx as active but it was removed in commit 85a225d. CLAUDE.md updated to reflect BuyBoxWizard.jsx as the active component.
+### Final verification results
+- All zero-line grep assertions passed
+- Admin gate (`brady@parcyl.ai`) still exactly 1 line
+- `#5BCC48` brand green unchanged
+- `/api/dealfeed/*` routes unchanged
+- `npm run build` exits 0 (dashboard)
+- `npm test` exits 0 — 173/173 tests pass
+
+### Note on df_token in main.jsx
+The final verification checklist in stories.md said `grep -r "df_token" src/ # must return 0 lines`. However, Story 8's migration code necessarily references `df_token` (the old key it reads and removes). This is intentional — without those references, the migration cannot work. The actual auth code (useAuth.jsx and api.js) is fully clean.
 
 ## What was NOT done
 
-- Harness audit score still 18/29 — Memory Persistence (0/10) and Security Guardrails (3/10) not addressed.
-- Agent 2 schedule enforcement (scoutgpt-api): run_schedule.days check still missing.
-- Landing page architecture decision deferred — two repos still both have landing page code.
-- useCaseLibrary Bug A + Bug B (scoutgpt-api) still open.
-- ANTHROPIC_API_KEY for parcyl-mcp stress test still unfunded.
+- `dealfeed.read.*` and `dealfeed.dealstate.*` localStorage key renames — deferred per BMAD plan (too risky)
+- Netlify site renames — after MVP verified
+- GitHub repo renames — after MVP verified
+- Social media links in landing page footer — Brady must supply URLs
+- Missing image assets (dashboard-preview.png, SVGs, favicons) — Brady must supply
 
 ## Next session
 
-Agent 2 schedule enforcement:
+Brady's open items:
+1. Social media URLs for landing page footer
+2. Image assets: dashboard-preview.png, 6 MCP SVGs, 4 favicons
+3. Verify production Netlify deploy at deployed URL (tab title = "Nightdrop", nav bar = "Nightdrop")
+4. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env still needs credits (blocks stress test)
+5. useCaseLibrary Bug A (tax_delinquent_year wrong table) + Bug B (company_flag type mismatch) — still open in scoutgpt-api
+
+Next code session:
   cd ~/parcyl/scoutgpt-api && claude --dangerously-skip-permissions
-  Read scripts/run_deal_feed.js, add run_schedule.days check to skip buy boxes
-  where today (day of week) is not in the schedule array. Single-file change, no BMAD.
 
 ## Blockers for Brady
 
-1. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env needs valid key with credits (blocks stress test).
-
-2. Provide image assets for deal-feed-landing: dashboard-preview.png + 6 MCP SVG icons for the /public/images/ directory.
-
-3. Test invite claim flow end-to-end in production — accept real invite email, click link, set password, verify login works.
-
-4. Decide: landing page in deal-feed-dashboard (React route at /) or in deal-feed-landing (standalone Next.js)? Currently both. Needs a call before the next frontend session.
+1. Verify Netlify production deploy after auto-deploy completes (check browser tab and nav bar show "Nightdrop")
+2. Supply social media URLs for landing page footer
+3. Supply image assets when ready
+4. Fund ANTHROPIC_API_KEY for parcyl-mcp-server stress test
