@@ -29,7 +29,7 @@ export function LoginView() {
       <div style={{ width: "100%", maxWidth: 380 }}>
         <div style={{ marginBottom: 32, textAlign: "center" }}>
           <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", color: "#FFF", marginBottom: 6 }}>
-            <span style={{ color: "#1DAF29" }}>D</span> Deal Feed
+            <span style={{ color: "#1DAF29" }}>N</span> Nightdrop
           </div>
           <div style={{ fontSize: 13, color: "#9DA2B3" }}>Sign in to your subscriber account</div>
         </div>
@@ -72,7 +72,7 @@ export function LoginView() {
           <Link to="/forgot-password" style={{ color: "#9DA2B3", fontWeight: 500 }}>Forgot password?</Link>
         </div>
         <div style={{ marginTop: 10, textAlign: "center", fontSize: 12, color: "#9DA2B3" }}>
-          Need access? <a href="mailto:hello@parcyl.ai" style={{ color: "#5BCC48", fontWeight: 600 }}>Contact Parcyl</a>
+          Need access? <a href="mailto:hello@nightdrop.io" style={{ color: "#5BCC48", fontWeight: 600 }}>Contact Nightdrop</a>
         </div>
       </div>
     </div>
