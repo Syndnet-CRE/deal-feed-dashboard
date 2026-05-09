@@ -1,40 +1,43 @@
 # HANDOFF
 Date: 2026-05-08
 Repo: deal-feed-dashboard + deal-feed-landing
-Session objective: Post-mortem on login page failures; apply all identified fixes
+Session objective: Post-mortem on login page failures; apply all fixes, dead code cleanup, test coverage
 Status: COMPLETE
 
 ## What was done
 
-### deal-feed-dashboard (pushed to main, commit d1ecd62)
+### deal-feed-dashboard
 
-- Fixed `src/hooks/useAuth.jsx` — added `loginWithToken(token, subscriber)` function that sets token and subscriber directly without re-posting to /auth/login. Exposed in context value.
-- Fixed `src/views/InviteClaimView.jsx` — was calling `login(res.token, res.subscriber)` which passed the JWT as an email param to /auth/login (a network call that would fail). Now calls `loginWithToken(res.token, res.subscriber)`.
-- Build verified passing.
+- Fixed `src/hooks/useAuth.jsx` — added `loginWithToken(token, subscriber)` function that sets token and subscriber directly without re-posting to /auth/login. Exposed in context value. (commit d1ecd62)
+- Fixed `src/views/InviteClaimView.jsx` — was calling `login(res.token, res.subscriber)` which passed the JWT as an email param to /auth/login. Now calls `loginWithToken(res.token, res.subscriber)`. (commit d1ecd62)
+- Removed 10 dead files (commit 85a225d): ConfigurationOverlay.jsx, NewBoxWizard.jsx, PropertyDetail.jsx, MapBackground.jsx, StatusSelector.jsx, src/components/tabs/ (4 files), src/lib/assetColors.js
+- Removed 2 backward-compat aliases: `canProceed` (alias for `canProceedStep`) and `freshnessColor` (alias for `agingColor`)
+- Installed @vitest/coverage-v8, reached 100% coverage on format.js and wizardHelpers.js (commit 5504935)
+- All three commits pushed to main
 
-### deal-feed-landing (pushed to main, commit 3868c2f, redeployed to https://deal-feed.netlify.app)
+### deal-feed-landing
 
-- Removed `@vercel/analytics` from `package.json` and `package-lock.json` — was already removed from `layout.tsx` last session but the dead dep remained.
-- Set Netlify env var `NEXT_PUBLIC_APP_URL=https://dealrunner.netlify.app` on the deal-feed.netlify.app site — this fixes all Sign In / Sign Up CTAs which were resolving as relative paths and 404ing on the landing page domain.
-- Landing page rebuilds cleanly and is live at https://deal-feed.netlify.app.
+- Removed `@vercel/analytics` from `package.json` — dead Vercel-only dep, not compatible with Netlify (commit 3868c2f)
+- Set Netlify env var `NEXT_PUBLIC_APP_URL=https://dealrunner.netlify.app` — fixes Sign In / Sign Up CTAs that were 404ing
+- Landing page live at https://deal-feed.netlify.app
 
-### Still blocked / not fixed
+## What was NOT done
 
-- Missing image assets: `/public/images/dashboard-preview.png` and 6 MCP SVG icons — these don't exist in the repo. The landing page renders without them (Next.js gracefully handles missing images), but the dashboard preview section will show broken images. Brady must supply actual image files.
-
-## What was NOT done (from prior sessions, still open)
-
-- Dead code cleanup: ConfigurationOverlay.jsx, NewBoxWizard.jsx, PropertyDetail.jsx, src/components/tabs/ still present as dead code
+- Missing image assets: `/public/images/dashboard-preview.png` and 6 MCP SVG icons — Brady must supply
 - Agent 2 (nightly pipeline) not yet updated to read run_schedule.days and skip boxes where today is not in schedule
 - ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env still needs valid key with credits (blocks stress test)
+- No E2E test for InviteClaimView invite claim flow — identified as a coverage gap in post-mortem
+
+## Lessons learned (post-mortem)
+
+Root cause of all three login-page bugs: changes were not verified in the target environment before shipping.
+1. InviteClaimView auth — auth context had no bypass for post-token flows; `login()` was called incorrectly
+2. NEXT_PUBLIC_APP_URL — env var baked at build time, must be set on Netlify before deploy; was missing
+3. @vercel/analytics — Vercel-only dependency used on Netlify; removed from layout but dep left in package.json
 
 ## Next session
 
-1. Dead code cleanup:
-   cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
-   — delete src/components/ConfigurationOverlay.jsx, NewBoxWizard.jsx, PropertyDetail.jsx, src/components/tabs/
-
-2. Agent 2 schedule enforcement:
+1. Agent 2 schedule enforcement:
    cd ~/parcyl/scoutgpt-api && claude --dangerously-skip-permissions
    — read scripts/run_deal_feed.js, add run_schedule.days check to skip buy boxes where today is not in schedule
 
@@ -42,6 +45,6 @@ Status: COMPLETE
 
 1. Provide image assets for deal-feed-landing: dashboard-preview.png + 6 MCP SVG icons for the /public/images/ directory.
 
-2. Test the buy box wizard end-to-end in the live app — create a new buy box, verify it saves correctly.
+2. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env needs valid key with credits (blocks stress test).
 
-3. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env needs valid key with credits (blocks stress test).
+3. Test the invite claim flow end-to-end — accept an invite email, click link, set password, verify login works.
