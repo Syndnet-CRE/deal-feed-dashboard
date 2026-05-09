@@ -52,7 +52,7 @@ Both repos pushed to main. Netlify + Render deploying.
 
 2. Verify ANTHROPIC_API_KEY is set in Render env vars — agent/message endpoint requires it.
 
-3. Test the Kanban drag-and-drop on dealrunner.netlify.app (buy boxes view) — patchBuyBox PATCH call needs backend to accept status string from KanbanCard.
+3. Test the Kanban drag-and-drop on nightdropai.netlify.app (buy boxes view) — patchBuyBox PATCH call needs backend to accept status string from KanbanCard.
 
 4. Calendar view currently falls through to DashboardView — wire date-filtering logic next session if needed.
 

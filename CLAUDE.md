@@ -8,6 +8,7 @@ Inherits all rules from ~/.claude/CLAUDE.md. This file adds project context only
 
 Path: ~/deal-feed-dashboard
 Deploy: Netlify — auto-deploys from main (`npm run build` → `dist/`)
+Production URL: https://nightdropai.netlify.app (CORS-allowlisted on the backend; `dealrunner.netlify.app` is the legacy URL, still allowlisted but not the primary domain)
 Start: `cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions`
 
 ## PURPOSE
