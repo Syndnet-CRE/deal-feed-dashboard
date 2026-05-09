@@ -1,72 +1,69 @@
 # HANDOFF
 Date: 2026-05-09
 Repo: deal-feed-dashboard + scoutgpt-api
-Session objective: Full multi-agent audit of Coverage Failed bug + fix all root causes + write BMAD for match score threshold
+Session objective: Full Nightdrop dashboard redesign sprint — feed layout, agent chat, kanban buy boxes
 Status: COMPLETE
 
 ## What was done
 
-### Coverage Failed bug — 5 root causes identified and fixed
+### Frontend (deal-feed-dashboard) — commit 1a32175
 
-**Audit method:** Three parallel Explore agents read all relevant files across both repos simultaneously.
+New components:
+- src/components/TopHeader.jsx — fixed header with Nightdrop wordmark, search, 2am countdown timer
+- src/components/LeftPanel.jsx — collapsible sidebar (240px/60px), nav, stats, buy boxes, run history chart
+- src/components/ScoreBadge.jsx — pill badge, green/amber/red by score (8+/5-7/<5)
+- src/components/OverflowMenu.jsx — card overflow menu (save, share, hide, report)
+- src/components/RightRail.jsx — mini DealMap + buy box health cards
+- src/components/feed/FeedDealCard.jsx — social-feed deal card with aerial, narrative, facts, reactions, accordion
+- src/components/feed/AgentMessageCard.jsx — agent message display (RUN/SIGNAL/MARKET/AGENT types)
+- src/components/feed/TonightsRunCard.jsx — pinned tonight's run summary card
+- src/components/feed/MessageInputBar.jsx — chat input, calls POST /api/dealfeed/agent/message
+- src/styles/feed-layout.css — all new component styles (~500 lines)
 
-**Root causes found:**
+Modified:
+- src/App.jsx — replaced NightdropBar with TopHeader + LeftPanel, `has-sidebar` layout, KPI fetch
+- src/views/DashboardView.jsx — rewritten for social feed layout with PipelineTimeline, RightRail
+- src/views/BuyBoxesView.jsx — rewritten as 5-column Kanban with drag-and-drop + day schedule toggles
+- src/lib/format.js — fixed scoreClass thresholds (8+/5-7/<5 on 0-10 scale, was 80/60 on 0-100)
+- src/styles/tokens.css — layout CSS vars + dark mode overrides
+- src/index.css — imported feed-layout.css and admin.css
 
-1. **assetClassMap.js — LAND type string mismatch** (scoutgpt-api `services/assetClassMap.js`)
-   - The `land` slug only mapped to agricultural/ranch types
-   - ATTOM codes 267, 270, 401 resolve to commercial and residential vacant land strings that were NOT in the array
-   - Added: `'Vacant Commercial Land'`, `'Vacant Commercial Land (Improved Lot)'`, `'Vacant Residential Land'`, `'Vacant Land (General)'`
+### Backend (scoutgpt-api) — commit 34511db
 
-2. **coverage_failed not in ALLOWED_STATUSES** (scoutgpt-api `routes/dealfeed/buyboxes.js`)
-   - Job sets `coverage_failed` but API couldn't accept it as a valid PATCH value
-   - Added `'coverage_failed'` to ALLOWED_STATUSES
+New:
+- migrations/043_agent_messages.sql — df_agent_messages table (chat persistence)
+- migrations/044_deal_saved.sql — saved_at column on df_deals_sent
+- routes/dealfeed/agent.js — GET /messages + POST /message (Claude Sonnet claude-sonnet-4-6)
 
-3. **No status reset when geo is edited on a failed box** (same file)
-   - When a user edits geo fields on a `coverage_failed` box, status now auto-resets to `pending` and `coverage_notes` is cleared so the next job run re-evaluates
+Modified:
+- routes/dealfeed/deals.js — PATCH /:id/save, saved field in normalizeDeal, unread_count in KPIs
+- routes/dealfeed/index.js — registered /agent route
 
-4. **coverage_notes never populated** (scoutgpt-api `scripts/run_deal_feed.js`)
-   - The UPDATE that sets `coverage_failed` now also writes a diagnostic message to `coverage_notes` explaining which asset class and geography had no overlap
-
-5. **run_schedule.days not checked** (same file)
-   - Buy boxes with a schedule were running every day regardless
-   - Added check: if today's lowercase 3-letter day abbreviation is not in `run_schedule.days`, box is skipped with a log message
-
-**Frontend fix:**
-- "Edit Geo" button on Coverage Failed cards had no onClick handler (dead button)
-- Wired to `onEdit(b)` — same handler as the regular Edit button — opens wizard in edit mode
-
-**Commits:**
-- `aee4ad1` — scoutgpt-api: all 4 backend fixes
-- `eede89d` — deal-feed-dashboard: Edit Geo button wired
-
-Both pushed to main. Render/Netlify auto-deploy triggered.
-
-### BMAD — Match Score Threshold feature
-
-4 planning docs written to `/Users/birwin/parcyl/notes/bmad/match-score-threshold/`:
-- `requirements.md` — problem, functional requirements, scoring dimensions, non-functional requirements
-- `PRD.md` — user story, success metrics, UI changes, API changes, threshold defaults
-- `architecture.md` — new `services/matchScoreCalculator.js`, integration point, DB migrations, API contract changes
-- `stories.md` — 7 stories, all under 2 hours, dependency matrix, parallel execution plan
-
-## What was NOT done
-
-- Match score threshold implementation — BMAD is written, implementation is next session
-- Data layer verification — cannot confirm if TX has LAND properties in the DB with correct resolved_asset_type strings (need SQL query against prod DB)
-- The Coverage Failed boxes (Land - TX, test) may still show 0 deals even after the fix if the properties table has no LAND records in TX at all — the assetClassMap fix only helps if the data exists
-
-## Next session
-
-Implement match score threshold — start with Story 1 (DB migration) and Story 2 (scoring function) in parallel:
-
-```bash
-cd ~/parcyl/scoutgpt-api && claude --dangerously-skip-permissions
-```
-
-Read `/Users/birwin/parcyl/notes/bmad/match-score-threshold/stories.md` first.
+Both repos pushed to main. Netlify + Render deploying.
 
 ## Blockers for Brady
 
-1. Verify Coverage Failed boxes after next nightly job run (9AM UTC) — if still 0 deals, the properties table may not have LAND data for TX at all (data gap, not code bug)
-2. If LAND data gap is confirmed: ask Adam to run ETL enrichment for LAND asset types in TX against Neon branch
-3. Fund ANTHROPIC_API_KEY in `~/parcyl/parcyl-mcp-server/.env` (blocks stress test)
+1. Run migrations on Render Postgres manually:
+   ```
+   psql $DATABASE_URL -f migrations/043_agent_messages.sql
+   psql $DATABASE_URL -f migrations/044_deal_saved.sql
+   ```
+   Or trigger via the Render shell if direct psql access is not available.
+
+2. Verify ANTHROPIC_API_KEY is set in Render env vars — agent/message endpoint requires it.
+
+3. Test the Kanban drag-and-drop on dealrunner.netlify.app (buy boxes view) — patchBuyBox PATCH call needs backend to accept status string from KanbanCard.
+
+4. Calendar view currently falls through to DashboardView — wire date-filtering logic next session if needed.
+
+5. Admin / invites views: old NightdropBar avatar dropdown accessed these. Now they need to be wired from the LeftPanel bottom Account button — deferred.
+
+6. Existing blockers from prior session:
+   - Ask Adam: apply ETL enrichment on Render Neon branch (resolved_asset_type null in prod)
+   - Test Admin "Run Now" button on deployed Netlify
+
+## Next session
+
+Wire calendar date filtering in DashboardView, add admin/invites routing from LeftPanel account button, run migrations on Render.
+
+  cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
