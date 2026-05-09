@@ -1,98 +1,72 @@
 # HANDOFF
 Date: 2026-05-09
-Repo: nightdrop-web (at ~/nightdrop-web)
-Session objective: Complete nightdrop-web wiring — providers, deal detail route, ConfigurationOverlay
-Status: COMPLETE — build passes clean, all routes wired, dev server verified
+Repo: deal-feed-dashboard + scoutgpt-api
+Session objective: Full multi-agent audit of Coverage Failed bug + fix all root causes + write BMAD for match score threshold
+Status: COMPLETE
 
 ## What was done
 
-### nightdrop-web — fully wired, 9 routes
+### Coverage Failed bug — 5 root causes identified and fixed
 
-Next.js 16 App Router, React 19 JSX, Tailwind + --nightdrop-* tokens, Manrope font.
+**Audit method:** Three parallel Explore agents read all relevant files across both repos simultaneously.
 
-**Routes:**
-- `/` — landing page
-- `/login` — auth
-- `/signup` — waitlist stub
-- `/onboarding` — fixes the 404 bug (invited subscribers hit this after activation)
-- `/forgot-password`
-- `/invite/[token]` — invite claim flow
-- `/app` — dashboard shell with client-side auth guard
-- `/app/deal/[id]` — NEW — deal detail page with back nav and not-found state
+**Root causes found:**
 
-**Providers confirmed wrapped** in `app/app/layout.jsx`:
-- AuthProvider, ToastProvider, DealsProvider, ReadStateProvider, DealStateProvider
-- Auth guard in the same layout checks `nd_token` in localStorage; redirects to /login if missing
+1. **assetClassMap.js — LAND type string mismatch** (scoutgpt-api `services/assetClassMap.js`)
+   - The `land` slug only mapped to agricultural/ranch types
+   - ATTOM codes 267, 270, 401 resolve to commercial and residential vacant land strings that were NOT in the array
+   - Added: `'Vacant Commercial Land'`, `'Vacant Commercial Land (Improved Lot)'`, `'Vacant Residential Land'`, `'Vacant Land (General)'`
 
-**ConfigurationOverlay wired** in `app/app/page.jsx`:
-- Opens on `showWizard` (new box) or `editingBuyBox` (edit mode)
-- Fixed all import paths in `configuration-overlay.jsx` (was using old relative paths from deal-feed-dashboard)
-- Added default export alias to the file (`export default BuyBoxWizard`)
-- Copied missing `styles/buy-box-wizard.css` from source repo
+2. **coverage_failed not in ALLOWED_STATUSES** (scoutgpt-api `routes/dealfeed/buyboxes.js`)
+   - Job sets `coverage_failed` but API couldn't accept it as a valid PATCH value
+   - Added `'coverage_failed'` to ALLOWED_STATUSES
 
-**NightdropBar fixed**: Profile button was pushing to `/app/settings` (route doesn't exist); fixed to `onSetView('settings')`.
+3. **No status reset when geo is edited on a failed box** (same file)
+   - When a user edits geo fields on a `coverage_failed` box, status now auto-resets to `pending` and `coverage_notes` is cleared so the next job run re-evaluates
 
-**Build:** `npm run build` exits 0, all 9 routes compile.
+4. **coverage_notes never populated** (scoutgpt-api `scripts/run_deal_feed.js`)
+   - The UPDATE that sets `coverage_failed` now also writes a diagnostic message to `coverage_notes` explaining which asset class and geography had no overlap
 
-**Commits:** 3 commits on main in ~/nightdrop-web (no GitHub remote yet)
+5. **run_schedule.days not checked** (same file)
+   - Buy boxes with a schedule were running every day regardless
+   - Added check: if today's lowercase 3-letter day abbreviation is not in `run_schedule.days`, box is skipped with a log message
 
-### ctx-watch.sh and PreCompact hook
+**Frontend fix:**
+- "Edit Geo" button on Coverage Failed cards had no onClick handler (dead button)
+- Wired to `onEdit(b)` — same handler as the regular Edit button — opens wizard in edit mode
 
-- `~/.claude/scripts/ctx-watch.sh` fires on UserPromptSubmit, shows context % in terminal
-- PreCompact hook in settings.json stamps HANDOFF.md before every compact
+**Commits:**
+- `aee4ad1` — scoutgpt-api: all 4 backend fixes
+- `eede89d` — deal-feed-dashboard: Edit Geo button wired
 
-## Dev server verified
+Both pushed to main. Render/Netlify auto-deploy triggered.
 
-```bash
-cd ~/nightdrop-web && npm run dev
-```
+### BMAD — Match Score Threshold feature
 
-- `/` — landing renders (full hero, features, pricing, FAQ, footer)
-- `/login` — renders correctly
-- `/app` — returns 200 (auth guard is client-side; redirects to /login on load when no token)
-
-## Stubs (wire before launch)
-
-| Stub | File | What's needed |
-|------|------|---------------|
-| Waitlist email | app/signup/page.jsx | Real API endpoint or Resend/Loops |
-| Social URLs | components/landing/footer.jsx | Twitter, GitHub, LinkedIn URLs |
-| Favicons | app/favicon.ico (placeholder) | Brand asset files |
-| MapView | components/dashboard/views/map-view.jsx | Verify full Mapbox impl vs stub |
+4 planning docs written to `/Users/birwin/parcyl/notes/bmad/match-score-threshold/`:
+- `requirements.md` — problem, functional requirements, scoring dimensions, non-functional requirements
+- `PRD.md` — user story, success metrics, UI changes, API changes, threshold defaults
+- `architecture.md` — new `services/matchScoreCalculator.js`, integration point, DB migrations, API contract changes
+- `stories.md` — 7 stories, all under 2 hours, dependency matrix, parallel execution plan
 
 ## What was NOT done
 
-- GitHub remote not created (Brady must create Syndnet-CRE/nightdrop-web)
-- Netlify site not connected
-- MapView not verified — may still be a stub without a running Mapbox token
+- Match score threshold implementation — BMAD is written, implementation is next session
+- Data layer verification — cannot confirm if TX has LAND properties in the DB with correct resolved_asset_type strings (need SQL query against prod DB)
+- The Coverage Failed boxes (Land - TX, test) may still show 0 deals even after the fix if the properties table has no LAND records in TX at all — the assetClassMap fix only helps if the data exists
 
 ## Next session
 
+Implement match score threshold — start with Story 1 (DB migration) and Story 2 (scoring function) in parallel:
+
 ```bash
-cd ~/nightdrop-web && npm run dev
+cd ~/parcyl/scoutgpt-api && claude --dangerously-skip-permissions
 ```
 
-Then test end-to-end:
-1. Log in with real credentials (need NEXT_PUBLIC_API_BASE_URL set)
-2. Verify dashboard views switch correctly
-3. Open a deal — verify deal detail page loads
-4. Click "New Box" — verify ConfigurationOverlay opens
-5. Check MapView renders Mapbox tiles (not a stub)
-
-To test locally with the backend: set `.env.local` with:
-```
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
-NEXT_PUBLIC_MAPBOX_TOKEN=<token>
-```
+Read `/Users/birwin/parcyl/notes/bmad/match-score-threshold/stories.md` first.
 
 ## Blockers for Brady
 
-1. Create GitHub repo Syndnet-CRE/nightdrop-web and:
-   ```bash
-   cd ~/nightdrop-web && git remote add origin <url> && git push -u origin main
-   ```
-2. Create Netlify site connected to that repo, set env vars:
-   - NEXT_PUBLIC_API_BASE_URL (backend URL)
-   - NEXT_PUBLIC_MAPBOX_TOKEN
-3. Decide waitlist email destination (Resend? Loops? Custom endpoint?)
-4. Verify MapView — check components/dashboard/views/map-view.jsx for Mapbox vs stub
+1. Verify Coverage Failed boxes after next nightly job run (9AM UTC) — if still 0 deals, the properties table may not have LAND data for TX at all (data gap, not code bug)
+2. If LAND data gap is confirmed: ask Adam to run ETL enrichment for LAND asset types in TX against Neon branch
+3. Fund ANTHROPIC_API_KEY in `~/parcyl/parcyl-mcp-server/.env` (blocks stress test)
