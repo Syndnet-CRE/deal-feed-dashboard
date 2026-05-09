@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildPayload, canProceed, canProceedStep, activeGeoHasData, toNum } from './wizardHelpers.js';
+import { buildPayload, canProceedStep, activeGeoHasData, toNum } from './wizardHelpers.js';
 
 // Base form used in buildPayload tests — all optional fields at defaults
 const baseForm = {
@@ -379,11 +379,6 @@ describe('canProceedStep', () => {
     });
   });
 
-  describe('backward compat: canProceed alias', () => {
-    it('canProceed is the same function as canProceedStep', () => {
-      expect(canProceed).toBe(canProceedStep);
-    });
-  });
 });
 
 describe('buildPayload', () => {

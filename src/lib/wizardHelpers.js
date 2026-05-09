@@ -51,9 +51,6 @@ export function canProceedStep(step, form) {
   return true;
 }
 
-// Backward-compat alias — ConfigurationOverlay uses canProceed(step, form)
-export const canProceed = canProceedStep;
-
 /**
  * Converts the wizard form state to an API payload.
  * Includes only geo fields for the active geoMode.

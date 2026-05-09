@@ -38,11 +38,9 @@ export function fmtRelativeTime(dateStr) {
   return { label: `${days} days ago`, days };
 }
 
-export function freshnessColor(days) {
+export function agingColor(days) {
   if (days == null) return null;
   if (days <= 7) return 'var(--green)';
   if (days <= 30) return 'var(--warning)';
   return 'var(--ink-4)';
 }
-
-export const agingColor = freshnessColor;

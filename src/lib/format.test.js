@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, freshnessColor, agingColor } from './format.js';
+import { fmtMoney, scoreClass, fmt, hasVal, fmtRelativeTime, agingColor } from './format.js';
 
 describe('fmtMoney', () => {
   describe('null and undefined handling', () => {
@@ -403,36 +403,6 @@ describe('fmtRelativeTime', () => {
     const result = fmtRelativeTime(daysAgoStr(31));
     expect(result.days).toBe(31);
     expect(result.label).toBe('31 days ago');
-  });
-});
-
-describe('freshnessColor', () => {
-  it('returns null for null', () => {
-    expect(freshnessColor(null)).toBeNull();
-  });
-
-  it('returns green for 0 days', () => {
-    expect(freshnessColor(0)).toBe('var(--green)');
-  });
-
-  it('returns green for 7 days (boundary)', () => {
-    expect(freshnessColor(7)).toBe('var(--green)');
-  });
-
-  it('returns warning for 8 days', () => {
-    expect(freshnessColor(8)).toBe('var(--warning)');
-  });
-
-  it('returns warning for 30 days (boundary)', () => {
-    expect(freshnessColor(30)).toBe('var(--warning)');
-  });
-
-  it('returns ink-4 for 31 days', () => {
-    expect(freshnessColor(31)).toBe('var(--ink-4)');
-  });
-
-  it('returns ink-4 for very old dates', () => {
-    expect(freshnessColor(365)).toBe('var(--ink-4)');
   });
 });
 

@@ -1,68 +1,47 @@
 # HANDOFF
 Date: 2026-05-08
-Repo: deal-feed-dashboard + scoutgpt-api
-Session objective: Rebuild buy box creation/editing from modal to 9-step full-page wizard
+Repo: deal-feed-dashboard + deal-feed-landing
+Session objective: Post-mortem on login page failures; apply all identified fixes
 Status: COMPLETE
 
 ## What was done
 
-### deal-feed-dashboard (commit 96f798b, pushed to main)
+### deal-feed-dashboard (pushed to main, commit d1ecd62)
 
-- `src/components/BuyBoxWizard.jsx` — new 9-step full-page wizard component
-  - Steps: Name, Geography, Asset Class, Sub-Asset, Criteria, Ownership, Distress, Schedule, Review
-  - Create mode: POST /api/dealfeed/onboarding; Edit mode: PATCH /api/dealfeed/buy-boxes/:id
-  - Fixed position (full screen), Escape to cancel, toast on save
-  - Debounced coverage check on step 2 (POST /api/dealfeed/buy-boxes/preview)
-  - Inline validation per step; review step shows incomplete sections
+- Fixed `src/hooks/useAuth.jsx` — added `loginWithToken(token, subscriber)` function that sets token and subscriber directly without re-posting to /auth/login. Exposed in context value.
+- Fixed `src/views/InviteClaimView.jsx` — was calling `login(res.token, res.subscriber)` which passed the JWT as an email param to /auth/login (a network call that would fail). Now calls `loginWithToken(res.token, res.subscriber)`.
+- Build verified passing.
 
-- `src/lib/buyBoxTaxonomy.js` — full ATTOM use code taxonomy
-  - ASSET_CLASSES: 6 classes, 28 sub-types with integer ATTOM codes
-  - GEO_TYPES, US_STATES (51), MAJOR_METROS (47)
-  - SCHEDULE_DAYS, DISTRESS_SIGNAL_OPTIONS, OWNER_TYPE_OPTIONS
-  - Helpers: formatGeo(), formatUseCodes(), formatSchedule(), getAssetClass()
+### deal-feed-landing (pushed to main, commit 3868c2f, redeployed to https://deal-feed.netlify.app)
 
-- `src/styles/buy-box-wizard.css` — full CSS for the stepped layout using .bbwiz-* classes
+- Removed `@vercel/analytics` from `package.json` and `package-lock.json` — was already removed from `layout.tsx` last session but the dead dep remained.
+- Set Netlify env var `NEXT_PUBLIC_APP_URL=https://dealrunner.netlify.app` on the deal-feed.netlify.app site — this fixes all Sign In / Sign Up CTAs which were resolving as relative paths and 404ing on the landing page domain.
+- Landing page rebuilds cleanly and is live at https://deal-feed.netlify.app.
 
-- `src/lib/wizardHelpers.js` — updated canProceedStep() for 9 steps; buildPayload() adds asset_class, asset_use_codes, run_schedule; canProceed alias kept for backward compat
+### Still blocked / not fixed
 
-- `src/lib/wizardHelpers.test.js` — 178 tests, all passing
+- Missing image assets: `/public/images/dashboard-preview.png` and 6 MCP SVG icons — these don't exist in the repo. The landing page renders without them (Next.js gracefully handles missing images), but the dashboard preview section will show broken images. Brady must supply actual image files.
 
-- `src/App.jsx` — BuyBoxWizard replaces ConfigurationOverlay; /onboarding route (via useMatch) launches wizard in create mode for new subscribers post-signup
+## What was NOT done (from prior sessions, still open)
 
-- `src/views/BuyBoxesView.jsx` — fixed to use correct API field names: label (not name), last_run_at, deals_sent_total; shows asset_class, sub-types, schedule per card
-
-- `src/views/InviteClaimView.jsx` — redirects to /onboarding after account activation (was /)
-
-### scoutgpt-api (commit ed23e12, pushed to main)
-
-- `migrations/042_buybox_asset_class_schedule.sql` — adds asset_class TEXT, asset_use_codes INTEGER[], run_schedule JSONB to df_buy_boxes; check constraint on 6 valid class values; default schedule all 7 days; index on asset_class
-
-- `services/assetUseCodes.js` — shared validation module: ASSET_CLASS_LABELS, ASSET_USE_CODE_MAP, ATTOM_CODE_TO_RESOLVED_TYPE (28 codes), validateAssetClass(), validateAssetUseCodes(), validateRunSchedule(), resolvedTypesForUseCodes()
-
-- `routes/dealfeed/onboarding.js` — accepts and validates asset_class, asset_use_codes (required), run_schedule; INSERT expanded to 34 params
-
-- `routes/dealfeed/buyboxes.js` — GET SELECT includes new columns; PATCH validates all 3 fields; use codes normalized to integers
-
-- `scripts/run_deal_feed.js` — isScheduledToday() filter applied before processing; matchProperties() uses resolvedTypesForUseCodes() for precise ATTOM code matching
-
-## What was NOT done
-
-- ConfigurationOverlay.jsx — still present as dead code (not imported); safe to delete in a future cleanup session
-- buyBoxTaxonomy.test.js — no unit tests for the taxonomy helpers yet
-- E2E tests for the full wizard flow (smoke tests updated screenshot hashes only)
-- Migration 042 not yet applied to the production Render/Neon database — Brady must apply it before the new wizard can save successfully
+- Dead code cleanup: ConfigurationOverlay.jsx, NewBoxWizard.jsx, PropertyDetail.jsx, src/components/tabs/ still present as dead code
+- Agent 2 (nightly pipeline) not yet updated to read run_schedule.days and skip boxes where today is not in schedule
+- ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env still needs valid key with credits (blocks stress test)
 
 ## Next session
 
-If Brady wants to clean up dead code:
-  cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
-  — delete src/components/ConfigurationOverlay.jsx, src/components/NewBoxWizard.jsx, src/components/PropertyDetail.jsx, src/components/tabs/
+1. Dead code cleanup:
+   cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
+   — delete src/components/ConfigurationOverlay.jsx, NewBoxWizard.jsx, PropertyDetail.jsx, src/components/tabs/
+
+2. Agent 2 schedule enforcement:
+   cd ~/parcyl/scoutgpt-api && claude --dangerously-skip-permissions
+   — read scripts/run_deal_feed.js, add run_schedule.days check to skip buy boxes where today is not in schedule
 
 ## Blockers for Brady
 
-1. Apply migration 042 to the Render/Neon production database before any user can create a buy box with the new wizard. The wizard will fail on save until these 3 columns exist in df_buy_boxes.
-   Command (run on Render or via psql): psql $DATABASE_URL -f migrations/042_buybox_asset_class_schedule.sql
+1. Provide image assets for deal-feed-landing: dashboard-preview.png + 6 MCP SVG icons for the /public/images/ directory.
 
-2. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env needs valid key with credits (blocks stress test from prior session)
+2. Test the buy box wizard end-to-end in the live app — create a new buy box, verify it saves correctly.
 
-3. Confirm the Netlify deploy for deal-feed-dashboard looks correct at dealrunner.netlify.app
+3. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env needs valid key with credits (blocks stress test).
