@@ -193,6 +193,7 @@ Project-specific guardrails live in `.claude/hookify.*.local.md`. Active rules:
 | `hookify.silent-zero-results.local.md` | `run_deal_feed.js` edited | Verify zero-match runs are distinguishable from successful runs in logs |
 | `hookify.unregistered-routes.local.md` | New route files created | Register routes in `server.js` |
 | `hookify.orphaned-scripts.local.md` | New scripts created | Add npm script or cron entry so the script is actually callable |
+| `hookify.uuid-and-backend-target.local.md` | Code casts ID to number or hardcodes backend URL | Dealfeed IDs are UUID strings; production backend is scoutgpt-app.onrender.com (NOT scoutgpt-api.onrender.com) |
 
 ## BMAD PLANNING DOCS
 
@@ -203,9 +204,27 @@ Session handoff lives at `notes/HANDOFF.md` (project-local). The global rule ref
 ## BACKEND CONTRACT
 
 Backend repo: `~/parcyl/scoutgpt-api`
-Relevant routes: `routes/dealfeed/auth.js`, `routes/dealfeed/deals.js`
+Relevant routes: `routes/dealfeed/auth.js`, `routes/dealfeed/deals.js`, `routes/dealfeed/agent.js`
 
-Key endpoints:
+### Backend topology — read this before debugging any "API broken" issue
+
+The scoutgpt-api repo is deployed to **two** Render services off the same GitHub repo:
+
+| Render service | Branch | URL | Used by this frontend? |
+|---|---|---|---|
+| **scoutgpt-app** | `main` | https://scoutgpt-app.onrender.com | **YES — production** |
+| scoutgpt-api    | `develop` | https://scoutgpt-api.onrender.com | NO — empty DB, dev/scratch only |
+
+When pushing backend changes, push to `main` so they land on `scoutgpt-app`. When opening a Render shell to apply a migration or inspect logs, open it on **scoutgpt-app**, never on scoutgpt-api — the latter has an empty Neon DB and will mislead you into thinking tables don't exist.
+
+### Database identity rules
+
+- All `df_*` tables (`df_subscribers`, `df_deals_sent`, `df_buy_boxes`, `df_deal_notes`, `df_contacts`, `df_invite_tokens`, `df_agent_runs`, `df_agent_messages`) live on `$DATABASE_WRITE_URL` (the `weathered-poetry` Neon endpoint), NOT `$DATABASE_URL`. Backend code accesses them via `poolWrite` from `db/pool.js`.
+- All `df_*` primary keys are **UUID strings**, not integers. Subscriber IDs and deal IDs in JWT payloads, URL params, and API responses are UUIDs. Never `parseInt()` or `Number()` them anywhere in the frontend.
+- The `subscriber` object returned by `/auth/me` and `/auth/login` has `subscriber.id` as a UUID string.
+
+### Endpoints
+
 - `POST /api/dealfeed/auth/login` → `{ token, subscriber }`
 - `GET /api/dealfeed/auth/me` → `{ subscriber }`
 - `GET /api/dealfeed/deals` → `{ deals: Deal[] }` — each deal may include `brief_json` and `notes` fields
@@ -229,3 +248,7 @@ Key endpoints:
 - `GET /api/dealfeed/admin/subscribers/:id` → `{ subscriber }` with full detail (admin only)
 - `GET /api/dealfeed/admin/runs` → `{ runs: AgentRun[] }` (admin only)
 - `POST /api/dealfeed/admin/runs/trigger` → triggers a deal-feed agent run (admin only)
+- `GET /api/dealfeed/agent/messages` → `{ messages: AgentMessage[] }` — chat history (newest first reversed to oldest first)
+- `POST /api/dealfeed/agent/message` → body `{ content: string, deal_id?: uuid }` → `{ reply: string }` — sends user message, persists both user and agent messages, returns Claude Sonnet reply
+- `PATCH /api/dealfeed/deals/:id/save` → toggles `saved_at` on the deal → `{ id, saved: boolean }`
+- `PATCH /api/dealfeed/deals/:id/read` → marks deal read → `{ ok: true }`
