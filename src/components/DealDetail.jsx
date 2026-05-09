@@ -421,7 +421,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Property Record" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={propertyRows} />
-                <p className="dd-sec-source">Source: Parcyl Data · County Assessor Records</p>
+                <p className="dd-sec-source">Source: Nightdrop Data · County Assessor Records</p>
               </div>
             </div>
 
@@ -454,7 +454,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                     </div>
                   </div>
                 )}
-                <p className="dd-sec-source">Source: Parcyl Skip Trace</p>
+                <p className="dd-sec-source">Source: Nightdrop Skip Trace</p>
               </div>
             </div>
 
@@ -462,7 +462,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Financials" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={financialsRows} />
-                <p className="dd-sec-source">Source: Parcyl AVM · County Assessor</p>
+                <p className="dd-sec-source">Source: Nightdrop AVM · County Assessor</p>
               </div>
             </div>
 
@@ -484,7 +484,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <Rows data={loanRows} />
                 )}
-                <p className="dd-sec-source">Source: Parcyl Mortgage Data · FFIEC HMDA</p>
+                <p className="dd-sec-source">Source: Nightdrop Mortgage Data · FFIEC HMDA</p>
               </div>
             </div>
 
@@ -518,7 +518,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <span style={{ color: 'var(--fg-4)', fontSize: 'var(--t-cap)' }}>No transaction history available</span>
                 )}
-                <p className="dd-sec-source">Source: Parcyl Data · County Deed Records</p>
+                <p className="dd-sec-source">Source: Nightdrop Data · County Deed Records</p>
               </div>
             </div>
 
@@ -531,7 +531,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Site &amp; Lot" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={siteRows} />
-                <p className="dd-sec-source">Source: Parcyl Data · County GIS</p>
+                <p className="dd-sec-source">Source: Nightdrop Data · County GIS</p>
               </div>
             </div>
 
@@ -555,7 +555,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Risk" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={riskRows} />
-                <p className="dd-sec-source">Source: Parcyl Distress Model · County Records</p>
+                <p className="dd-sec-source">Source: Nightdrop Distress Model · County Records</p>
               </div>
             </div>
 
@@ -591,7 +591,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                 ) : (
                   <span style={{ color: 'var(--fg-4)', fontSize: 'var(--t-cap)' }}>No distress signals recorded</span>
                 )}
-                <p className="dd-sec-source">Source: Parcyl AI · County Lien Records · Tax Assessor</p>
+                <p className="dd-sec-source">Source: Nightdrop AI · County Lien Records · Tax Assessor</p>
               </div>
             </div>
 
@@ -599,7 +599,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               <SecHead title="Deal Intel" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={dealIntelRows} />
-                <p className="dd-sec-source">Source: Parcyl Deal Engine</p>
+                <p className="dd-sec-source">Source: Nightdrop Deal Engine</p>
               </div>
             </div>
 
