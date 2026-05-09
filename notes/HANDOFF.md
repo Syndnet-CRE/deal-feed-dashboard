@@ -52,6 +52,24 @@ After the redesign deploy, login worked but the feed center column showed only h
 - **Empty narratives in pipeline (commit be21724 in scoutgpt-api):** The deal-feed pipeline was writing `narrative: ''` for every deal — there is no AI brief generation step yet (the spec called for Claude Sonnet but it was never wired). Added `composeFallbackNarrative(prop)` to `run_deal_feed.js` that builds a deterministic 2-3 sentence narrative from parcel data. Marked `TODO(brief-ai)` so a future sprint can swap it for the real Sonnet pipeline. Also added `deriveDistressSignals(prop)` so cards show distress pills.
 - **Backfill (commit be21724):** Ran `scripts/backfill_brief_narratives.js --force` against prod — 358 already-sent deals rewritten with composed narratives so the user sees content immediately, not just on tomorrow's run.
 
+## Login 500 — schema/code drift fix (2026-05-09 evening, second pass)
+
+Login was returning 500 because `routes/dealfeed/auth.js` SELECTed `failed_login_attempts` and `locked_until` from `df_subscribers`, but no migration ever created those columns. Same bug existed in forgot/reset-password handlers for `reset_token_hash` / `reset_token_expires_at`.
+
+Fixed in scoutgpt-api commits:
+- `61a2d15` — login handler now lazy-detects whether lockout columns exist (one-time information_schema check, cached in module scope) and builds the SELECT/UPDATE dynamically. Migration 045 added but not yet applied (Neon control-plane was rate-limiting from local IP). Login works regardless.
+- `10cd774` — forgot/reset-password handlers got the same defensive treatment. New hookify rule `.claude/hookify.column-existence-check.local.md` codifies the two-layer pattern (migration + lazy-detect) so this class of bug can't recur.
+
+To apply migration 045 (unblocks brute-force lockout + password reset features) once Neon recovers:
+```
+# On Render shell for scoutgpt-app:
+psql $DATABASE_WRITE_URL -f migrations/045_subscriber_login_security.sql
+```
+Or locally:
+```
+cd ~/parcyl/scoutgpt-api && node -e "require('dotenv').config(); const {Client}=require('pg'); const fs=require('fs'); const c=new Client({connectionString:process.env.DATABASE_WRITE_URL,ssl:{rejectUnauthorized:false}}); c.connect().then(()=>c.query(fs.readFileSync('migrations/045_subscriber_login_security.sql','utf8'))).then(()=>{console.log('applied');c.end();})"
+```
+
 ## Blockers for Brady
 
 1. Run migrations on Render Postgres manually:
