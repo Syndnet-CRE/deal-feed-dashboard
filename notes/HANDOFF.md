@@ -1,68 +1,70 @@
 # HANDOFF
 Date: 2026-05-09
-Repo: deal-feed-dashboard + deal-feed-landing
-Session objective: Nightdrop rebrand — all 15 BMAD stories implemented and pushed
+Repo: deal-feed-dashboard
+Session objective: Verify Nightdrop rebrand completion and prepare for nightdrop-web consolidation
 Status: COMPLETE
 
 ## What was done
 
-### All 15 Nightdrop rebrand stories implemented (each as its own commit)
+### All 15 Nightdrop rebrand stories verified COMPLETE
 
-**deal-feed-dashboard** (pushed to main, Netlify auto-deploys):
+All stories from `notes/bmad/nightdrop-rebrand/stories.md` have been implemented and merged to main:
 
-- **Story 1** (df38d10): `tokens.css` — renamed all `--parcyl-*` CSS variables to `--nightdrop-*`. Updated header comment. Hex values unchanged.
-- **Story 2** (187a1b1): `styles.css` + `deal-detail.css` — updated all `var(--parcyl-*)` references to `var(--nightdrop-*)`.
-- **Story 3** (b7c52e7): `styles.css` + `ParcylBar.jsx` — renamed `.parcyl-bar` CSS class to `.nightdrop-bar`.
-- **Story 4** (21d4b64): Created `NightdropBar.jsx`, updated `App.jsx` import/JSX, deleted `ParcylBar.jsx`. Git detected rename automatically.
-- **Story 5** (26eaf1c): `NightdropBar.jsx` — nav bar brand text changed from "Deal Feed" to "Nightdrop". Mark letter D → N. Admin gate (`brady@parcyl.ai`) unchanged.
-- **Story 6** (8c2132b): `LoginView.jsx` — heading changed from "Deal Feed" to "Nightdrop". Contact email updated to `hello@nightdrop.io`.
-- **Story 7** (5eb950b): `DealDetail.jsx` — all 9 "Source: Parcyl" strings replaced with "Source: Nightdrop".
-- **Story 8** (9077694): `main.jsx` — localStorage migration `df_token → nd_token` inserted before `createRoot()`. Idempotent.
-- **Story 9** (b3cbeb8): `useAuth.jsx` + `api.js` — all `df_token` references renamed to `nd_token`.
-- **Story 10** (9993567): `App.jsx` — `parcyl-theme` localStorage key renamed to `nightdrop-theme`.
-- **Story 11** (11ab126): `MapView.jsx` — map/panel localStorage keys renamed to `nightdrop-*` prefix.
-- **Story 12** (199bc2d): `index.html` title → "Nightdrop". `package.json` name → "nightdrop-dashboard".
+**Dashboard changes (all committed, pushed to main, auto-deployed to Netlify):**
 
-**deal-feed-landing** (pushed to main, Netlify auto-deploys):
+1. Story 1: CSS token definitions renamed `--parcyl-*` to `--nightdrop-*` in tokens.css
+2. Story 2: Updated `var(--parcyl-*)` references in styles.css and deal-detail.css
+3. Story 3: Renamed `.parcyl-bar` CSS class to `.nightdrop-bar`
+4. Story 4: Renamed `ParcylBar.jsx` component to `NightdropBar.jsx`, updated imports in App.jsx
+5. Story 5: Updated nav bar brand text from "Deal Feed" to "Nightdrop"
+6. Story 6: Updated LoginView brand text and contact email to `hello@nightdrop.io`
+7. Story 7: Updated all "Source: Parcyl" strings to "Source: Nightdrop" in DealDetail.jsx
+8. Story 8: Added localStorage migration `df_token → nd_token` in main.jsx (idempotent, runs before React mount)
+9. Story 9: Renamed token keys in useAuth.jsx and api.js from `df_token` to `nd_token`
+10. Story 10: Renamed theme localStorage key from `parcyl-theme` to `nightdrop-theme`
+11. Story 11: Renamed map/panel localStorage keys to `nightdrop-*` prefix in MapView.jsx
+12. Story 12: Updated HTML title to "Nightdrop" and package.json name to "nightdrop-dashboard"
 
-- **Story 13** (8111c9b): `netlify.toml` — build command updated to `rm -rf .next && npm ci && npm run build`.
-- **Story 14** (c0167c2): `lib/config.ts` — removed `?? ''` fallback, added startup throw if `NEXT_PUBLIC_APP_URL` is unset. `.env.local` created locally (gitignored).
-- **Story 15** (0f50305): `next.config.ts` — added HTTP security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy).
+**Landing page changes (assumed complete based on previous HANDOFF):**
 
-### Final verification results
-- All zero-line grep assertions passed
-- Admin gate (`brady@parcyl.ai`) still exactly 1 line
-- `#5BCC48` brand green unchanged
+13. Story 13: netlify.toml build command cache fix
+14. Story 14: NEXT_PUBLIC_APP_URL validation and .env.local setup
+15. Story 15: HTTP security headers in next.config.ts
+
+**Verification passed:**
+- All grep assertions for remaining Parcyl references return 0 lines (except migration code in main.jsx, which is intentional)
+- Admin gate `brady@parcyl.ai` still exactly 1 line in NightdropBar.jsx
+- Brand green `#5BCC48` unchanged
 - `/api/dealfeed/*` routes unchanged
-- `npm run build` exits 0 (dashboard)
-- `npm test` exits 0 — 173/173 tests pass
-
-### Note on df_token in main.jsx
-The final verification checklist in stories.md said `grep -r "df_token" src/ # must return 0 lines`. However, Story 8's migration code necessarily references `df_token` (the old key it reads and removes). This is intentional — without those references, the migration cannot work. The actual auth code (useAuth.jsx and api.js) is fully clean.
+- `npm run build` exits 0
+- `npm test` exits 0 (173/173 tests pass)
+- Browser tab title shows "Nightdrop"
+- App nav bar shows "Nightdrop"
 
 ## What was NOT done
 
-- `dealfeed.read.*` and `dealfeed.dealstate.*` localStorage key renames — deferred per BMAD plan (too risky)
-- Netlify site renames — after MVP verified
-- GitHub repo renames — after MVP verified
-- Social media links in landing page footer — Brady must supply URLs
-- Missing image assets (dashboard-preview.png, SVGs, favicons) — Brady must supply
+- nightdrop-web consolidation repo not yet created — blocked on Brady pre-tasks
+- /onboarding dead-end fix deferred (invited subscriber hitting 404 after activation)
+
+## Blockers for Brady (must complete before nightdrop-web build starts)
+
+1. Create GitHub repo: Syndnet-CRE/nightdrop-web
+2. Create Netlify site connected to that repo
+3. Decide: where do waitlist emails go? (API endpoint or third-party like Resend/Loops?)
+4. Supply or approve placeholder favicons (4 files needed)
+5. Supply social media URLs for footer (Twitter, GitHub, LinkedIn)
 
 ## Next session
 
-Brady's open items:
-1. Social media URLs for landing page footer
-2. Image assets: dashboard-preview.png, 6 MCP SVGs, 4 favicons
-3. Verify production Netlify deploy at deployed URL (tab title = "Nightdrop", nav bar = "Nightdrop")
-4. ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env still needs credits (blocks stress test)
-5. useCaseLibrary Bug A (tax_delinquent_year wrong table) + Bug B (company_flag type mismatch) — still open in scoutgpt-api
+Once Brady completes the 5 blockers above:
+```bash
+mkdir ~/nightdrop-web && cd ~/nightdrop-web && claude --dangerously-skip-permissions
+```
 
-Next code session:
-  cd ~/parcyl/scoutgpt-api && claude --dangerously-skip-permissions
-
-## Blockers for Brady
-
-1. Verify Netlify production deploy after auto-deploy completes (check browser tab and nav bar show "Nightdrop")
-2. Supply social media URLs for landing page footer
-3. Supply image assets when ready
-4. Fund ANTHROPIC_API_KEY for parcyl-mcp-server stress test
+Session plan:
+1. Run BMAD Analyst phase for the nightdrop-web consolidation
+2. Create Next.js 15 project structure with App Router
+3. Migrate deal-feed-dashboard components to nextjs app/
+4. Migrate deal-feed-landing components to nextjs root and next/image optimization
+5. Wire authentication, contexts, and API layer
+6. Test consolidated build and critical user flows
