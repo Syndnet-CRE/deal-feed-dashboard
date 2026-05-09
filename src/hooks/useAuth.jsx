@@ -24,13 +24,18 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  function loginWithToken(token, subscriber) {
+    setToken(token);
+    setSubscriber(subscriber);
+  }
+
   function logout() {
     clearToken();
     setSubscriber(null);
   }
 
   return (
-    <AuthContext.Provider value={{ subscriber, loading, login, logout }}>
+    <AuthContext.Provider value={{ subscriber, loading, login, loginWithToken, logout }}>
       {children}
     </AuthContext.Provider>
   );

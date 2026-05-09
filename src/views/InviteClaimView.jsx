@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 export function InviteClaimView() {
   const { token } = useParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { loginWithToken } = useAuth();
 
   const [status, setStatus] = useState('loading');
   const [email, setEmail] = useState('');
@@ -40,7 +40,7 @@ export function InviteClaimView() {
         full_name: form.full_name,
         password: form.password,
       });
-      login(res.token, res.subscriber);
+      loginWithToken(res.token, res.subscriber);
       navigate('/onboarding');
     } catch (err) {
       setErrorMsg(err.message || 'Something went wrong. Try again.');
