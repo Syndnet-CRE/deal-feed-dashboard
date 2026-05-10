@@ -1,26 +1,18 @@
 import { useState, useMemo } from 'react';
-import { Inbox, Mail, Star, Flame } from 'lucide-react';
+import { Star, Flame, Mail, Inbox } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import { PipelineTimeline } from '../components/PipelineTimeline';
-import TonightsRunCard from '../components/feed/TonightsRunCard';
 import FeedDealCard from '../components/feed/FeedDealCard';
 import AgentMessageCard from '../components/feed/AgentMessageCard';
-import MessageInputBar from '../components/feed/MessageInputBar';
+import ChatFab from '../components/feed/ChatFab';
 import RightRail from '../components/RightRail';
+import LeftRail from '../components/LeftRail';
 
-const FILTERS = [
-  { id: 'all',    label: 'All',    Icon: Inbox },
-  { id: 'unread', label: 'Unread', Icon: Mail },
-  { id: 'saved',  label: 'Saved',  Icon: Star },
-  { id: 'hot',    label: 'Hot',    Icon: Flame },
-];
-
-export function DashboardView({ kpis, searchQuery }) {
+export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = () => {} }) {
   const { deals, loading } = useDeals();
   const [agentMessages, setAgentMessages] = useState([]);
   const [hiddenIds, setHiddenIds] = useState(new Set());
   const [selectedDealId, setSelectedDealId] = useState(null);
-  const [filter, setFilter] = useState('all');
 
   const filteredDeals = useMemo(() => {
     const q = (searchQuery || '').toLowerCase().trim();
@@ -63,28 +55,19 @@ export function DashboardView({ kpis, searchQuery }) {
 
       <div className="feed-scroll-area">
         <div className="feed-content-row">
-          <div className="feed-center-col">
-            <div className="feed-filter-chips">
-              {FILTERS.map(({ id, label, Icon }) => (
-                <button
-                  key={id}
-                  className={`feed-filter-chip${filter === id ? ' active' : ''}`}
-                  onClick={() => setFilter(id)}
-                >
-                  <Icon size={13} />
-                  <span>{label}</span>
-                  <span className="feed-filter-chip-count">{counts[id] ?? 0}</span>
-                </button>
-              ))}
-            </div>
+          <LeftRail
+            filter={filter}
+            setFilter={setFilter}
+            counts={counts}
+            kpis={kpis}
+          />
 
+          <div className="feed-center-col">
             <div className="feed-center" id="feed-scroll">
               {loading ? (
                 <div className="feed-loading">Loading your deals…</div>
               ) : (
                 <>
-                  <TonightsRunCard kpis={kpis} />
-
                   {agentMessages.map(msg =>
                     msg.role === 'agent'
                       ? <AgentMessageCard key={msg.id} message={msg} />
@@ -133,7 +116,6 @@ export function DashboardView({ kpis, searchQuery }) {
               )}
             </div>
 
-            <MessageInputBar onMessage={handleMessage} activeDealId={selectedDealId} />
           </div>
 
           <RightRail
@@ -143,6 +125,8 @@ export function DashboardView({ kpis, searchQuery }) {
           />
         </div>
       </div>
+
+      <ChatFab onMessage={handleMessage} activeDealId={selectedDealId} />
     </div>
   );
 }

@@ -112,6 +112,7 @@ function AppShell() {
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [kpis, setKpis] = useState(null);
+  const [feedFilter, setFeedFilter] = useState('all');
 
   const isOnDeal = !!dealMatch;
   const isModal  = isOnDeal && !!location.state?.fromMap;
@@ -183,6 +184,8 @@ function AppShell() {
             kpis={kpis}
             onCreateBuyBox={() => setShowWizard(true)}
             unreadCount={kpis?.unread_count || 0}
+            feedFilter={feedFilter}
+            setFeedFilter={setFeedFilter}
           />
 
           <main className={`app-content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
@@ -200,6 +203,8 @@ function AppShell() {
                           kpis={kpis}
                           searchQuery={searchQuery}
                           onOpenDeal={handleOpenDeal}
+                          filter={feedFilter}
+                          setFilter={setFeedFilter}
                         />
                       )}
                       {view === 'map'      && <MapView onOpenDeal={handleOpenDeal}/>}
@@ -215,6 +220,8 @@ function AppShell() {
                           kpis={kpis}
                           searchQuery={searchQuery}
                           onOpenDeal={handleOpenDeal}
+                          filter={feedFilter}
+                          setFilter={setFeedFilter}
                         />
                       )}
                       {view === 'settings' && <SettingsView onConfirmDanger={setConfirmDanger}/>}

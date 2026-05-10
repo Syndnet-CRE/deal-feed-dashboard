@@ -1,9 +1,18 @@
 import {
   LayoutDashboard, Map, Layers, Calendar, Settings,
-  UserCircle, Plus,
+  UserCircle, Plus, Users, Bookmark, Sparkles, Database,
   TrendingUp, Flame, Target, Clock,
+  Inbox, Mail, Star,
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
+import TonightsRunCard from './feed/TonightsRunCard';
+
+const FILTERS = [
+  { id: 'all',    label: 'All',    Icon: Inbox },
+  { id: 'unread', label: 'Unread', Icon: Mail },
+  { id: 'saved',  label: 'Saved',  Icon: Star },
+  { id: 'hot',    label: 'Hot',    Icon: Flame },
+];
 
 function MetricTile({ Icon, label, value, accent }) {
   return (
@@ -52,14 +61,25 @@ function MiniBarChart({ data }) {
   );
 }
 
-export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadCount }) {
-  const { buyBoxes } = useDeals();
+export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadCount, feedFilter, setFeedFilter }) {
+  const { buyBoxes, deals } = useDeals();
+
+  const filterCounts = {
+    all:    deals.length,
+    unread: deals.filter(d => !d.is_read).length,
+    saved:  deals.filter(d => !!d.saved).length,
+    hot:    deals.filter(d => d.feedback === 'hot' || (d.score || d.match_score || 0) >= 8).length,
+  };
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', Icon: LayoutDashboard },
-    { id: 'map',       label: 'Map',       Icon: Map },
-    { id: 'boxes',     label: 'Buy Boxes', Icon: Layers },
-    { id: 'calendar',  label: 'Calendar',  Icon: Calendar },
+    { id: 'dashboard', label: 'Dashboard',      Icon: LayoutDashboard },
+    { id: 'map',       label: 'Map',            Icon: Map },
+    { id: 'boxes',     label: 'Buy Boxes',      Icon: Layers },
+    { id: 'calendar',  label: 'Calendar',       Icon: Calendar },
+    { id: 'contacts',  label: 'My Contacts',    Icon: Users },
+    { id: 'saved',     label: 'My Saved Deals', Icon: Bookmark },
+    { id: 'trending',  label: "What's Trending", Icon: Sparkles },
+    { id: 'data',      label: 'Data',           Icon: Database },
   ];
 
   const responseRateValue = kpis?.response_rate != null && kpis.response_rate > 0
@@ -79,11 +99,11 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
             >
               <span className="left-panel-nav-icon">
                 <Icon size={18} />
-                {id === 'dashboard' && unreadCount > 0 && (
-                  <span className="left-panel-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
-                )}
               </span>
               <span className="left-panel-nav-label">{label}</span>
+              {id === 'dashboard' && unreadCount > 0 && (
+                <span className="left-panel-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -127,6 +147,35 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
               <MiniBarChart data={kpis.run_history} />
             </div>
           </>
+        )}
+
+        {view === 'dashboard' && setFeedFilter && (
+          <div className="left-panel-narrow-only">
+            <div className="left-panel-divider" />
+            <div className="left-panel-buy-boxes">
+              <div className="left-panel-section-header">
+                <span className="left-panel-section-label">Filter</span>
+              </div>
+              <div className="left-panel-filter-chips">
+                {FILTERS.map(({ id, label, Icon }) => (
+                  <button
+                    key={id}
+                    className={`feed-filter-chip${feedFilter === id ? ' active' : ''}`}
+                    onClick={() => setFeedFilter(id)}
+                  >
+                    <Icon size={13} />
+                    <span>{label}</span>
+                    <span className="feed-filter-chip-count">{filterCounts[id]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="left-panel-divider" />
+            <div className="left-panel-tonights-run">
+              <TonightsRunCard kpis={kpis} />
+            </div>
+          </div>
         )}
 
         <div className="left-panel-bottom">

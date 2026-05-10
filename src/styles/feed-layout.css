@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   height: var(--top-header-h);
-  background: var(--bg-card);
+  background: #0D0D0D;
   border-bottom: 1px solid var(--border-1);
   padding: 0 var(--s-5);
   gap: var(--s-4);
@@ -120,7 +120,7 @@
 .left-panel {
   width: var(--left-panel-w);
   min-width: var(--left-panel-w);
-  background: var(--bg-card);
+  background: #0D0D0D;
   border-right: 1px solid var(--border-1);
   display: flex;
   flex-direction: column;
@@ -236,12 +236,11 @@
 }
 
 .left-panel-badge {
-  position: absolute;
-  top: -6px;
-  right: -8px;
-  min-width: 16px;
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 22px;
   height: 16px;
-  background: var(--nightdrop-green-700);
+  background: var(--danger);
   color: #fff;
   border-radius: var(--r-pill);
   font-size: 9px;
@@ -249,7 +248,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 3px;
+  padding: 0 6px;
 }
 
 .left-panel-nav-label {
@@ -518,27 +517,45 @@
 
 .feed-scroll-area {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  /* Scrolling moved into .feed-center-col so the scrollbar lives inside the
+     deal column at its inner right edge — preserves the symmetric 12px gap
+     to both floating rails (scrollbar no longer eats outer column width). */
+  overflow: hidden;
 }
 
 .feed-content-row {
   display: flex;
   align-items: flex-start;
-  min-height: 100%;
+  height: 100%;
   gap: 0;
-  /* Reserve horizontal space for the floating right rail so deal cards don't
-     slide under it. = rail width 360 + right edge 12 + gap 12 */
+  /* 12px top gap matches the breathing room above both floating rails
+     so the deal feed column tops align with them (not flush against pipeline). */
+  padding-top: 12px;
+  /* Reserve horizontal space for both floating rails so the deal column
+     stays centered between them. Left = 12 + 270 + 12. Right = 12 + 360 + 12. */
+  padding-left: 294px;
   padding-right: 384px;
 }
 
 .feed-center-col {
   flex: 1;
-  max-width: 800px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   position: relative;
   min-width: 0;
+  /* Column owns the scroll so the scrollbar sits at its inner right edge
+     instead of pushing the column's outer boundary inward. */
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Hide the visual scrollbar but keep scrolling functional so the column's
+     full inner width is usable and the visible gap to both rails matches. */
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* legacy Edge / IE */
+}
+.feed-center-col::-webkit-scrollbar {
+  display: none;                /* Safari, Chrome, modern Edge */
 }
 
 .feed-center {
@@ -940,6 +957,174 @@
   margin-top: auto;
 }
 
+/* ── Chat FAB (floating action button, bottom-right of viewport) ── */
+.chat-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--nightdrop-green-700);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  transition: transform var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
+}
+.chat-fab:hover {
+  background: var(--accent-hover, var(--nightdrop-green-700));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+}
+.chat-fab:active { transform: translateY(0); }
+.chat-fab-open {
+  background: var(--bg-card);
+  color: var(--fg-1);
+  border: 1px solid var(--border-1);
+}
+
+/* ── Chat FAB popup (anchors above the FAB, floats over right rail) ── */
+.chat-fab-popup {
+  position: fixed;
+  /* Top aligns with the right rail's top edge so the popup spans the full
+     vertical height of the rail, giving the chat plenty of breathing room. */
+  top: calc(var(--top-header-h) + var(--pipeline-h) + 12px);
+  bottom: 76px;             /* 24 (fab bottom) + 40 (fab height) + 12 (gap) */
+  right: 24px;
+  width: min(var(--right-rail-w), calc(100vw - 48px));
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-fab-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--border-1);
+  flex-shrink: 0;
+}
+.chat-fab-popup-title {
+  font-size: 12px;
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.chat-fab-popup-close {
+  background: transparent;
+  border: none;
+  color: var(--fg-4);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+.chat-fab-popup-close:hover {
+  color: var(--fg-1);
+  background: var(--bg-subtle);
+}
+
+.chat-fab-popup-body {
+  padding: var(--s-3);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Welcome block, vertically centered above the input. */
+.chat-fab-welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  text-align: center;
+}
+.chat-fab-welcome-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(29, 175, 41, 0.12);
+  color: var(--nightdrop-green-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.chat-fab-welcome-title {
+  font-size: 14px;
+  font-weight: var(--w-semibold);
+  color: var(--fg-1);
+}
+.chat-fab-welcome-sub {
+  font-size: 12px;
+  color: var(--fg-4);
+}
+
+/* Neutralize the sticky composer styling and host the send button as
+   an overlay inside the textarea (relative parent + absolute child). */
+.chat-fab-popup .message-input-bar {
+  position: relative;
+  background: transparent;
+  border-top: none;
+  padding: 0;
+  margin-top: 0;
+  z-index: auto;
+  flex-shrink: 0;
+  display: block;
+}
+.chat-fab-popup .message-input-textarea {
+  min-height: 100px;
+  font-size: 12px;
+  padding: var(--s-3) 52px var(--s-3) var(--s-3);
+  width: 100%;
+}
+.chat-fab-popup .message-input-send {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+}
+
+/* ── Global scrollbar-hide ─────────────────────────────────────
+   Hide visual scrollbars across the dashboard (functional scroll preserved).
+   Targets: chat popup + body, right-rail card stack scroll, every textarea
+   inside the popup. Same technique as .feed-center-col (Firefox + WebKit). */
+.chat-fab-popup,
+.chat-fab-popup *,
+.rail-card-scroll,
+.message-input-textarea {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* legacy Edge / IE */
+}
+.chat-fab-popup::-webkit-scrollbar,
+.chat-fab-popup *::-webkit-scrollbar,
+.rail-card-scroll::-webkit-scrollbar,
+.message-input-textarea::-webkit-scrollbar {
+  display: none;                /* Safari, Chrome, modern Edge */
+  width: 0;
+  height: 0;
+}
+
 .message-input-textarea {
   flex: 1;
   background: var(--bg-card);
@@ -1068,7 +1253,7 @@
   position: fixed;
   top: calc(var(--top-header-h) + var(--pipeline-h) + 12px);
   right: 12px;
-  bottom: 80px;
+  bottom: 12px;
   width: var(--right-rail-w);
   display: flex;
   flex-direction: column;
@@ -1080,7 +1265,7 @@
 .right-rail-floating > * { pointer-events: auto; }
 
 .rail-card {
-  background: var(--bg-card);
+  background: #0D0D0D;
   border: 1px solid var(--border-1);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
@@ -1106,6 +1291,9 @@
   min-height: 0;
 }
 
+/* Stack card owns the scroll. BBH + Recent Activity + Pulse flow inside;
+   when total content exceeds the card's height the WHOLE stack scrolls
+   together. Scrollbar visually hidden via the global scrollbar-hide rule. */
 .rail-card-scroll {
   overflow-y: auto;
   overflow-x: hidden;
@@ -1574,14 +1762,7 @@
 .deal-chat-send:hover { background: var(--accent-hover); }
 .deal-chat-send:disabled { opacity: 0.4; cursor: default; }
 
-/* ── Right Rail Market Pulse ────────────────────────────────── */
-.right-rail-pulse { padding: 0; border-top: 1px solid var(--border-1); }
-.right-rail-pulse .mnf-panel {
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  padding: var(--s-4);
-}
+/* (Right Rail Market Pulse removed — Pulse moved to Left Rail.) */
 
 /* ── Recent Activity card (right rail) ──────────────────────── */
 .right-rail-activity-list {
@@ -1648,10 +1829,148 @@
   font-weight: var(--w-medium);
 }
 
+/* ── Left Rail (mirrors right rail) ─────────────────────────── */
+.left-rail-floating {
+  position: fixed;
+  top: calc(var(--top-header-h) + var(--pipeline-h) + 12px);
+  left: calc(var(--left-panel-w) + 12px);
+  bottom: 12px;
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 5;
+  pointer-events: none;
+}
+.left-rail-floating > * { pointer-events: auto; }
+
+.left-rail-filter-card,
+.left-rail-run-card {
+  padding: var(--s-4);
+}
+
+/* Market Pulse card lives at the bottom of the left rail and grows to
+   fill all remaining vertical space below Tonight's Run. */
+.left-rail-pulse-card {
+  flex: 1;
+  min-height: 0;
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.left-rail-pulse-card .mnf-panel {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.left-rail-section-label {
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--fg-4);
+  margin-bottom: var(--s-3);
+}
+
+/* 2x2 grid of chips — All / Unread on top row, Saved / Hot on bottom. */
+.left-rail-filter-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+.left-rail-filter-chips .feed-filter-chip {
+  width: 100%;
+  justify-content: center;
+  padding: 8px 8px;
+  font-size: 12px;
+  gap: 6px;
+}
+.left-rail-filter-chips .feed-filter-chip-count {
+  margin-left: 2px;
+}
+
+/* Tonight's Run card already styled; just neutralize its border so the
+   surrounding rail-card chrome is what shows. */
+.left-rail-run-card .tonights-run-card {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+/* Narrow-width fallback: the same chips/run-status appear inside the
+   left panel only when the floating left rail is hidden. */
+.left-panel-narrow-only { display: none; }
+
+.left-panel-filter-chips {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: 0 var(--s-3);
+}
+.left-panel-filter-chips .feed-filter-chip {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 6px 10px;
+}
+.left-panel-filter-chips .feed-filter-chip > span:first-of-type {
+  flex: 1;
+}
+.left-panel-filter-chips .feed-filter-chip-count {
+  margin-left: auto;
+}
+
+.left-panel-tonights-run {
+  padding: 0 var(--s-3);
+}
+
+/* responsive tier 2 (1401–1700px): shrink rails so the deal feed
+   stays readable on a 14"–16" laptop. Chips stay 2x2. */
+@media (max-width: 1700px) and (min-width: 1401px) {
+  .left-rail-floating  { width: 240px; }
+  .right-rail-floating { width: 320px; }
+  .feed-content-row    { padding-left: 264px; padding-right: 344px; }
+}
+
+/* responsive tier 3 (1181–1400px): MacBook Air width. Squeeze rails
+   harder and reflow chips back to a vertical 1x4 stack. */
+@media (max-width: 1400px) and (min-width: 1181px) {
+  .left-rail-floating  { width: 200px; }
+  .right-rail-floating { width: 260px; }
+  .feed-content-row    { padding-left: 224px; padding-right: 284px; }
+
+  .left-rail-filter-chips {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+  }
+  .left-rail-filter-chips .feed-filter-chip {
+    justify-content: flex-start;
+    padding: 8px 10px;
+  }
+  .left-rail-filter-chips .feed-filter-chip-count {
+    margin-left: auto;
+  }
+}
+
 /* responsive: hide floating right rail below 1180px and remove its reserved padding */
 @media (max-width: 1180px) {
   .right-rail-floating { display: none; }
   .feed-content-row { padding-right: 0; }
+}
+
+/* responsive: hide floating LEFT rail at the same breakpoint, restore padding,
+   and surface the chips + Tonight's Run card inside the left panel. */
+@media (max-width: 1180px) {
+  .left-rail-floating { display: none; }
+  .feed-content-row { padding-left: 0; }
+  .left-panel-narrow-only { display: block; }
 }
 
 @media (max-width: 768px) {

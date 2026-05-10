@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Star, ThumbsUp, MessageCircle, Eye } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import { DealMap } from './DealMap';
-import { MarketNewsfeed } from './MarketNewsfeed';
 
 function BuyBoxHealthCard({ box }) {
   const statusColor = {
@@ -125,10 +124,6 @@ export default function RightRail({ deals, selectedDealId, onSelectDeal }) {
           </div>
 
           <RecentActivityCard deals={deals} />
-
-          <div className="right-rail-section right-rail-pulse">
-            <MarketNewsfeed />
-          </div>
         </div>
       </div>
     </aside>
