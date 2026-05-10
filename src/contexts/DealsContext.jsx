@@ -58,8 +58,8 @@ export function DealsProvider({ children }) {
         api.get('/api/dealfeed/deals'),
         api.get('/api/dealfeed/buy-boxes'),
       ]);
-      setDeals(dealsRes.deals || []);
-      setBuyBoxes((boxesRes.buy_boxes || []).map(normalizeBuyBox));
+      setDeals(dealsRes?.deals || []);
+      setBuyBoxes((boxesRes?.buy_boxes || []).map(normalizeBuyBox));
     } catch (err) {
       console.error('[DealsContext] fetchAll failed:', err);
       setError(err.message || 'Failed to load data');
