@@ -1,8 +1,69 @@
 # HANDOFF
-Date: 2026-05-10 (post-midnight session, v6 sprint)
+Date: 2026-05-10
 Repo: deal-feed-dashboard
-Session objective: Dashboard v6 — pipeline moves into header, NEXT RUN moves into left rail, search bar dropped entirely, deal-card aerial imagery wired to Mapbox.
-Status: COMPLETE — committed (`9fb755c`) and pushed to origin/main. Netlify auto-deploying to nightdropai.netlify.app.
+Session objective: Buy Box Command Center — full PRD spec written, taxonomy updated with SFR + Hospitality, ready for autonomous BMAD build
+Status: COMPLETE — PRD at notes/bmad/buy-box-command-center/PRD.md. No code written this session.
+
+---
+
+## Next session (Buy Box Command Center build)
+
+```
+cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
+```
+
+First message (paste verbatim):
+```
+Read notes/bmad/buy-box-command-center/PRD.md. Implement stories BB-1 through BB-15 in order. One story at a time. Run tests after each story. Do not skip stories. Do not ask for confirmation between stories. Report blockers only.
+```
+
+Blockers before building:
+1. Backend migration — match_threshold needs a new column on df_buy_boxes. Frontend sends it; silent no-op until migration runs. Coordinate with Adam or run it yourself on scoutgpt-app Render shell before story BB-14.
+2. ATTOM code verification — Hospitality (260/265/270/275/293) and SFR (100/102/104) codes added this session. Verify against ATTOM before matcher runs on those asset classes or they return zero deals silently.
+3. Dev server for E2E — BB-15 (Playwright) requires npm run dev in a separate terminal. Manual step.
+
+---
+
+## What changed this session
+
+TAXONOMY — src/lib/buyBoxTaxonomy.js
+- Added Single Family asset class: SFR (100), Condo (102), Co-op (104), Manufactured Home (373)
+- Added Hospitality asset class: Hotel (260), Motel (265), Extended Stay (270), Resort (275), B&B (293)
+
+PRD — notes/bmad/buy-box-command-center/PRD.md
+- Full spec for BuyBoxesView.jsx redesign (background surface, empty state, card expansion, UUID fix, toasts)
+- Full spec for BuyBoxWizard.jsx redesign (10-step reorder, cascading geo, asset-specific criteria, match threshold)
+- 15 stories with file targets, estimated time, and test criteria
+- Definition of done
+- All toast copy, tooltip copy, hover states, CSS class names included
+
+Context audit and rules cleanup (earlier in session):
+- Deleted 11 unused language rule directories from ~/.claude/rules/ — reduced session open context from 183% to 30%
+- Remaining: common/, web/, typescript/, python/ only
+
+---
+
+## Previous session context (v6 dashboard — still relevant)
+
+- Dashboard v6 shipped (commit 9fb755c), pushed to main, live on nightdropai.netlify.app
+- Header 72px with compact pipeline track
+- NEXT RUN countdown in left rail top card
+- Search bar deleted
+- Deal cards use Mapbox Static Images for aerial thumbnails (zoom 16)
+- All chrome #0D0D0D, all gaps 12px, hidden scrollbars throughout
+
+Known debt:
+- !important CSS in feed-layout.css at 1181-1400 media query (PipelineTimeline inline styles)
+- tests/.tmp/ has leftover screenshot files — Brady can rm -rf tests/.tmp
+- <1180px narrow NEXT RUN fallback never visually verified
+
+Carried blockers:
+- ANTHROPIC_API_KEY in ~/parcyl/parcyl-mcp-server/.env
+- Migration 045 not applied
+
+---
+
+## Prior session HANDOFF content (v6 sprint detail)
 
 ---
 

@@ -71,6 +71,29 @@ export const ASSET_CLASSES = [
     ],
   },
   {
+    id: 'sfr',
+    label: 'Single Family',
+    description: 'Single family homes, condos, co-ops, and owner-occupied residential',
+    subtypes: [
+      { label: 'Single Family Residence',  code: 100 },
+      { label: 'Condominium',              code: 102 },
+      { label: 'Cooperative (Co-op)',      code: 104 },
+      { label: 'Mobile / Manufactured Home (SFR)', code: 373 },
+    ],
+  },
+  {
+    id: 'hospitality',
+    label: 'Hospitality',
+    description: 'Hotels, motels, resorts, extended stay, and bed & breakfast',
+    subtypes: [
+      { label: 'Hotel',                    code: 260 },
+      { label: 'Motel',                    code: 265 },
+      { label: 'Extended Stay / Suite Hotel', code: 270 },
+      { label: 'Resort',                   code: 275 },
+      { label: 'Bed & Breakfast / Inn',    code: 293 },
+    ],
+  },
+  {
     id: 'special_purpose',
     label: 'Special Purpose',
     description: 'Gas stations, parking, healthcare, and other specialty property types',
