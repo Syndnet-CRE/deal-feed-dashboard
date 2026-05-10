@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import {
   LayoutDashboard, Map, Layers, Calendar, Settings,
-  UserCircle, ChevronLeft, ChevronRight, Plus,
-  TrendingUp, Flame, Target, Clock
+  UserCircle, Plus,
+  TrendingUp, Flame, Target, Clock,
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 
@@ -54,7 +53,6 @@ function MiniBarChart({ data }) {
 }
 
 export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadCount }) {
-  const [collapsed, setCollapsed] = useState(false);
   const { buyBoxes } = useDeals();
 
   const navItems = [
@@ -69,16 +67,8 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
     : '—';
 
   return (
-    <aside className={`left-panel ${collapsed ? 'collapsed' : ''}`}>
+    <aside className="left-panel">
       <div className="left-panel-inner">
-
-        <button
-          className="left-panel-collapse-btn"
-          onClick={() => setCollapsed(c => !c)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
 
         <nav className="left-panel-nav">
           {navItems.map(({ id, label, Icon }) => (
@@ -86,7 +76,6 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
               key={id}
               className={`left-panel-nav-item ${view === id ? 'active' : ''}`}
               onClick={() => setView(id)}
-              title={collapsed ? label : undefined}
             >
               <span className="left-panel-nav-icon">
                 <Icon size={18} />
@@ -94,73 +83,43 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
                   <span className="left-panel-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
                 )}
               </span>
-              {!collapsed && <span className="left-panel-nav-label">{label}</span>}
+              <span className="left-panel-nav-label">{label}</span>
             </button>
           ))}
         </nav>
 
-        {!collapsed && (
-          <>
-            <div className="left-panel-divider" />
+        <div className="left-panel-divider" />
 
-            <div className="left-panel-metric-grid">
-              <MetricTile
-                Icon={TrendingUp}
-                label="New This Week"
-                value={kpis?.new_this_week ?? '—'}
-                accent="green"
-              />
-              <MetricTile
-                Icon={Flame}
-                label="Hot Deals"
-                value={kpis?.hot_deals ?? '—'}
-                accent="orange"
-              />
-              <MetricTile
-                Icon={Target}
-                label="Response Rate"
-                value={responseRateValue}
-                accent="blue"
-              />
-              <MetricTile
-                Icon={Clock}
-                label="Awaiting"
-                value={kpis?.awaiting_response ?? '—'}
-                accent="violet"
-              />
-            </div>
-          </>
-        )}
+        <div className="left-panel-metric-grid">
+          <MetricTile Icon={TrendingUp} label="New This Week" value={kpis?.new_this_week ?? '—'} accent="green" />
+          <MetricTile Icon={Flame}      label="Hot Deals"     value={kpis?.hot_deals ?? '—'}      accent="orange" />
+          <MetricTile Icon={Target}     label="Response Rate" value={responseRateValue}            accent="blue" />
+          <MetricTile Icon={Clock}      label="Awaiting"      value={kpis?.awaiting_response ?? '—'} accent="violet" />
+        </div>
 
         <div className="left-panel-divider" />
 
         <div className="left-panel-buy-boxes">
-          {!collapsed && (
-            <div className="left-panel-section-header">
-              <span className="left-panel-section-label">Buy Boxes</span>
-              <button className="left-panel-icon-btn" onClick={onCreateBuyBox} title="New buy box">
-                <Plus size={13} />
-              </button>
-            </div>
-          )}
+          <div className="left-panel-section-header">
+            <span className="left-panel-section-label">Buy Boxes</span>
+            <button className="left-panel-icon-btn" onClick={onCreateBuyBox} title="New buy box">
+              <Plus size={13} />
+            </button>
+          </div>
           {buyBoxes.length === 0 ? (
-            !collapsed && <div className="left-panel-empty">No active boxes</div>
+            <div className="left-panel-empty">No active boxes</div>
           ) : (
             buyBoxes.map(bb => (
-              <div key={bb.id} className="left-panel-bb-row" title={collapsed ? bb.label : undefined}>
+              <div key={bb.id} className="left-panel-bb-row">
                 <StatusDot status={bb.status} />
-                {!collapsed && (
-                  <>
-                    <span className="left-panel-bb-name">{bb.label}</span>
-                    <span className="left-panel-bb-count muted">{bb.deal_count ?? ''}</span>
-                  </>
-                )}
+                <span className="left-panel-bb-name">{bb.label}</span>
+                <span className="left-panel-bb-count muted">{bb.deal_count ?? ''}</span>
               </div>
             ))
           )}
         </div>
 
-        {!collapsed && kpis?.run_history?.length > 0 && (
+        {kpis?.run_history?.length > 0 && (
           <>
             <div className="left-panel-divider" />
             <div className="left-panel-run-history">
@@ -174,17 +133,13 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
           <button
             className={`left-panel-nav-item ${view === 'settings' ? 'active' : ''}`}
             onClick={() => setView('settings')}
-            title={collapsed ? 'Settings' : undefined}
           >
             <Settings size={18} />
-            {!collapsed && <span className="left-panel-nav-label">Settings</span>}
+            <span className="left-panel-nav-label">Settings</span>
           </button>
-          <button
-            className="left-panel-nav-item"
-            title={collapsed ? 'Account' : undefined}
-          >
+          <button className="left-panel-nav-item">
             <UserCircle size={18} />
-            {!collapsed && <span className="left-panel-nav-label">Account</span>}
+            <span className="left-panel-nav-label">Account</span>
           </button>
         </div>
 

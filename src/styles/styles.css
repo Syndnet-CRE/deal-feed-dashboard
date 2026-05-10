@@ -3216,8 +3216,8 @@ button { font-family: inherit; }
 }
 .pipeline-timeline-grid {
   display: grid;
-  grid-template-columns: 4fr 1fr;
-  align-items: center;
+  grid-template-columns: 1fr 4fr;
+  align-items: stretch;
   gap: 0;
 }
 .pt2-top {

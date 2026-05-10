@@ -190,7 +190,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 var(--s-2);
+  padding: var(--s-4) var(--s-2) 0;
 }
 
 .left-panel-nav-item {
@@ -527,6 +527,9 @@
   align-items: flex-start;
   min-height: 100%;
   gap: 0;
+  /* Reserve horizontal space for the floating right rail so deal cards don't
+     slide under it. = rail width 360 + right edge 12 + gap 12 */
+  padding-right: 384px;
 }
 
 .feed-center-col {
@@ -1053,26 +1056,61 @@
 .overflow-menu-item.disabled { opacity: 0.4; cursor: default; }
 .overflow-menu-icon { color: var(--fg-3); display: flex; }
 
-/* ── Right Rail (in flow with feed scroll, no own scroll) ───── */
-.right-rail {
+/* ── Right Rail v4 — floating, two cards, fixed to viewport ──
+   - Position fixed so left-panel state has zero impact on layout.
+   - 12px from the right viewport edge (floating look).
+   - Top sits below the top header + pipeline band with a 12px gap.
+   - Bottom sits above the message input bar with a 12px gap.
+   - Two cards inside: mini map (fixed height) and BBH+activity stack
+     (independent scroll). Both rounded, drop-shadowed, "floating".
+*/
+.right-rail-floating {
+  position: fixed;
+  top: calc(var(--top-header-h) + var(--pipeline-h) + 12px);
+  right: 12px;
+  bottom: 80px;
   width: var(--right-rail-w);
-  min-width: var(--right-rail-w);
-  background: var(--bg-card);
-  border-left: 1px solid var(--border-1);
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  align-self: stretch;
+  gap: 12px;
+  z-index: 5;
+  pointer-events: none;
 }
 
-.right-rail-map-wrap {
+.right-rail-floating > * { pointer-events: auto; }
+
+.rail-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.rail-card-map {
   height: 240px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--border-1);
-  overflow: hidden;
-  position: sticky;
-  top: 0;
-  z-index: 1;
+  position: relative;
+}
+
+.rail-card-map .mapboxgl-map {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: inherit;
+}
+
+.rail-card-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.rail-card-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  flex: 1;
 }
 
 .right-rail-section {
@@ -1610,9 +1648,10 @@
   font-weight: var(--w-medium);
 }
 
-/* responsive: hide right rail below 1180px (now wider) */
+/* responsive: hide floating right rail below 1180px and remove its reserved padding */
 @media (max-width: 1180px) {
-  .right-rail { display: none; }
+  .right-rail-floating { display: none; }
+  .feed-content-row { padding-right: 0; }
 }
 
 @media (max-width: 768px) {

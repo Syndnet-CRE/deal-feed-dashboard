@@ -49,8 +49,31 @@ const NODE_ICONS  = [
 ];
 
 const S = {
-  // Left 80% — animated track + phase pill row
-  trackPanel: { display: 'flex', flexDirection: 'column', gap: 0, paddingRight: 12 },
+  // LEFT 20% — countdown panel (large numbers fill the height)
+  cdPanel:   {
+    display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6,
+    paddingRight: 20,
+    borderRight: '1px solid rgba(91,204,72,0.18)',
+  },
+  cdLabel:   {
+    display: 'flex', alignItems: 'center', gap: 6,
+    fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+    color: '#1DAF29',
+    fontFamily: 'Manrope, system-ui, sans-serif',
+  },
+  cdClock:   {
+    display: 'flex', alignItems: 'baseline', gap: 4,
+    fontFamily: 'Manrope, system-ui, sans-serif',
+    fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.01em',
+    fontVariantNumeric: 'tabular-nums',
+    lineHeight: 0.95,
+  },
+  cdNum:     { fontSize: 44, lineHeight: 0.95 },
+  cdSep:     { fontSize: 28, color: '#40424D', margin: '0 2px', position: 'relative', top: -3 },
+  cdFoot:    { fontSize: 10, color: '#9DA2B3', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', fontFamily: 'Manrope, system-ui, sans-serif' },
+
+  // RIGHT 80% — animated track + phase pill row
+  trackPanel: { display: 'flex', flexDirection: 'column', gap: 0, paddingLeft: 20 },
   phaseRow:  { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 8 },
   phaseLabel:{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#9DA2B3', fontFamily: 'Manrope, system-ui, sans-serif' },
   phasePill: { display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(29,175,41,0.10)', border: '1px solid rgba(29,175,41,0.25)', borderRadius: 20, padding: '3px 10px' },
@@ -66,28 +89,6 @@ const S = {
   iconWrap:  { display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#40424D' },
   ring:      { position: 'absolute', inset: -5, borderRadius: '50%', border: '2px solid rgba(29,175,41,0.4)', pointerEvents: 'none', animation: 'ringPulse 2s ease-in-out infinite' },
   nodeLabel: { fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9DA2B3', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', lineHeight: 1 },
-
-  // Right 20% — countdown panel
-  cdPanel:   {
-    display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4,
-    paddingLeft: 16, paddingRight: 16,
-    borderLeft: '1px solid rgba(91,204,72,0.18)',
-  },
-  cdLabel:   {
-    display: 'flex', alignItems: 'center', gap: 5,
-    fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
-    color: '#1DAF29',
-    fontFamily: 'Manrope, system-ui, sans-serif',
-  },
-  cdClock:   {
-    display: 'flex', alignItems: 'baseline', gap: 2,
-    fontFamily: 'Manrope, system-ui, sans-serif',
-    fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.02em',
-    fontVariantNumeric: 'tabular-nums',
-  },
-  cdNum:     { fontSize: 24, lineHeight: 1 },
-  cdSep:     { fontSize: 18, color: '#40424D', margin: '0 1px' },
-  cdFoot:    { fontSize: 9, color: '#9DA2B3', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'Manrope, system-ui, sans-serif' },
 };
 
 export function PipelineTimeline() {
@@ -156,6 +157,21 @@ export function PipelineTimeline() {
 
   return (
     <div className="pipeline-timeline pipeline-timeline-grid">
+      <div style={S.cdPanel}>
+        <div style={S.cdLabel}>
+          <Timer size={12} />
+          <span>Next Run</span>
+        </div>
+        <div style={S.cdClock}>
+          <span style={S.cdNum} ref={cdHRef}>00</span>
+          <span style={S.cdSep}>:</span>
+          <span style={S.cdNum} ref={cdMRef}>00</span>
+          <span style={S.cdSep}>:</span>
+          <span style={S.cdNum} ref={cdSRef}>00</span>
+        </div>
+        <div style={S.cdFoot}>2:00 AM CT</div>
+      </div>
+
       <div style={S.trackPanel}>
         <div style={S.phaseRow}>
           <span style={S.phaseLabel}>Tonight&apos;s Pipeline</span>
@@ -197,20 +213,6 @@ export function PipelineTimeline() {
         </div>
       </div>
 
-      <div style={S.cdPanel}>
-        <div style={S.cdLabel}>
-          <Timer size={11} />
-          <span>Next Run</span>
-        </div>
-        <div style={S.cdClock}>
-          <span style={S.cdNum} ref={cdHRef}>00</span>
-          <span style={S.cdSep}>:</span>
-          <span style={S.cdNum} ref={cdMRef}>00</span>
-          <span style={S.cdSep}>:</span>
-          <span style={S.cdNum} ref={cdSRef}>00</span>
-        </div>
-        <div style={S.cdFoot}>2:00 AM CT</div>
-      </div>
     </div>
   );
 }

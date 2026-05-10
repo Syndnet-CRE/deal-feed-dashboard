@@ -46,18 +46,12 @@ function RecentActivityCard({ deals }) {
   const activity = useMemo(() => {
     const out = [];
     for (const d of deals || []) {
-      if (d.saved && d.saved_at) {
-        out.push({ kind: 'saved', deal: d, when: d.saved_at });
-      }
-      if (d.feedback === 'hot' && d.feedback_at) {
-        out.push({ kind: 'hot', deal: d, when: d.feedback_at });
-      }
-      if (d.is_read && d.read_at) {
-        out.push({ kind: 'read', deal: d, when: d.read_at });
-      }
+      if (d.saved && d.saved_at) out.push({ kind: 'saved', deal: d, when: d.saved_at });
+      if (d.feedback === 'hot' && d.feedback_at) out.push({ kind: 'hot', deal: d, when: d.feedback_at });
+      if (d.is_read && d.read_at) out.push({ kind: 'read', deal: d, when: d.read_at });
     }
     out.sort((a, b) => new Date(b.when) - new Date(a.when));
-    return out.slice(0, 6);
+    return out.slice(0, 8);
   }, [deals]);
 
   const ICONS = {
@@ -107,8 +101,9 @@ export default function RightRail({ deals, selectedDealId, onSelectDeal }) {
   const { buyBoxes } = useDeals();
 
   return (
-    <aside className="right-rail">
-      <div className="right-rail-map-wrap">
+    <aside className="right-rail-floating">
+      {/* Card 1: Mini map */}
+      <div className="rail-card rail-card-map">
         <DealMap
           deals={deals}
           selectedId={selectedDealId}
@@ -117,19 +112,24 @@ export default function RightRail({ deals, selectedDealId, onSelectDeal }) {
         />
       </div>
 
-      <div className="right-rail-section">
-        <div className="right-rail-section-label">Buy Box Health</div>
-        {buyBoxes.length === 0 ? (
-          <div className="right-rail-empty">No active buy boxes</div>
-        ) : (
-          buyBoxes.map(bb => <BuyBoxHealthCard key={bb.id} box={bb} />)
-        )}
-      </div>
+      {/* Card 2: Buy Box Health + Recent Activity, independent scroll */}
+      <div className="rail-card rail-card-stack">
+        <div className="rail-card-scroll">
+          <div className="right-rail-section">
+            <div className="right-rail-section-label">Buy Box Health</div>
+            {buyBoxes.length === 0 ? (
+              <div className="right-rail-empty">No active buy boxes</div>
+            ) : (
+              buyBoxes.map(bb => <BuyBoxHealthCard key={bb.id} box={bb} />)
+            )}
+          </div>
 
-      <RecentActivityCard deals={deals} />
+          <RecentActivityCard deals={deals} />
 
-      <div className="right-rail-section right-rail-pulse">
-        <MarketNewsfeed />
+          <div className="right-rail-section right-rail-pulse">
+            <MarketNewsfeed />
+          </div>
+        </div>
       </div>
     </aside>
   );
