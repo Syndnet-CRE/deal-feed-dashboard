@@ -1,6 +1,6 @@
-import { Search } from 'lucide-react';
+import { PipelineTimeline } from './PipelineTimeline';
 
-export default function TopHeader({ searchQuery, onSearchChange }) {
+export default function TopHeader() {
   return (
     <header className="top-header">
       <div className="top-header-wordmark">
@@ -8,15 +8,8 @@ export default function TopHeader({ searchQuery, onSearchChange }) {
         Nightdrop.ai
       </div>
 
-      <div className="top-header-search">
-        <Search size={14} className="top-header-search-icon" />
-        <input
-          className="top-header-search-input"
-          type="text"
-          placeholder="Search deals by address or asset class"
-          value={searchQuery}
-          onChange={e => onSearchChange(e.target.value)}
-        />
+      <div className="top-header-pipeline">
+        <PipelineTimeline mode="track" compact />
       </div>
     </header>
   );

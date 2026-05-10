@@ -110,7 +110,6 @@ function AppShell() {
   const [showWizard, setShowWizard] = useState(false);
   const [editingBuyBox, setEditingBuyBox] = useState(null);
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [kpis, setKpis] = useState(null);
   const [feedFilter, setFeedFilter] = useState('all');
 
@@ -175,7 +174,7 @@ function AppShell() {
     <DealStateProvider>
     <DealsProvider>
       <div className="app has-sidebar">
-        <TopHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+        <TopHeader />
 
         <div className="app-body">
           <LeftPanel
@@ -201,7 +200,6 @@ function AppShell() {
                       {view === 'dashboard' && (
                         <DashboardView
                           kpis={kpis}
-                          searchQuery={searchQuery}
                           onOpenDeal={handleOpenDeal}
                           filter={feedFilter}
                           setFilter={setFeedFilter}
@@ -218,7 +216,6 @@ function AppShell() {
                       {view === 'calendar' && (
                         <DashboardView
                           kpis={kpis}
-                          searchQuery={searchQuery}
                           onOpenDeal={handleOpenDeal}
                           filter={feedFilter}
                           setFilter={setFeedFilter}

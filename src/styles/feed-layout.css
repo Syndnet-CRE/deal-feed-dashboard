@@ -64,32 +64,25 @@
   flex-shrink: 0;
 }
 
-.top-header-search {
+.top-header-pipeline {
+  flex: 1;
   display: flex;
   align-items: center;
-  flex: 1;
-  max-width: 480px;
-  background: var(--bg-subtle);
-  border: 1px solid var(--border-1);
-  border-radius: var(--r-pill);
-  padding: 0 var(--s-3);
-  gap: var(--s-2);
-  height: 34px;
+  min-width: 0;
+  margin-left: var(--s-4);
 }
 
-.top-header-search-icon { color: var(--fg-4); flex-shrink: 0; }
-
-.top-header-search-input {
+.top-header-pipeline .pipeline-track-only {
   flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--fg-1);
+  min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
-.top-header-search-input::placeholder { color: var(--fg-4); }
+.top-header-pipeline .pipeline-track-panel {
+  flex: 1;
+  min-width: 0;
+}
 
 .top-header-countdown {
   margin-left: auto;
@@ -1845,8 +1838,29 @@
 .left-rail-floating > * { pointer-events: auto; }
 
 .left-rail-filter-card,
-.left-rail-run-card {
+.left-rail-run-card,
+.left-rail-nextrun-card {
   padding: var(--s-4);
+}
+
+/* NEXT RUN countdown card sits at the top of the left rail. */
+.left-rail-nextrun-card {
+  display: flex;
+  flex-direction: column;
+}
+.left-rail-nextrun-card .pipeline-countdown-only {
+  width: 100%;
+}
+.left-rail-nextrun-card .pipeline-cd-panel {
+  align-items: flex-start;
+}
+
+/* Narrow fallback (<1180px) NEXT RUN inside the fixed LeftPanel. */
+.left-panel-nextrun {
+  padding: var(--s-3);
+}
+.left-panel-nextrun .pipeline-cd-panel {
+  align-items: flex-start;
 }
 
 /* Market Pulse card lives at the bottom of the left rail and grows to
@@ -1957,6 +1971,10 @@
   .left-rail-filter-chips .feed-filter-chip-count {
     margin-left: auto;
   }
+
+  /* NextRun clock fits the 200px rail without clipping. */
+  .left-rail-nextrun-card .pipeline-cd-num { font-size: 22px !important; }
+  .left-rail-nextrun-card .pipeline-cd-sep { font-size: 16px !important; }
 }
 
 /* responsive: hide floating right rail below 1180px and remove its reserved padding */

@@ -7,7 +7,7 @@ import DealChatThread from './DealChatThread';
 import { fmt, fmtMoney } from '../../lib/format';
 import { api } from '../../lib/api';
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || '';
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 function fmtTimestamp(sentAt) {
   if (!sentAt) return '';
@@ -205,11 +205,12 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
       </div>
 
       <div className="feed-deal-image-wrap" onClick={() => navigate(`/deal/${deal.id}`)}>
-        {GOOGLE_MAPS_KEY && deal.lat && deal.lng ? (
+        {MAPBOX_TOKEN && deal.lat && deal.lng ? (
           <img
             className="feed-deal-image"
-            src={`https://maps.googleapis.com/maps/api/staticmap?center=${deal.lat},${deal.lng}&zoom=18&size=720x220&maptype=satellite&key=${GOOGLE_MAPS_KEY}`}
+            src={`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${deal.lng},${deal.lat},16/1024x280@2x?access_token=${MAPBOX_TOKEN}&logo=false&attribution=false`}
             alt={deal.addr || deal.address}
+            loading="lazy"
             onError={e => {
               e.target.style.display = 'none';
               const fb = e.target.nextElementSibling;
@@ -219,7 +220,7 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
         ) : null}
         <div
           className="feed-deal-image-fallback"
-          style={{ display: GOOGLE_MAPS_KEY && deal.lat && deal.lng ? 'none' : 'flex' }}
+          style={{ display: MAPBOX_TOKEN && deal.lat && deal.lng ? 'none' : 'flex' }}
         >
           <span className="feed-deal-image-placeholder">{deal.asset_class || deal.asset || 'Property'}</span>
         </div>

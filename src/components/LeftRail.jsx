@@ -1,6 +1,7 @@
 import { Inbox, Mail, Star, Flame } from 'lucide-react';
 import TonightsRunCard from './feed/TonightsRunCard';
 import { MarketNewsfeed } from './MarketNewsfeed';
+import { PipelineTimeline } from './PipelineTimeline';
 
 const FILTERS = [
   { id: 'all',    label: 'All',    Icon: Inbox },
@@ -12,6 +13,10 @@ const FILTERS = [
 export default function LeftRail({ filter, setFilter, counts, kpis }) {
   return (
     <aside className="left-rail-floating">
+      <div className="rail-card left-rail-nextrun-card">
+        <PipelineTimeline mode="countdown" />
+      </div>
+
       <div className="rail-card left-rail-filter-card">
         <div className="left-rail-section-label">Filter</div>
         <div className="left-rail-filter-chips">

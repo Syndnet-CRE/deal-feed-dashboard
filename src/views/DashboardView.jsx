@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Star, Flame, Mail, Inbox } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
-import { PipelineTimeline } from '../components/PipelineTimeline';
 import FeedDealCard from '../components/feed/FeedDealCard';
 import AgentMessageCard from '../components/feed/AgentMessageCard';
 import ChatFab from '../components/feed/ChatFab';
@@ -49,10 +48,6 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
 
   return (
     <div className="feed-layout">
-      <div className="feed-band-wrap">
-        <PipelineTimeline />
-      </div>
-
       <div className="feed-scroll-area">
         <div className="feed-content-row">
           <LeftRail
