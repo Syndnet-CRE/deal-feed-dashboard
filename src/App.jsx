@@ -131,6 +131,15 @@ function AppShell() {
     if (!loading && !subscriber) navigate('/login');
   }, [subscriber, loading, navigate]);
 
+  // Normalize URL: if subscriber is loaded and we're at the bare "/" or "/login",
+  // push to "/dashboard" so the URL bar reflects the actual view.
+  useEffect(() => {
+    if (loading || !subscriber) return;
+    if (location.pathname === '/' || location.pathname === '/login') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [loading, subscriber, location.pathname, navigate]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Escape') return;
