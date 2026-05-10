@@ -494,35 +494,52 @@
 
 .left-panel-empty { font-size: 12px; color: var(--fg-4); padding: var(--s-2) var(--s-4); }
 
-/* ── Feed Layout ────────────────────────────────────────────── */
+/* ── Feed Layout v3 ─────────────────────────────────────────── */
+/* Architecture:
+   - .feed-layout: flex column, fixed to viewport height. Holds sticky band + scroll area.
+   - .feed-band-wrap: pipeline + countdown band, NEVER scrolls. Sticky-positioned by being
+     outside the scroll area.
+   - .feed-scroll-area: the ONE scrolling viewport. Center column AND right rail are
+     siblings inside it, so they scroll together.
+   - .feed-center-col: contains sticky filter chips at top, scrollable list of cards in
+     middle, sticky message input bar at bottom.
+   - .right-rail: in flow, no own scroll, scrolls with the feed.
+   This eliminates the dual-scroll problem and the centering gaps. */
 .feed-layout {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.feed-columns {
-  display: flex;
-  flex: 1;
   overflow: hidden;
-  gap: 0;
-  justify-content: center;
 }
 
-.feed-center-wrap {
+.feed-band-wrap {
+  flex-shrink: 0;
+}
+
+.feed-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.feed-content-row {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100%;
+  gap: 0;
+}
+
+.feed-center-col {
+  flex: 1;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  max-width: 720px;
-  min-width: 480px;
-  overflow: hidden;
   position: relative;
+  min-width: 0;
 }
 
 .feed-center {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--s-5) var(--s-4) 120px;
+  padding: 0 var(--s-4) var(--s-3);
   display: flex;
   flex-direction: column;
   gap: var(--s-4);
@@ -906,7 +923,7 @@
   max-width: 80%;
 }
 
-/* ── Message Input Bar ──────────────────────────────────────── */
+/* ── Message Input Bar (sticky at bottom of scroll viewport) ── */
 .message-input-bar {
   position: sticky;
   bottom: 0;
@@ -916,7 +933,8 @@
   display: flex;
   align-items: flex-end;
   gap: var(--s-2);
-  z-index: 10;
+  z-index: 6;
+  margin-top: auto;
 }
 
 .message-input-textarea {
@@ -1035,7 +1053,7 @@
 .overflow-menu-item.disabled { opacity: 0.4; cursor: default; }
 .overflow-menu-icon { color: var(--fg-3); display: flex; }
 
-/* ── Right Rail ─────────────────────────────────────────────── */
+/* ── Right Rail (in flow with feed scroll, no own scroll) ───── */
 .right-rail {
   width: var(--right-rail-w);
   min-width: var(--right-rail-w);
@@ -1043,15 +1061,18 @@
   border-left: 1px solid var(--border-1);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
   flex-shrink: 0;
+  align-self: stretch;
 }
 
 .right-rail-map-wrap {
-  height: 220px;
+  height: 240px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-1);
   overflow: hidden;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .right-rail-section {
@@ -1231,13 +1252,18 @@
 .muted { color: var(--fg-4); }
 .sm { font-size: 12px; }
 
-/* ── Feed Filter Chips ──────────────────────────────────────── */
+/* ── Feed Filter Chips (sticky inside scroll viewport) ──────── */
 .feed-filter-chips {
   display: flex;
   gap: var(--s-2);
-  padding: var(--s-3) var(--s-4) 0;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-page);
   flex-shrink: 0;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  border-bottom: 1px solid var(--border-2);
 }
 
 .feed-filter-chip {
@@ -1519,12 +1545,77 @@
   padding: var(--s-4);
 }
 
-/* responsive: hide right rail below 1100px */
-@media (max-width: 1100px) {
+/* ── Recent Activity card (right rail) ──────────────────────── */
+.right-rail-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.right-rail-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--border-2);
+}
+
+.right-rail-activity-item:last-child {
+  border-bottom: 0;
+}
+
+.right-rail-activity-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-subtle);
+  color: var(--fg-3);
+}
+
+.kind-saved .right-rail-activity-icon { color: var(--warning); background: rgba(244,183,62,0.12); }
+.kind-hot .right-rail-activity-icon { color: var(--nightdrop-green-700); background: rgba(29,175,41,0.12); }
+.kind-read .right-rail-activity-icon { color: var(--info); background: rgba(62,123,250,0.12); }
+
+.right-rail-activity-body { flex: 1; min-width: 0; }
+
+.right-rail-activity-line {
+  font-size: 12px;
+  color: var(--fg-2);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.right-rail-activity-verb {
+  font-weight: var(--w-semibold);
+  color: var(--fg-1);
+}
+
+.right-rail-activity-target {
+  color: var(--fg-3);
+}
+
+.right-rail-activity-time {
+  font-size: 10px;
+  color: var(--fg-4);
+  margin-top: 2px;
+  font-weight: var(--w-medium);
+}
+
+/* responsive: hide right rail below 1180px (now wider) */
+@media (max-width: 1180px) {
   .right-rail { display: none; }
 }
 
 @media (max-width: 768px) {
   .left-panel { display: none; }
-  .feed-center-wrap { min-width: 0; }
+  .feed-center-col { min-width: 0; }
 }

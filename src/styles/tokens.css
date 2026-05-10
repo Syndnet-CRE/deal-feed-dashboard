@@ -152,11 +152,11 @@
   --bg-agent-card:  #F0FAF0;
   --bg-user-card:   #F5F7FF;
   --bg-nav-active:  #E8FAE6;
-  --left-panel-w:   240px;
+  --left-panel-w:   280px;
   --left-panel-collapsed-w: 60px;
   --top-header-h:   56px;
-  --pipeline-h:     80px;
-  --right-rail-w:   280px;
+  --pipeline-h:     117px;
+  --right-rail-w:   360px;
 }
 
 /* ─────────────────────────────────────────────────────────────

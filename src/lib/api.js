@@ -1,5 +1,4 @@
 const BASE = import.meta.env.VITE_API_BASE_URL || '';
-const DEV_BYPASS = import.meta.env.DEV;
 
 function getToken() {
   return localStorage.getItem('nd_token');
@@ -25,9 +24,6 @@ async function request(path, options = {}) {
   });
 
   if (res.status === 401) {
-    // In dev-bypass mode, swallow 401s instead of bouncing to /login.
-    // The dashboard will render with empty data — that's fine for layout review.
-    if (DEV_BYPASS) return null;
     clearToken();
     window.location.href = '/login';
     return;

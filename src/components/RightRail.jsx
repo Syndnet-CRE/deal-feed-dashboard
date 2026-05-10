@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+import { Star, ThumbsUp, MessageCircle, Eye } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import { DealMap } from './DealMap';
 import { MarketNewsfeed } from './MarketNewsfeed';
@@ -27,6 +29,80 @@ function BuyBoxHealthCard({ box }) {
   );
 }
 
+function relativeTime(date) {
+  if (!date) return '';
+  const diffMs = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function RecentActivityCard({ deals }) {
+  const activity = useMemo(() => {
+    const out = [];
+    for (const d of deals || []) {
+      if (d.saved && d.saved_at) {
+        out.push({ kind: 'saved', deal: d, when: d.saved_at });
+      }
+      if (d.feedback === 'hot' && d.feedback_at) {
+        out.push({ kind: 'hot', deal: d, when: d.feedback_at });
+      }
+      if (d.is_read && d.read_at) {
+        out.push({ kind: 'read', deal: d, when: d.read_at });
+      }
+    }
+    out.sort((a, b) => new Date(b.when) - new Date(a.when));
+    return out.slice(0, 6);
+  }, [deals]);
+
+  const ICONS = {
+    saved: <Star size={12} />,
+    hot:   <ThumbsUp size={12} />,
+    read:  <Eye size={12} />,
+    chat:  <MessageCircle size={12} />,
+  };
+
+  const VERBS = {
+    saved: 'Saved',
+    hot:   'Marked hot',
+    read:  'Viewed',
+    chat:  'Discussed',
+  };
+
+  return (
+    <div className="right-rail-section">
+      <div className="right-rail-section-label">Recent Activity</div>
+      {activity.length === 0 ? (
+        <div className="right-rail-empty">
+          Save, react to, or open a deal — your activity will show up here.
+        </div>
+      ) : (
+        <ul className="right-rail-activity-list">
+          {activity.map((a, i) => (
+            <li key={i} className={`right-rail-activity-item kind-${a.kind}`}>
+              <span className="right-rail-activity-icon">{ICONS[a.kind]}</span>
+              <div className="right-rail-activity-body">
+                <div className="right-rail-activity-line">
+                  <span className="right-rail-activity-verb">{VERBS[a.kind]}</span>{' '}
+                  <span className="right-rail-activity-target">
+                    {a.deal.addr || a.deal.address || 'a deal'}
+                  </span>
+                </div>
+                <div className="right-rail-activity-time">{relativeTime(a.when)}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export default function RightRail({ deals, selectedDealId, onSelectDeal }) {
   const { buyBoxes } = useDeals();
 
@@ -49,6 +125,8 @@ export default function RightRail({ deals, selectedDealId, onSelectDeal }) {
           buyBoxes.map(bb => <BuyBoxHealthCard key={bb.id} box={bb} />)
         )}
       </div>
+
+      <RecentActivityCard deals={deals} />
 
       <div className="right-rail-section right-rail-pulse">
         <MarketNewsfeed />

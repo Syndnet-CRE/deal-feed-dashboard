@@ -1,68 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   LayoutDashboard, Map, Layers, Calendar, Settings,
   UserCircle, ChevronLeft, ChevronRight, Plus,
-  TrendingUp, Flame, Target, Clock, Timer
+  TrendingUp, Flame, Target, Clock
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
-
-const TZ = 'America/Chicago';
-
-function getCTSecondsUntil2am() {
-  const fmt = new Intl.DateTimeFormat('en-US', {
-    timeZone: TZ, hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
-  });
-  const parts = fmt.formatToParts(new Date());
-  const get = (t) => parseInt(parts.find(p => p.type === t)?.value ?? '0', 10);
-  const nowSecs = get('hour') * 3600 + get('minute') * 60 + get('second');
-  const target = 2 * 3600;
-  return nowSecs < target ? target - nowSecs : 86400 - nowSecs + target;
-}
-
-function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
-
-function useNextRunCountdown() {
-  const [secs, setSecs] = useState(() => getCTSecondsUntil2am());
-
-  useEffect(() => {
-    const id = setInterval(() => setSecs(getCTSecondsUntil2am()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  return { hh: pad(h), mm: pad(m), ss: pad(s) };
-}
-
-function CountdownTile({ collapsed }) {
-  const { hh, mm, ss } = useNextRunCountdown();
-
-  if (collapsed) {
-    return (
-      <div className="left-panel-countdown-tile collapsed" title={`Next run in ${hh}:${mm}:${ss}`}>
-        <Timer size={16} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="left-panel-countdown-tile">
-      <div className="left-panel-countdown-label">
-        <Timer size={11} />
-        <span>Next Run In</span>
-      </div>
-      <div className="left-panel-countdown-clock">
-        <span className="cd-num">{hh}</span>
-        <span className="cd-sep">:</span>
-        <span className="cd-num">{mm}</span>
-        <span className="cd-sep">:</span>
-        <span className="cd-num">{ss}</span>
-      </div>
-      <div className="left-panel-countdown-foot">2:00 AM CT</div>
-    </div>
-  );
-}
 
 function MetricTile({ Icon, label, value, accent }) {
   return (
@@ -138,10 +80,6 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
 
-        <div className="left-panel-wordmark">
-          {collapsed ? <span className="left-panel-n">N</span> : <span>Nightdrop.ai</span>}
-        </div>
-
         <nav className="left-panel-nav">
           {navItems.map(({ id, label, Icon }) => (
             <button
@@ -160,12 +98,6 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
             </button>
           ))}
         </nav>
-
-        <div className="left-panel-divider" />
-
-        <div className="left-panel-countdown-wrap">
-          <CountdownTile collapsed={collapsed} />
-        </div>
 
         {!collapsed && (
           <>
