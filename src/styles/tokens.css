@@ -163,6 +163,24 @@
   --green-text-fg: #4FE26B;
   --success-red-fg: #F46B6F;
   --wizard-dark-bg: #06200B;
+
+  /* ── buyBoxes.css compatibility aliases ─────────────────── */
+  --bg: var(--bg-page);
+  --fg: var(--fg-1);
+  --fg-dim: var(--fg-3);
+  --fg-muted: var(--fg-4);
+  --fg-inverse: var(--nightdrop-ink);
+  --accent-hi: var(--accent-hover);
+  --accent-tint: var(--accent-soft);
+  --surface: var(--bg-card);
+  --surface-hi: var(--bg-card-hover);
+  --surface-hi-2: var(--bg-subtle);
+  --bg-sunken: var(--bg-subtle);
+  --border: var(--border-1);
+  --border-faint: var(--border-2);
+  --warn: var(--warning);
+  --danger-hi: color-mix(in srgb, var(--danger) 70%, white);
+  --danger-tint: color-mix(in srgb, var(--danger) 15%, transparent);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -199,6 +217,10 @@
   --bg-agent-card:  #1E2A1F;
   --bg-user-card:   #2A2A35;
   --bg-nav-active:  #0E1A10;
+
+  /* ── buyBoxes.css dark overrides ────────────────────────── */
+  --surface-hi-2: rgba(255,255,255,0.08);
+  --bg-sunken: #080809;
 }
 
 /* ─────────────────────────────────────────────────────────────
