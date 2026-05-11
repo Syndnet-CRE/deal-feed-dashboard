@@ -157,6 +157,12 @@
   --top-header-h:   72px;
   --pipeline-h:     0px;
   --right-rail-w:   360px;
+
+  /* ── Wizard-specific tokens (dark mode only) ─────────────── */
+  --fg-light-mute: #C8CAD6;
+  --green-text-fg: #4FE26B;
+  --success-red-fg: #F46B6F;
+  --wizard-dark-bg: #06200B;
 }
 
 /* ─────────────────────────────────────────────────────────────

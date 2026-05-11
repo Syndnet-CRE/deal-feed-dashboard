@@ -1,10 +1,65 @@
 /**
+ * EMPTY_FORM constant — the initial state structure for the buy box wizard.
+ * All fields initialized with sensible defaults.
+ */
+export const EMPTY_FORM = {
+  assets: [],
+  geo: {
+    states: [],
+    counties: [],
+    zips: [],
+  },
+  phys: {
+    sf_min: null,
+    sf_max: null,
+    acres_min: null,
+    acres_max: null,
+    year_min: null,
+    year_max: null,
+    stories_min: null,
+    stories_max: null,
+    units_min: null,
+    units_max: null,
+    zoning_codes: [],
+  },
+  fin: {
+    price_min: null,
+    price_max: null,
+    equity_preset: null,
+    assessed_below_market: false,
+  },
+  owner: {
+    entity: [],
+    occupancy: null,
+    hold_min: null,
+    hold_max: null,
+    out_of_state: false,
+  },
+  signals: [],
+  logic: {
+    mode: 'or',
+  },
+  risk: {
+    climate_max: 100,
+    flood_exclude: false,
+    wildfire_max: 100,
+    heat_max: 100,
+  },
+  threshold: 0.80,
+  name: null,
+  delivery: {
+    cadence: 'daily',
+    max_per_run: 10,
+  },
+};
+
+/**
  * Converts a value to a number or null.
  * Empty strings become null; other values are converted via Number().
  * @param {string|number|null|undefined} v
  * @returns {number|null}
  */
-export function toNum(v) {
+function toNum(v) {
   if (v === '' || v === null || v === undefined) return null;
   const n = Number(v);
   if (!isFinite(n)) return null;
@@ -12,85 +67,199 @@ export function toNum(v) {
 }
 
 /**
- * Checks if the active geo mode has data filled in.
- * @param {Object} form - form state
- * @returns {boolean}
- */
-export function activeGeoHasData(form) {
-  const { geoMode, geo_states, geo_cities, geo_zips, geo_radius_address } = form;
-
-  if (geoMode === 'state') return geo_states.length > 0;
-  if (geoMode === 'metro') return geo_cities.length > 0;
-  if (geoMode === 'zip') return geo_zips.length > 0;
-  if (geoMode === 'radius') {
-    return geo_radius_address.trim().length > 0 && toNum(form.geo_radius_miles) > 0;
-  }
-  return false;
-}
-
-/**
- * 10-step gate for the BuyBoxWizard.
- * Steps: 1=AssetClass, 2=SubAsset(opt), 3=Name, 4=Geo,
- *        5=Criteria(opt), 6=Ownership(opt), 7=Distress(opt),
- *        8=Threshold(opt), 9=Schedule(opt), 10=Review
+ * Determines if the form can proceed to the next step.
+ * Step 1: requires form.assets.length > 0 AND form.geo.states.length > 0
+ * Steps 2-5: always return true
+ * Step 6: requires form.name to be non-empty trimmed string
+ *
  * @param {number} step
  * @param {Object} form
  * @returns {boolean}
  */
 export function canProceedStep(step, form) {
-  if (step === 1) return !!form.asset_class;
-  if (step === 2) return true;
-  if (step === 3) return form.label.trim().length > 0;
-  if (step === 4) return activeGeoHasData(form);
+  if (step === 1) {
+    return (
+      form.assets &&
+      form.assets.length > 0 &&
+      form.geo &&
+      form.geo.states &&
+      form.geo.states.length > 0
+    );
+  }
+
+  if (step >= 2 && step <= 5) {
+    return true;
+  }
+
+  if (step === 6) {
+    return form.name != null && form.name.trim().length > 0;
+  }
+
   return true;
 }
 
 /**
- * Converts the wizard form state to an API payload.
- * Includes only geo fields for the active geoMode.
- * Empty arrays become null; empty strings in notes become null.
+ * Converts the form state to an API payload.
+ * Maps form field names to backend field names with appropriate transformations:
+ * - assets → asset_classes
+ * - phys year_min/max → year_built_min/max
+ * - fin price_min/max → value_min/max
+ * - fin equity_preset → min_equity_pct
+ * - owner occupancy "absentee" → absentee_only true
+ * - owner hold_min/max → hold_period_min/max
+ * - delivery cadence "weekly" → run_schedule.days = ['mon']
+ * - delivery cadence "daily"/"realtime" → run_schedule.days = all 7 days
+ *
  * @param {Object} form - the complete form state
  * @returns {Object}
  */
 export function buildPayload(form) {
-  const geo = {};
+  // Determine run_schedule.days based on delivery cadence
+  let days;
+  if (form.delivery.cadence === 'weekly') {
+    days = ['mon'];
+  } else {
+    // daily, realtime, or other → all 7 days
+    days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  }
 
-  if (form.geoMode === 'state') {
-    geo.geo_states = form.geo_states;
-  } else if (form.geoMode === 'metro') {
-    geo.geo_cities = form.geo_cities;
-  } else if (form.geoMode === 'zip') {
-    geo.geo_zips = form.geo_zips;
-  } else if (form.geoMode === 'radius') {
-    geo.geo_radius_address = form.geo_radius_address || null;
-    geo.geo_radius_miles = toNum(form.geo_radius_miles);
-    if (form.geo_radius_lat != null) geo.geo_radius_lat = form.geo_radius_lat;
-    if (form.geo_radius_lng != null) geo.geo_radius_lng = form.geo_radius_lng;
+  const payload = {
+    // Name
+    label: form.name,
+
+    // Asset classes
+    asset_classes: form.assets && form.assets.length > 0 ? form.assets : null,
+    asset_class: null,
+
+    // Geography
+    geo_states: form.geo.states && form.geo.states.length > 0 ? form.geo.states : null,
+    geo_counties:
+      form.geo.counties && form.geo.counties.length > 0 ? form.geo.counties : null,
+    geo_zips: form.geo.zips && form.geo.zips.length > 0 ? form.geo.zips : null,
+
+    // Physical
+    sf_min: toNum(form.phys.sf_min),
+    sf_max: toNum(form.phys.sf_max),
+    acres_min: toNum(form.phys.acres_min),
+    acres_max: toNum(form.phys.acres_max),
+    year_built_min: toNum(form.phys.year_min),
+    year_built_max: toNum(form.phys.year_max),
+    stories_min: toNum(form.phys.stories_min),
+    stories_max: toNum(form.phys.stories_max),
+    units_min: toNum(form.phys.units_min),
+    units_max: toNum(form.phys.units_max),
+    zoning_codes:
+      form.phys.zoning_codes && form.phys.zoning_codes.length > 0
+        ? form.phys.zoning_codes
+        : null,
+
+    // Financial
+    value_min: toNum(form.fin.price_min),
+    value_max: toNum(form.fin.price_max),
+    min_equity_pct: toNum(form.fin.equity_preset),
+    assessed_below_market: form.fin.assessed_below_market,
+
+    // Ownership
+    owner_types: form.owner.entity && form.owner.entity.length > 0 ? form.owner.entity : null,
+    absentee_only: form.owner.occupancy === 'absentee',
+    hold_period_min: toNum(form.owner.hold_min),
+    hold_period_max: toNum(form.owner.hold_max),
+    out_of_state_only: form.owner.out_of_state,
+
+    // Signals
+    distress_signals: form.signals && form.signals.length > 0 ? form.signals : null,
+
+    // Logic
+    distress_match_mode: form.logic.mode,
+
+    // Risk
+    climate_risk_max: form.risk.climate_max,
+    flood_exclude: form.risk.flood_exclude,
+    wildfire_risk_max: form.risk.wildfire_max,
+    heat_risk_max: form.risk.heat_max,
+
+    // Threshold
+    match_threshold: form.threshold,
+
+    // Delivery
+    run_schedule: {
+      days: days,
+    },
+    delivery_max_per_run: form.delivery.max_per_run,
+  };
+
+  return payload;
+}
+
+/**
+ * Converts an API buyBox object back to form state.
+ * Reverse mapping with null-safe defaults.
+ * Detects cadence from run_schedule.days length:
+ * - 1 day → "weekly"
+ * - other lengths → "daily"
+ *
+ * @param {Object} buyBox - the API buy box object
+ * @returns {Object} - form state matching EMPTY_FORM structure
+ */
+export function toFormState(buyBox) {
+  // Detect cadence from days array
+  let cadence = 'daily';
+  if (
+    buyBox.run_schedule &&
+    buyBox.run_schedule.days &&
+    buyBox.run_schedule.days.length === 1
+  ) {
+    cadence = 'weekly';
   }
 
   return {
-    label: form.label.trim(),
-    notes: form.notes?.trim() || null,
-    asset_class: form.asset_class || null,
-    asset_use_codes: form.asset_use_codes?.length ? form.asset_use_codes : [],
-    asset_classes: form.asset_classes?.length ? form.asset_classes : null,
-    run_schedule: form.run_schedule || { days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] },
-    ...geo,
-    sf_min: toNum(form.sf_min),
-    sf_max: toNum(form.sf_max),
-    acres_min: toNum(form.acres_min),
-    acres_max: toNum(form.acres_max),
-    value_min: toNum(form.value_min),
-    value_max: toNum(form.value_max),
-    year_built_min: toNum(form.year_built_min),
-    year_built_max: toNum(form.year_built_max),
-    min_hold_yrs: toNum(form.min_hold_yrs),
-    zoning_codes: form.zoning_codes?.length ? form.zoning_codes : null,
-    owner_types: form.owner_types?.length ? form.owner_types : null,
-    absentee_only: form.absentee_only || false,
-    out_of_state_only: form.out_of_state_only || false,
-    distress_signals: form.distress_signals?.length ? form.distress_signals : null,
-    distress_only: form.distress_only || false,
-    match_threshold: toNum(form.match_threshold) ?? 80,
+    assets: buyBox.asset_classes ? [...buyBox.asset_classes] : [],
+    geo: {
+      states: buyBox.geo_states ? [...buyBox.geo_states] : [],
+      counties: buyBox.geo_counties ? [...buyBox.geo_counties] : [],
+      zips: buyBox.geo_zips ? [...buyBox.geo_zips] : [],
+    },
+    phys: {
+      sf_min: buyBox.sf_min ?? null,
+      sf_max: buyBox.sf_max ?? null,
+      acres_min: buyBox.acres_min ?? null,
+      acres_max: buyBox.acres_max ?? null,
+      year_min: buyBox.year_built_min ?? null,
+      year_max: buyBox.year_built_max ?? null,
+      stories_min: buyBox.stories_min ?? null,
+      stories_max: buyBox.stories_max ?? null,
+      units_min: buyBox.units_min ?? null,
+      units_max: buyBox.units_max ?? null,
+      zoning_codes: buyBox.zoning_codes ? [...buyBox.zoning_codes] : [],
+    },
+    fin: {
+      price_min: buyBox.value_min ?? null,
+      price_max: buyBox.value_max ?? null,
+      equity_preset: buyBox.min_equity_pct ?? null,
+      assessed_below_market: buyBox.assessed_below_market ? true : false,
+    },
+    owner: {
+      entity: buyBox.owner_types ? [...buyBox.owner_types] : [],
+      occupancy: buyBox.absentee_only ? 'absentee' : 'owner_occupied',
+      hold_min: buyBox.hold_period_min ?? null,
+      hold_max: buyBox.hold_period_max ?? null,
+      out_of_state: buyBox.out_of_state_only ? true : false,
+    },
+    signals: buyBox.distress_signals ? [...buyBox.distress_signals] : [],
+    logic: {
+      mode: buyBox.distress_match_mode ?? 'or',
+    },
+    risk: {
+      climate_max: buyBox.climate_risk_max ?? 100,
+      flood_exclude: buyBox.flood_exclude ? true : false,
+      wildfire_max: buyBox.wildfire_risk_max ?? 100,
+      heat_max: buyBox.heat_risk_max ?? 100,
+    },
+    threshold: buyBox.match_threshold ?? 0.80,
+    name: buyBox.label ?? null,
+    delivery: {
+      cadence: cadence,
+      max_per_run: buyBox.delivery_max_per_run ?? 10,
+    },
   };
 }

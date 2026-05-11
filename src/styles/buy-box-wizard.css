@@ -1,44 +1,48 @@
 /* ── BuyBoxWizard — full-page stepped flow ────────────────────── */
 
-.bbwiz {
+.buy-box-wizard {
+  --font-mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.buy-box-wizard .bbwiz {
   position: fixed;
   inset: 0;
   display: flex;
-  background: #0D0D0D;
+  background: var(--bg-inverse);
   font-family: var(--font-sans);
   z-index: 200;
   overflow: hidden;
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────── */
-.bbwiz-sidebar {
+.buy-box-wizard .bbwiz-sidebar {
   width: 240px;
   flex-shrink: 0;
-  background: #1E1E24;
-  border-right: 1px solid #40424D;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-strong);
   display: flex;
   flex-direction: column;
   padding: 32px 0 24px;
   overflow: hidden;
 }
 
-.bbwiz-brand {
+.buy-box-wizard .bbwiz-brand {
   padding: 0 24px 28px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9DA2B3;
+  color: var(--fg-4);
 }
 
-.bbwiz-step-list {
+.buy-box-wizard .bbwiz-step-list {
   list-style: none;
   margin: 0;
   padding: 0;
   flex: 1;
 }
 
-.bbwiz-step-item {
+.buy-box-wizard .bbwiz-step-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -47,15 +51,15 @@
   transition: background 120ms;
 }
 
-.bbwiz-step-item.is-clickable {
+.buy-box-wizard .bbwiz-step-item.is-clickable {
   cursor: pointer;
 }
 
-.bbwiz-step-item.is-clickable:hover {
+.buy-box-wizard .bbwiz-step-item.is-clickable:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.bbwiz-step-num {
+.buy-box-wizard .bbwiz-step-num {
   width: 26px;
   height: 26px;
   border-radius: 50%;
@@ -65,48 +69,48 @@
   font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
-  border: 1.5px solid #40424D;
-  color: #9DA2B3;
+  border: 1.5px solid var(--border-strong);
+  color: var(--fg-4);
   background: transparent;
   transition: all 120ms;
 }
 
-.bbwiz-step-item.is-done .bbwiz-step-num {
-  background: #1DAF29;
-  border-color: #1DAF29;
+.buy-box-wizard .bbwiz-step-item.is-done .bbwiz-step-num {
+  background: var(--success);
+  border-color: var(--success);
   color: #fff;
 }
 
-.bbwiz-step-item.is-active .bbwiz-step-num {
+.buy-box-wizard .bbwiz-step-item.is-active .bbwiz-step-num {
   background: transparent;
-  border-color: #5BCC48;
-  color: #5BCC48;
+  border-color: var(--green);
+  color: var(--green);
 }
 
-.bbwiz-step-label {
+.buy-box-wizard .bbwiz-step-label {
   font-size: 13px;
   font-weight: 500;
-  color: #9DA2B3;
+  color: var(--fg-4);
 }
 
-.bbwiz-step-item.is-active .bbwiz-step-label {
+.buy-box-wizard .bbwiz-step-item.is-active .bbwiz-step-label {
   color: #FFFFFF;
   font-weight: 600;
 }
 
-.bbwiz-step-item.is-done .bbwiz-step-label {
-  color: #9DA2B3;
+.buy-box-wizard .bbwiz-step-item.is-done .bbwiz-step-label {
+  color: var(--fg-4);
 }
 
-.bbwiz-sidebar-footer {
+.buy-box-wizard .bbwiz-sidebar-footer {
   padding: 20px 24px 0;
-  border-top: 1px solid #40424D;
+  border-top: 1px solid var(--border-strong);
 }
 
-.bbwiz-cancel-btn {
+.buy-box-wizard .bbwiz-cancel-btn {
   background: transparent;
   border: none;
-  color: #9DA2B3;
+  color: var(--fg-4);
   font-size: 13px;
   font-family: var(--font-sans);
   cursor: pointer;
@@ -117,12 +121,12 @@
   transition: color 120ms;
 }
 
-.bbwiz-cancel-btn:hover {
+.buy-box-wizard .bbwiz-cancel-btn:hover {
   color: #FFFFFF;
 }
 
 /* ── Main area ────────────────────────────────────────────────── */
-.bbwiz-main {
+.buy-box-wizard .bbwiz-main {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -130,27 +134,27 @@
   overflow: hidden;
 }
 
-.bbwiz-content {
+.buy-box-wizard .bbwiz-content {
   flex: 1;
   overflow-y: auto;
   padding: 48px 56px;
   scroll-behavior: smooth;
 }
 
-.bbwiz-step-header {
+.buy-box-wizard .bbwiz-step-header {
   margin-bottom: 36px;
 }
 
-.bbwiz-step-eyebrow {
+.buy-box-wizard .bbwiz-step-eyebrow {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #5BCC48;
+  color: var(--green);
   margin-bottom: 8px;
 }
 
-.bbwiz-step-title {
+.buy-box-wizard .bbwiz-step-title {
   font-size: 28px;
   font-weight: 800;
   color: #FFFFFF;
@@ -158,19 +162,19 @@
   line-height: 1.15;
 }
 
-.bbwiz-step-desc {
+.buy-box-wizard .bbwiz-step-desc {
   font-size: 15px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin: 0;
   line-height: 1.5;
 }
 
 /* ── Inputs ───────────────────────────────────────────────────── */
-.bbwiz-input {
+.buy-box-wizard .bbwiz-input {
   width: 100%;
   box-sizing: border-box;
-  background: #1E1E24;
-  border: 1px solid #40424D;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 12px 16px;
   font-size: 15px;
@@ -180,56 +184,56 @@
   transition: border-color 150ms;
 }
 
-.bbwiz-input:focus {
-  border-color: #5BCC48;
+.buy-box-wizard .bbwiz-input:focus {
+  border-color: var(--green);
 }
 
-.bbwiz-input::placeholder {
-  color: #9DA2B3;
+.buy-box-wizard .bbwiz-input::placeholder {
+  color: var(--fg-4);
 }
 
-.bbwiz-input-meta {
+.buy-box-wizard .bbwiz-input-meta {
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
 }
 
-.bbwiz-char-count {
+.buy-box-wizard .bbwiz-char-count {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
 }
 
-.bbwiz-error {
+.buy-box-wizard .bbwiz-error {
   font-size: 13px;
   color: var(--danger);
   margin-top: 6px;
 }
 
-.bbwiz-label {
+.buy-box-wizard .bbwiz-label {
   font-size: 13px;
   font-weight: 600;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-bottom: 8px;
   display: block;
 }
 
-.bbwiz-field {
+.buy-box-wizard .bbwiz-field {
   margin-bottom: 24px;
 }
 
 /* ── Geo mode selector ────────────────────────────────────────── */
-.bbwiz-geo-tabs {
+.buy-box-wizard .bbwiz-geo-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 24px;
 }
 
-.bbwiz-geo-tab {
+.buy-box-wizard .bbwiz-geo-tab {
   padding: 8px 16px;
   border-radius: 6px;
-  border: 1px solid #40424D;
+  border: 1px solid var(--border-strong);
   background: transparent;
-  color: #9DA2B3;
+  color: var(--fg-4);
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -237,19 +241,19 @@
   transition: all 120ms;
 }
 
-.bbwiz-geo-tab:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-geo-tab:hover {
+  border-color: var(--fg-4);
   color: #FFFFFF;
 }
 
-.bbwiz-geo-tab.is-active {
+.buy-box-wizard .bbwiz-geo-tab.is-active {
   background: rgba(29, 175, 41, 0.12);
-  border-color: #1DAF29;
-  color: #5BCC48;
+  border-color: var(--success);
+  color: var(--green);
 }
 
 /* ── Coverage indicator ───────────────────────────────────────── */
-.bbwiz-coverage {
+.buy-box-wizard .bbwiz-coverage {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -261,34 +265,34 @@
   border: 1px solid transparent;
 }
 
-.bbwiz-coverage.strong {
+.buy-box-wizard .bbwiz-coverage.strong {
   background: rgba(29, 175, 41, 0.1);
   border-color: rgba(29, 175, 41, 0.25);
-  color: #4FE26B;
+  color: var(--green-text-fg);
 }
 
-.bbwiz-coverage.limited {
+.buy-box-wizard .bbwiz-coverage.limited {
   background: rgba(244, 183, 62, 0.1);
   border-color: rgba(244, 183, 62, 0.25);
-  color: #F4B73E;
+  color: var(--warning);
 }
 
-.bbwiz-coverage.sparse {
+.buy-box-wizard .bbwiz-coverage.sparse {
   background: rgba(229, 72, 77, 0.1);
   border-color: rgba(229, 72, 77, 0.25);
-  color: #F46B6F;
+  color: var(--success-red-fg);
 }
 
-.bbwiz-coverage.loading {
+.buy-box-wizard .bbwiz-coverage.loading {
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, 0.08);
-  color: #9DA2B3;
+  color: var(--fg-4);
 }
 
 /* ── Chip input (zips / metros) ───────────────────────────────── */
-.bbwiz-chips-wrap {
-  background: #1E1E24;
-  border: 1px solid #40424D;
+.buy-box-wizard .bbwiz-chips-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 10px 12px;
   display: flex;
@@ -299,11 +303,11 @@
   transition: border-color 150ms;
 }
 
-.bbwiz-chips-wrap:focus-within {
-  border-color: #5BCC48;
+.buy-box-wizard .bbwiz-chips-wrap:focus-within {
+  border-color: var(--green);
 }
 
-.bbwiz-chip {
+.buy-box-wizard .bbwiz-chip {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -312,14 +316,14 @@
   border-radius: 4px;
   padding: 2px 8px;
   font-size: 13px;
-  color: #5BCC48;
+  color: var(--green);
   font-weight: 600;
 }
 
-.bbwiz-chip-remove {
+.buy-box-wizard .bbwiz-chip-remove {
   background: none;
   border: none;
-  color: #5BCC48;
+  color: var(--green);
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -328,11 +332,11 @@
   font-family: var(--font-sans);
 }
 
-.bbwiz-chip-remove:hover {
+.buy-box-wizard .bbwiz-chip-remove:hover {
   opacity: 1;
 }
 
-.bbwiz-chip-input {
+.buy-box-wizard .bbwiz-chip-input {
   border: none;
   background: transparent;
   outline: none;
@@ -343,24 +347,24 @@
   flex: 1;
 }
 
-.bbwiz-chip-input::placeholder {
-  color: #9DA2B3;
+.buy-box-wizard .bbwiz-chip-input::placeholder {
+  color: var(--fg-4);
 }
 
 /* ── Scrollable list (state / metro) ──────────────────────────── */
-.bbwiz-list-search {
+.buy-box-wizard .bbwiz-list-search {
   margin-bottom: 8px;
 }
 
-.bbwiz-select-list {
-  background: #1E1E24;
-  border: 1px solid #40424D;
+.buy-box-wizard .bbwiz-select-list {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   max-height: 260px;
   overflow-y: auto;
 }
 
-.bbwiz-select-item {
+.buy-box-wizard .bbwiz-select-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -373,23 +377,23 @@
   user-select: none;
 }
 
-.bbwiz-select-item:last-child {
+.buy-box-wizard .bbwiz-select-item:last-child {
   border-bottom: none;
 }
 
-.bbwiz-select-item:hover {
+.buy-box-wizard .bbwiz-select-item:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.bbwiz-select-item.is-selected {
+.buy-box-wizard .bbwiz-select-item.is-selected {
   background: rgba(29, 175, 41, 0.08);
 }
 
-.bbwiz-check-box {
+.buy-box-wizard .bbwiz-check-box {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  border: 1.5px solid #40424D;
+  border: 1.5px solid var(--border-strong);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -397,83 +401,83 @@
   transition: all 120ms;
 }
 
-.bbwiz-select-item.is-selected .bbwiz-check-box {
-  background: #1DAF29;
-  border-color: #1DAF29;
+.buy-box-wizard .bbwiz-select-item.is-selected .bbwiz-check-box {
+  background: var(--success);
+  border-color: var(--success);
 }
 
 /* ── Slider ───────────────────────────────────────────────────── */
-.bbwiz-slider {
+.buy-box-wizard .bbwiz-slider {
   width: 100%;
-  accent-color: #1DAF29;
+  accent-color: var(--success);
   cursor: pointer;
 }
 
-.bbwiz-slider-row {
+.buy-box-wizard .bbwiz-slider-row {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.bbwiz-slider-val {
+.buy-box-wizard .bbwiz-slider-val {
   font-size: 14px;
   font-weight: 700;
-  color: #5BCC48;
+  color: var(--green);
   min-width: 60px;
   text-align: right;
 }
 
 /* ── Asset class cards ────────────────────────────────────────── */
-.bbwiz-card-grid {
+.buy-box-wizard .bbwiz-card-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
-.bbwiz-asset-card {
-  background: #1E1E24;
-  border: 1.5px solid #40424D;
+.buy-box-wizard .bbwiz-asset-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-strong);
   border-radius: 8px;
   padding: 20px;
   cursor: pointer;
   transition: all 150ms;
 }
 
-.bbwiz-asset-card:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-asset-card:hover {
+  border-color: var(--fg-4);
 }
 
-.bbwiz-asset-card.is-selected {
+.buy-box-wizard .bbwiz-asset-card.is-selected {
   background: rgba(29, 175, 41, 0.08);
-  border-color: #1DAF29;
+  border-color: var(--success);
 }
 
-.bbwiz-asset-card-name {
+.buy-box-wizard .bbwiz-asset-card-name {
   font-size: 15px;
   font-weight: 700;
   color: #FFFFFF;
   margin-bottom: 4px;
 }
 
-.bbwiz-asset-card-desc {
+.buy-box-wizard .bbwiz-asset-card-desc {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   line-height: 1.45;
 }
 
 /* ── Sub-type toggle cards ────────────────────────────────────── */
-.bbwiz-subtype-grid {
+.buy-box-wizard .bbwiz-subtype-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
-.bbwiz-subtype-card {
+.buy-box-wizard .bbwiz-subtype-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #1E1E24;
-  border: 1.5px solid #40424D;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-strong);
   border-radius: 8px;
   padding: 14px 16px;
   cursor: pointer;
@@ -481,40 +485,40 @@
   user-select: none;
 }
 
-.bbwiz-subtype-card:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-subtype-card:hover {
+  border-color: var(--fg-4);
 }
 
-.bbwiz-subtype-card.is-selected {
+.buy-box-wizard .bbwiz-subtype-card.is-selected {
   background: rgba(29, 175, 41, 0.08);
-  border-color: #1DAF29;
+  border-color: var(--success);
 }
 
-.bbwiz-subtype-card-label {
+.buy-box-wizard .bbwiz-subtype-card-label {
   font-size: 14px;
   font-weight: 500;
   color: #FFFFFF;
 }
 
 /* ── Range pair inputs ────────────────────────────────────────── */
-.bbwiz-range-pair {
+.buy-box-wizard .bbwiz-range-pair {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.bbwiz-range-pair .bbwiz-input {
+.buy-box-wizard .bbwiz-range-pair .bbwiz-input {
   flex: 1;
 }
 
-.bbwiz-range-sep {
+.buy-box-wizard .bbwiz-range-sep {
   font-size: 13px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   flex-shrink: 0;
 }
 
 /* ── Toggle pill ─────────────────────────────────────────────── */
-.bbwiz-toggle-row {
+.buy-box-wizard .bbwiz-toggle-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -522,50 +526,50 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.bbwiz-toggle-row:last-child {
+.buy-box-wizard .bbwiz-toggle-row:last-child {
   border-bottom: none;
 }
 
-.bbwiz-toggle-text {
+.buy-box-wizard .bbwiz-toggle-text {
   font-size: 14px;
   font-weight: 500;
   color: #FFFFFF;
 }
 
-.bbwiz-toggle-sub {
+.buy-box-wizard .bbwiz-toggle-sub {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-top: 2px;
 }
 
-.bbwiz-toggle {
+.buy-box-wizard .bbwiz-toggle {
   position: relative;
   width: 40px;
   height: 22px;
   flex-shrink: 0;
 }
 
-.bbwiz-toggle input {
+.buy-box-wizard .bbwiz-toggle input {
   opacity: 0;
   width: 0;
   height: 0;
   position: absolute;
 }
 
-.bbwiz-toggle-track {
+.buy-box-wizard .bbwiz-toggle-track {
   position: absolute;
   inset: 0;
   border-radius: 11px;
-  background: #40424D;
+  background: var(--border-strong);
   cursor: pointer;
   transition: background 150ms;
 }
 
-.bbwiz-toggle input:checked + .bbwiz-toggle-track {
-  background: #1DAF29;
+.buy-box-wizard .bbwiz-toggle input:checked + .bbwiz-toggle-track {
+  background: var(--success);
 }
 
-.bbwiz-toggle-thumb {
+.buy-box-wizard .bbwiz-toggle-thumb {
   position: absolute;
   top: 3px;
   left: 3px;
@@ -577,23 +581,23 @@
   pointer-events: none;
 }
 
-.bbwiz-toggle input:checked ~ .bbwiz-toggle-thumb {
+.buy-box-wizard .bbwiz-toggle input:checked ~ .bbwiz-toggle-thumb {
   transform: translateX(18px);
 }
 
 /* ── Owner type toggle group ──────────────────────────────────── */
-.bbwiz-toggle-group {
+.buy-box-wizard .bbwiz-toggle-group {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.bbwiz-type-btn {
+.buy-box-wizard .bbwiz-type-btn {
   padding: 8px 16px;
   border-radius: 6px;
-  border: 1.5px solid #40424D;
+  border: 1.5px solid var(--border-strong);
   background: transparent;
-  color: #9DA2B3;
+  color: var(--fg-4);
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -601,31 +605,31 @@
   transition: all 120ms;
 }
 
-.bbwiz-type-btn:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-type-btn:hover {
+  border-color: var(--fg-4);
   color: #FFFFFF;
 }
 
-.bbwiz-type-btn.is-active {
+.buy-box-wizard .bbwiz-type-btn.is-active {
   background: rgba(29, 175, 41, 0.12);
-  border-color: #1DAF29;
-  color: #5BCC48;
+  border-color: var(--success);
+  color: var(--green);
 }
 
 /* ── Distress signal checkboxes ───────────────────────────────── */
-.bbwiz-distress-grid {
+.buy-box-wizard .bbwiz-distress-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
 }
 
-.bbwiz-distress-item {
+.buy-box-wizard .bbwiz-distress-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  background: #1E1E24;
-  border: 1.5px solid #40424D;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-strong);
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
@@ -635,27 +639,27 @@
   transition: all 120ms;
 }
 
-.bbwiz-distress-item:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-distress-item:hover {
+  border-color: var(--fg-4);
 }
 
-.bbwiz-distress-item.is-selected {
+.buy-box-wizard .bbwiz-distress-item.is-selected {
   background: rgba(29, 175, 41, 0.08);
-  border-color: #1DAF29;
+  border-color: var(--success);
 }
 
-.bbwiz-match-mode {
+.buy-box-wizard .bbwiz-match-mode {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
 }
 
-.bbwiz-match-btn {
+.buy-box-wizard .bbwiz-match-btn {
   padding: 6px 14px;
   border-radius: 5px;
-  border: 1.5px solid #40424D;
+  border: 1.5px solid var(--border-strong);
   background: transparent;
-  color: #9DA2B3;
+  color: var(--fg-4);
   font-size: 12px;
   font-weight: 700;
   font-family: var(--font-sans);
@@ -663,25 +667,25 @@
   transition: all 120ms;
 }
 
-.bbwiz-match-btn.is-active {
+.buy-box-wizard .bbwiz-match-btn.is-active {
   background: rgba(29, 175, 41, 0.12);
-  border-color: #1DAF29;
-  color: #5BCC48;
+  border-color: var(--success);
+  color: var(--green);
 }
 
 /* ── Schedule day toggles ─────────────────────────────────────── */
-.bbwiz-day-row {
+.buy-box-wizard .bbwiz-day-row {
   display: flex;
   gap: 8px;
 }
 
-.bbwiz-day-btn {
+.buy-box-wizard .bbwiz-day-btn {
   flex: 1;
   padding: 16px 8px;
   border-radius: 8px;
-  border: 1.5px solid #40424D;
+  border: 1.5px solid var(--border-strong);
   background: transparent;
-  color: #9DA2B3;
+  color: var(--fg-4);
   font-size: 13px;
   font-weight: 700;
   font-family: var(--font-sans);
@@ -690,62 +694,62 @@
   text-align: center;
 }
 
-.bbwiz-day-btn:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-day-btn:hover {
+  border-color: var(--fg-4);
   color: #FFFFFF;
 }
 
-.bbwiz-day-btn.is-active {
+.buy-box-wizard .bbwiz-day-btn.is-active {
   background: rgba(29, 175, 41, 0.12);
-  border-color: #1DAF29;
-  color: #5BCC48;
+  border-color: var(--success);
+  color: var(--green);
 }
 
 /* ── Review step ──────────────────────────────────────────────── */
-.bbwiz-review-grid {
+.buy-box-wizard .bbwiz-review-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-.bbwiz-review-card {
-  background: #1E1E24;
-  border: 1px solid #40424D;
+.buy-box-wizard .bbwiz-review-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 20px;
 }
 
-.bbwiz-review-card-head {
+.buy-box-wizard .bbwiz-review-card-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.bbwiz-review-section-label {
+.buy-box-wizard .bbwiz-review-section-label {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #9DA2B3;
+  color: var(--fg-4);
 }
 
-.bbwiz-review-edit {
+.buy-box-wizard .bbwiz-review-edit {
   background: none;
   border: none;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
-  color: #5BCC48;
+  color: var(--green);
   cursor: pointer;
   padding: 0;
 }
 
-.bbwiz-review-edit:hover {
+.buy-box-wizard .bbwiz-review-edit:hover {
   color: #FFFFFF;
 }
 
-.bbwiz-review-val {
+.buy-box-wizard .bbwiz-review-val {
   font-size: 14px;
   font-weight: 500;
   color: #FFFFFF;
@@ -758,28 +762,28 @@
 }
 
 /* ── Footer nav ───────────────────────────────────────────────── */
-.bbwiz-footer {
+.buy-box-wizard .bbwiz-footer {
   padding: 20px 56px;
-  border-top: 1px solid #40424D;
+  border-top: 1px solid var(--border-strong);
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
 }
 
-.bbwiz-footer-left {
+.buy-box-wizard .bbwiz-footer-left {
   display: flex;
   align-items: center;
 }
 
-.bbwiz-footer-right {
+.buy-box-wizard .bbwiz-footer-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.bbwiz-btn-primary {
-  background: #1DAF29;
+.buy-box-wizard .bbwiz-btn-primary {
+  background: var(--success);
   color: #FFFFFF;
   border: none;
   border-radius: 8px;
@@ -792,19 +796,19 @@
   white-space: nowrap;
 }
 
-.bbwiz-btn-primary:hover:not(:disabled) {
-  background: #5BCC48;
+.buy-box-wizard .bbwiz-btn-primary:hover:not(:disabled) {
+  background: var(--green);
 }
 
-.bbwiz-btn-primary:disabled {
+.buy-box-wizard .bbwiz-btn-primary:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.bbwiz-btn-ghost {
+.buy-box-wizard .bbwiz-btn-ghost {
   background: transparent;
-  color: #9DA2B3;
-  border: 1px solid #40424D;
+  color: var(--fg-4);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   padding: 11px 20px;
   font-size: 14px;
@@ -817,61 +821,61 @@
   gap: 6px;
 }
 
-.bbwiz-btn-ghost:hover {
-  border-color: #9DA2B3;
+.buy-box-wizard .bbwiz-btn-ghost:hover {
+  border-color: var(--fg-4);
   color: #FFFFFF;
 }
 
-.bbwiz-btn-ghost:disabled {
+.buy-box-wizard .bbwiz-btn-ghost:disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
 
 /* ── Misc ─────────────────────────────────────────────────────── */
-.bbwiz-divider {
+.buy-box-wizard .bbwiz-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.06);
   margin: 24px 0;
 }
 
-.bbwiz-hint {
+.buy-box-wizard .bbwiz-hint {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-top: 8px;
   line-height: 1.5;
 }
 
-.bbwiz-select-all-row {
+.buy-box-wizard .bbwiz-select-all-row {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   margin-bottom: 8px;
 }
 
-.bbwiz-link-btn {
+.buy-box-wizard .bbwiz-link-btn {
   background: none;
   border: none;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
-  color: #9DA2B3;
+  color: var(--fg-4);
   cursor: pointer;
   padding: 0;
 }
 
-.bbwiz-link-btn:hover {
+.buy-box-wizard .bbwiz-link-btn:hover {
   color: #FFFFFF;
 }
 
 /* ── Asset grid (2x4) ────────────────────────────────────────── */
-.bbwiz-asset-grid {
+.buy-box-wizard .bbwiz-asset-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-top: 12px;
 }
 
-.bbwiz-asset-label {
+.buy-box-wizard .bbwiz-asset-label {
   font-size: 13px;
   font-weight: 700;
   color: #FFFFFF;
@@ -879,31 +883,31 @@
   display: block;
 }
 
-.bbwiz-asset-desc {
+.buy-box-wizard .bbwiz-asset-desc {
   font-size: 11px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   line-height: 1.4;
   display: block;
 }
 
-.bbwiz-asset-check {
+.buy-box-wizard .bbwiz-asset-check {
   position: absolute;
   top: 8px;
   right: 8px;
-  color: #1DAF29;
+  color: var(--success);
 }
 
-.bbwiz-asset-card {
+.buy-box-wizard .bbwiz-asset-card {
   position: relative;
 }
 
 /* ── Context chip (shown above name step) ─────────────────── */
-.bbwiz-context-chip {
+.buy-box-wizard .bbwiz-context-chip {
   display: inline-block;
   font-size: 11px;
   font-weight: 600;
   background: rgba(29, 175, 41, 0.12);
-  color: #1DAF29;
+  color: var(--success);
   border: 1px solid rgba(29, 175, 41, 0.25);
   border-radius: 20px;
   padding: 3px 10px;
@@ -911,94 +915,94 @@
 }
 
 /* ── Sub-asset optional label ─────────────────────────────── */
-.bbwiz-optional {
+.buy-box-wizard .bbwiz-optional {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-left: 4px;
 }
 
 /* ── Sub-asset actions row ────────────────────────────────── */
-.bbwiz-subtype-actions {
+.buy-box-wizard .bbwiz-subtype-actions {
   display: flex;
   gap: 12px;
   margin-bottom: 12px;
 }
 
 /* ── Generic link button ──────────────────────────────────── */
-.bbwiz-link {
+.buy-box-wizard .bbwiz-link {
   background: none;
   border: none;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
-  color: #9DA2B3;
+  color: var(--fg-4);
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.bbwiz-link:hover { color: #FFFFFF; }
+.buy-box-wizard .bbwiz-link:hover { color: #FFFFFF; }
 
 /* ── Selection count ──────────────────────────────────────── */
-.bbwiz-selection-count {
+.buy-box-wizard .bbwiz-selection-count {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-top: 8px;
 }
 
 /* ── Inline hint (soft, non-error) ───────────────────────── */
-.bbwiz-inline-hint {
+.buy-box-wizard .bbwiz-inline-hint {
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-top: 4px;
 }
 
 /* ── Threshold slider ─────────────────────────────────────── */
-.bbwiz-slider-anchors {
+.buy-box-wizard .bbwiz-slider-anchors {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: #9DA2B3;
+  color: var(--fg-4);
   margin-bottom: 8px;
 }
 
-.bbwiz-threshold-val {
+.buy-box-wizard .bbwiz-threshold-val {
   font-size: 20px;
   font-weight: 700;
   color: #FFFFFF;
 }
 
-.bbwiz-threshold-slider {
-  background: linear-gradient(to right, #5BCC48 0%, #F4B73E 50%, #E5484D 100%);
+.buy-box-wizard .bbwiz-threshold-slider {
+  background: linear-gradient(to right, var(--green) 0%, var(--warning) 50%, var(--danger) 100%);
 }
 
 /* ── Threshold description block ─────────────────────────── */
-.bbwiz-threshold-desc {
+.buy-box-wizard .bbwiz-threshold-desc {
   margin-top: 20px;
   padding: 14px 16px;
   background: rgba(255,255,255,0.04);
-  border: 1px solid #40424D;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   font-size: 13px;
-  color: #C8CAD6;
+  color: var(--fg-light-mute);
   line-height: 1.5;
 }
 
 /* ── Segmented control ────────────────────────────────────── */
-.bbwiz-segmented {
+.buy-box-wizard .bbwiz-segmented {
   display: inline-flex;
-  border: 1px solid #40424D;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   overflow: hidden;
   margin-top: 6px;
 }
 
-.bbwiz-segmented-btn {
+.buy-box-wizard .bbwiz-segmented-btn {
   background: transparent;
   border: none;
-  border-right: 1px solid #40424D;
-  color: #9DA2B3;
+  border-right: 1px solid var(--border-strong);
+  color: var(--fg-4);
   font-size: 13px;
   font-weight: 500;
   padding: 8px 20px;
@@ -1006,29 +1010,29 @@
   transition: background 120ms, color 120ms;
 }
 
-.bbwiz-segmented-btn:last-child { border-right: none; }
+.buy-box-wizard .bbwiz-segmented-btn:last-child { border-right: none; }
 
-.bbwiz-segmented-btn:hover { background: rgba(255,255,255,0.06); color: #FFFFFF; }
+.buy-box-wizard .bbwiz-segmented-btn:hover { background: rgba(255,255,255,0.06); color: #FFFFFF; }
 
-.bbwiz-segmented-btn.is-active {
+.buy-box-wizard .bbwiz-segmented-btn.is-active {
   background: rgba(91, 204, 72, 0.15);
-  color: #5BCC48;
+  color: var(--green);
 }
 
 @media (max-width: 900px) {
-  .bbwiz-sidebar {
+  .buy-box-wizard .bbwiz-sidebar {
     width: 180px;
   }
-  .bbwiz-content {
+  .buy-box-wizard .bbwiz-content {
     padding: 32px 28px;
   }
-  .bbwiz-footer {
+  .buy-box-wizard .bbwiz-footer {
     padding: 16px 28px;
   }
-  .bbwiz-card-grid {
+  .buy-box-wizard .bbwiz-card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .bbwiz-asset-grid {
+  .buy-box-wizard .bbwiz-asset-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
