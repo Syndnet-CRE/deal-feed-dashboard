@@ -1,61 +1,69 @@
 HANDOFF
 Date: 2026-05-11
 Repo: deal-feed-dashboard
-Session objective: Post-mortem remediation — CI, dead code cleanup, CLAUDE.md reconciliation
+Session objective: Buy-Box Kanban visual rewrite — Terminal handoff design, 5 phases
 Status: COMPLETE
 
 ---
 
 ## What was done this session
 
-### Login fix (from previous session, confirmed working)
+### Buy-Box Kanban visual rewrite (commit bf5353d)
 
-Rate limit fixed on backend (scoutgpt-api commit d708501). Login working for brady@parcyl.ai.
+Replaced the old flat kanban in `src/views/BuyBoxesView.jsx` with the Terminal handoff design.
+Visual confirmed via Playwright screenshot before commit.
 
-### Full codebase audit
+**Phase 1 — Token aliases (`src/styles/tokens.css`)**
+Added 16 CSS custom property aliases to `:root` so the new `bb-*` CSS can reference them:
+`--bg`, `--fg`, `--fg-dim`, `--fg-muted`, `--fg-inverse`, `--accent-hi`, `--accent-tint`,
+`--surface`, `--surface-hi`, `--surface-hi-2`, `--bg-sunken`, `--border`, `--border-faint`,
+`--warn`, `--danger-hi`, `--danger-tint`.
+Also added dark-mode overrides for `--surface-hi-2` and `--bg-sunken` inside `[data-theme="dark"]`.
 
-4 parallel Explore agents audited every file. Findings: 2 files in CLAUDE.md that don't exist on disk, 5+ files on disk not documented, 2 dead components, theme key bug, wizard validation inconsistency, no CI.
+**Phase 2 — New CSS (`src/styles/buyBoxes.css`)**
+Created from handoff. All classes prefixed `bb-*` to avoid collision.
+Styles: page shell, column headers, card (hero numeral, chips, weekday strip, action row),
+sparkline SVG, coverage-gap alert strip.
 
-### Post-mortem remediation (commit 436fee0)
+**Phase 3 — Replacement JSX (`src/views/BuyBoxesView.jsx`)**
+Applied all 8 surgical fixes to the handoff file:
+- Fix A: named export (`export function`, not default)
+- Fix B: Props aligned to App.jsx: `{ onCreate, onEdit, onPause }`
+- Fix C+D: `deriveColumn` normalizes status `(s).toLowerCase().replace(/\s+/g,'_')`,
+  handles `'Coverage Failed'` (DB value) → `'gap'` column correctly
+- Fix E: `box.deals ?? 0` (was `box.deliveredCount` — field name per normalizeBuyBox)
+- Fix F: `handlePause = (box) => onPause?.(box)` — routes through App.jsx pause-confirm modal
+- Fix G: DnD internal (removed from props; `handleDragStart`/`handleDrop` in view body)
+- Fix H: `const addToast = useToast()` imported; `handleResume` wrapped in try/catch with toasts
 
-All 5 recommendations executed:
+**Phase 5 — Deleted stale CSS (`src/styles/feed-layout.css`)**
+Removed 212 lines of orphaned `.kanban-board`, `.kanban-column`, `.kanban-card`,
+`.kanban-btn`, `.kanban-day-btn`, etc. (lines 1397–1608). `.kanban-page` rule kept (line 1395).
 
-1. **CI added** — `.github/workflows/ci.yml` runs lint + build + knip on every push to main. `.github/workflows/claude.yml` enables @claude PR comment integration.
+**Kanban columns and what lands in each:**
+- Pending: `status` is anything not active/paused/coverage_failed
+- Validating: `status === 'active'` AND no `last_run_at` / `lastRun`
+- Active: `status === 'active'` with a run on record
+- Paused: `status === 'paused'`
+- Coverage gap: `status === 'Coverage Failed'` (or `'coverage_failed'`)
 
-2. **CLAUDE.md reconciled** — removed `assetColors.js` and `StatusSelector.jsx` (never existed on disk); removed `NightdropBar.jsx` and `CalendarModal.jsx` entries (deleted); fixed `df_token` → `nd_token`; fixed `parcyl-theme` → `nightdrop-theme`; added large CSS files to KEY FILES; added `npm run knip`; documented `.env.development` approach and Playwright/rate-limit landmines.
-
-3. **Dev/prod env split documented** — `.env.development` sets `VITE_API_BASE_URL=` so dev traffic uses the Vite proxy. Brady must create this file manually (blocked by permission hook). The command: `echo "VITE_API_BASE_URL=" > .env.development`
-
-4. **knip installed** — `npm run knip` reports unused exports. Now runs in CI. Current known unused exports: several from `DealComponents.jsx` and `buyBoxTaxonomy.js` — these are intentional public APIs, not dead code to delete.
-
-5. **RATE_LIMIT_BYPASS_EMAILS** — still Brady's action item (Render dashboard). NOT done.
-
-### Lint fixed (8 pre-existing errors)
-
-- `BuyBoxPage1.jsx`: `Math.random()` in render replaced with deterministic formula
-- `BuyBoxPage23.jsx`: `Field` component defined inside render moved outside as `OwnerField`
-- `BuyBoxPage4.jsx`: unused `format` param removed from `Slider`
-- `BuyBoxRightRail.jsx`: `prevCount` state converted to `useRef` (eliminates cascading setState)
-- `BuyBoxWizard.jsx`: `catch (_) {}` fixed to optional catch binding with comment
-
-### Dead code deleted
-
-- `src/components/NightdropBar.jsx` — 120 lines, 0 imports
-- `src/components/CalendarModal.jsx` — ~180 lines, 0 imports
+**Visual screenshot** saved at `tests/screenshots/buyboxes-kanban-final.png`.
 
 ---
 
 ## What was NOT done
 
-- `.env.development` file — permission hook blocked write to .env* files. Brady creates it with: `echo "VITE_API_BASE_URL=" > ~/deal-feed-dashboard/.env.development`
-- Wizard validation inconsistency (BuyBoxWizard.canGoNext() vs wizardHelpers.canProceedStep()) — deferred, needs Brady to decide if this is a bug to fix or acceptable divergence
-- CI GitHub secret `VITE_MAPBOX_TOKEN` — needs to be set in GitHub repo settings before the CI build step can produce a fully working artifact (lint + knip still pass without it; build succeeds but Mapbox won't initialize at runtime)
+- Sparkline data (`box.deliveredSpark`) — not in API. Cards render no sparkline (null guard in handoff).
+- `deliveredThisWeek` delta — not in API. Cards show no delta line (null guard in handoff).
+- Light-mode polish for `buyBoxes.css` — the CSS was designed dark-first; hardcoded dark values
+  like `.bb-frame { background: #101116 }` mean light-mode users see a mixed appearance.
+  Acceptable trade-off; no light-mode work was scoped.
 
 ---
 
 ## Next session
 
-Brady assigns the next feature. Codebase is clean: 0 lint errors, CI on main, CLAUDE.md accurate.
+Brady assigns the next feature.
 
 ```
 cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
@@ -65,14 +73,13 @@ cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
 
 ## Blockers for Brady
 
-1. **RENDER ENV VAR** (critical) — Add `RATE_LIMIT_BYPASS_EMAILS=brady@parcyl.ai` to Render environment on `scoutgpt-app`. Render dashboard → scoutgpt-app → Environment. Prevents future admin lockouts.
+1. **RENDER ENV VAR** (still outstanding from prior session) — Add `RATE_LIMIT_BYPASS_EMAILS=brady@parcyl.ai` to Render `scoutgpt-app` environment. Prevents admin lockouts during Playwright test runs.
 
-2. **GitHub secret** — Add `VITE_MAPBOX_TOKEN` to repo secrets so CI build has the token. GitHub → deal-feed-dashboard repo → Settings → Secrets and variables → Actions → New secret.
+2. **GitHub secret** (still outstanding) — Add `VITE_MAPBOX_TOKEN` to repo secrets so CI build has the Mapbox token.
 
-3. **.env.development** — Create the file locally:
+3. **.env.development** (still outstanding) — Create locally if not yet done:
    ```
    echo "VITE_API_BASE_URL=" > ~/deal-feed-dashboard/.env.development
    ```
-   This makes dev traffic use the Vite proxy instead of hitting the production API URL directly from the browser.
 
-4. **Assign next feature.**
+4. **Smoke test** — Navigate to Buy Boxes on nightdropai.netlify.app once Netlify deploy completes (~2 min). Verify columns, coverage-gap cards, and Pause button open the confirm modal.
