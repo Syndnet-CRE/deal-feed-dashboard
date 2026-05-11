@@ -6,12 +6,22 @@ import AgentMessageCard from '../components/feed/AgentMessageCard';
 import ChatFab from '../components/feed/ChatFab';
 import RightRail from '../components/RightRail';
 import LeftRail from '../components/LeftRail';
+import WeekDayTabs from '../components/feed/WeekDayTabs';
+
+function sameDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
 
 export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = () => {} }) {
   const { deals, loading } = useDeals();
   const [agentMessages, setAgentMessages] = useState([]);
   const [hiddenIds, setHiddenIds] = useState(new Set());
   const [selectedDealId, setSelectedDealId] = useState(null);
+  const [selectedDay, setSelectedDay] = useState(null);
 
   const filteredDeals = useMemo(() => {
     const q = (searchQuery || '').toLowerCase().trim();
@@ -28,8 +38,13 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
         const addr = (d.addr || d.address || '').toLowerCase();
         const asset = (d.asset_class || d.asset || '').toLowerCase();
         return addr.includes(q) || asset.includes(q);
+      })
+      .filter(d => {
+        if (!selectedDay) return true;
+        if (!d.sentAt) return false;
+        return sameDay(new Date(d.sentAt), selectedDay);
       });
-  }, [deals, hiddenIds, searchQuery, filter]);
+  }, [deals, hiddenIds, searchQuery, filter, selectedDay]);
 
   function handleHide(id) {
     setHiddenIds(prev => new Set([...prev, id]));
@@ -58,6 +73,11 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
           />
 
           <div className="feed-center-col">
+            <WeekDayTabs
+              deals={deals}
+              selectedDay={selectedDay}
+              onSelectDay={setSelectedDay}
+            />
             <div className="feed-center" id="feed-scroll">
               {loading ? (
                 <div className="feed-loading">Loading your deals…</div>
