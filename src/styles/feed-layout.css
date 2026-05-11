@@ -1613,12 +1613,21 @@
   align-items: center;
   gap: var(--s-4);
   padding: 8px var(--s-4);
-  background: var(--bg-page);
-  border-bottom: 1px solid var(--border-2);
+  background: #0D0D0D;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   position: sticky;
-  top: 0;
+  top: 10px;
   z-index: 7;
   flex-shrink: 0;
+  margin-bottom: 10px;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.week-day-tabs:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .week-day-tabs-label {
