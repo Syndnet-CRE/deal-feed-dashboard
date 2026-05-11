@@ -1,63 +1,69 @@
 # HANDOFF
-Date: 2026-05-10
+Date: 2026-05-11
 Repo: deal-feed-dashboard
-Session objective: Finalize BB-1 through BB-15, run all tests, commit and push to main
+Session objective: DB audit, buy box UX post-mortem, design handoff prompt, toast bug fix
 Status: COMPLETE
 
 ---
 
 ## What was done
 
-### Tests — all passing
-- `npm test` (vitest): 173/173 unit tests pass
-- `node tests/story-4.2-edit-buybox.test.cjs`: 15/15 pass
-- `node tests/story-4.3-pause-resume-preview.test.cjs`: 15/15 pass
-- `npx playwright test tests/smoke.spec.js`: 14/15 pass
-  - Failing test: "multiple deal pages load without errors" — pre-existing backend network issue (TypeError: Failed to fetch from DealsContext when backend is unreachable in Playwright env; not caused by our code)
-- `npm run lint`: 0 errors, 1 warning (in `coverage/block-navigation.js`, generated file)
+### Bug fix (committed + pushed — 3a5abf9)
+- `src/App.jsx` — added `useToast` import, added `const addToast = useToast()` to AppShell
+- Create onSuccess: fires `addToast('Buy box activated! We start tonight.', 'success')` then navigates to boxes
+- Edit onSuccess: fires `addToast('Buy box saved.', 'success')` then closes wizard
+- Both handlers were previously silent (no toast, no confirmation)
 
-### Files committed (commit b386eb2)
-- `src/components/BuyBoxWizard.jsx` — 10-step wizard with edit mode, coverage preview, debounce
-- `src/views/BuyBoxesView.jsx` — Buyer Searches table with edit/pause/resume
-- `src/styles/buy-box-wizard.css` — full wizard styles
-- `src/styles/feed-layout.css` — feed/chat styles
-- `src/lib/wizardHelpers.js` + `wizardHelpers.test.js` — step gate logic, buildPayload
-- `src/hooks/useAuth.jsx` — nd_token key (consistent with api.js)
-- `src/components/feed/` — DealChatThread, FeedDealCard, MessageInputBar
-- `src/lib/format.js` — fmt utilities
-- `vite.config.js` — devAuthPlugin for /__dev_login auto-auth
-- `playwright.config.js` — testMatch restricts to *.spec.js (excludes .cjs story tests)
-- `tests/smoke.spec.js` — 12 new BB tests (BB-1 through BB-6 + 6 wizard QA scenarios)
-- `tests/story-4.2-edit-buybox.test.cjs` — updated to reference BuyBoxWizard.jsx
-- `tests/story-4.3-pause-resume-preview.test.cjs` — updated to reference BuyBoxWizard.jsx
+### Database audit
+Queried 423,117 properties across all tables. Key fill rates:
 
-### Deleted
-- `tests/wizard-visual.spec.js` — temp visual verification file, removed before commit
+**Solid (use these in wizard):**
+- area_building, area_lot_sf, units_count, in_floodplain — 100%
+- owner name, absentee flag, company flag, assessed value, market value, water/sewer distance — 99%
+- climate risk scores (heat, wildfire, flood) — 98%
+- year built — 95%, last sale price — 94%, last sale date — 91%
+- ownership_transfer_date (hold period) — 87%
+- first_loan_amount, first_interest_rate, first_interest_rate_type — 83%
+- ltv, available_equity — 77%, estimated_rental_value — 79%
+- foreclosure_records table — 87,846 records, default_amount 100% fill
 
-### Pushed
-- `git push origin main` — Netlify auto-deploy triggered at b386eb2
+**Broken (remove from wizard):**
+- zoning — 0% (completely empty)
+- tax_delinquent_year — 0% (completely empty)
+- estimated_value / AVM — 0% (completely empty)
 
----
+### Design work
+- Full buy box UX post-mortem written (persona coverage analysis)
+- New 6-page wizard architecture designed and documented
+- Design handoff prompt written for Claude design tool
 
-## What was NOT done
+### New wizard architecture (6 pages)
+1. Asset class + geography
+2. Property profile (physical + financial)
+3. Owner profile (entity type, occupancy, hold period, out-of-state)
+4. Distress signals + risk tolerance (foreclosure, LTV, ARM, equity, climate risk)
+5. Deal quality threshold (Volume 70% / Balanced 80% / Precision 90%+) + distress signal chips
+6. Review + activate (name, summary, delivery frequency, max per run, CTA)
 
-- Visual browser walk of the 10-step wizard was not completed via Playwright (auth in Playwright context hits real backend, which is unreachable without .dev-auth.json accessible from CI). Brady should manually open `localhost:5173`, navigate to Buy Boxes, and click "New Buy Box" to walk the wizard.
-- `critical-flows.spec.js` pre-existing failures (Login Flow + Buy Box Wizard) are unresolved — they existed before BB-1 and were not in scope for this session.
+**Right rail persistent on all 6 pages:** live match count (JetBrains Mono), avg equity / avg hold / % absentee stats, active filter chips, Mapbox density thumbnail.
 
 ---
 
 ## Next session
 
-Next BMAD track TBD. Check `notes/bmad/` for open features or ask Brady for direction.
+Brady has the Claude Design output (Figma/pencil code) for the new 6-page buy box wizard. Next session: wire the design code into the React app, replace the current BuyBoxWizard.jsx with the new 6-page flow, connect all filters to the backend payload via wizardHelpers.js.
 
 ```
 cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
 ```
 
+Start by reading this HANDOFF, then ask Brady to paste or share the design output code.
+
 ---
 
 ## Blockers for Brady
 
-1. Manual visual walk: open https://nightdropai.netlify.app (or localhost:5173), go to Buy Boxes, open New Buy Box wizard, walk all 10 steps, confirm UI looks correct.
-2. Backend `/api/dealfeed/buy-boxes/preview` endpoint — does it exist on scoutgpt-app? If not, coverage count in wizard step 9 (Review) will show "—" silently. Check scoutgpt-api routes/dealfeed/buy-boxes.js.
-3. `critical-flows.spec.js` — pre-existing Playwright failures in Login Flow + Buy Box Wizard tests. Not urgent but worth a cleanup pass.
+1. Hand the design prompt to Claude design, get the output code, bring it to the next session.
+2. The full 6-page design prompt is in this conversation -- it ends with the token legend. Copy the full prompt from the last complete version in this thread.
+3. New wizard needs backend support for the deal quality threshold (match score filter) -- confirm with scoutgpt-api whether `run_deal_feed.js` supports a `min_score` parameter on the buy box payload. If not, that needs to be added backend-side before the threshold UI does anything.
+4. The preview API (`POST /api/dealfeed/buy-boxes/preview`) needs to return avg_equity, avg_hold_years, pct_absentee alongside the count -- right rail stats depend on this. Check scoutgpt-api routes/dealfeed/buy-boxes.js.
