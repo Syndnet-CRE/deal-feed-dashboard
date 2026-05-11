@@ -21,6 +21,7 @@ import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
 import { InviteClaimView } from './views/InviteClaimView';
 import { api } from './lib/api';
+import { useToast } from './contexts/ToastContext';
 
 (() => {
   const t = localStorage.getItem('nightdrop-theme') || 'dark';
@@ -100,6 +101,7 @@ function PauseBoxConfirm({ buyBox, onClose }) {
 }
 
 function AppShell() {
+  const addToast = useToast();
   const { subscriber, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -239,7 +241,11 @@ function AppShell() {
         {(showWizard || onboardingMatch) && (
           <BuyBoxWizard
             mode="create"
-            onSuccess={() => { setShowWizard(false); handleSetView('boxes'); }}
+            onSuccess={() => {
+              addToast('Buy box activated! We start tonight.', 'success');
+              setShowWizard(false);
+              handleSetView('boxes');
+            }}
             onCancel={() => { setShowWizard(false); if (onboardingMatch) navigate('/dashboard', { replace: true }); }}
           />
         )}
@@ -247,7 +253,10 @@ function AppShell() {
           <BuyBoxWizard
             mode="edit"
             initialData={editingBuyBox}
-            onSuccess={() => setEditingBuyBox(null)}
+            onSuccess={() => {
+              addToast('Buy box saved.', 'success');
+              setEditingBuyBox(null);
+            }}
             onCancel={() => setEditingBuyBox(null)}
           />
         )}
