@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import TonightsRunCard from './feed/TonightsRunCard';
-import { PipelineTimeline } from './PipelineTimeline';
 
 const FILTERS = [
   { id: 'all',    label: 'All',    Icon: Inbox },
@@ -152,11 +151,6 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
 
         {view === 'dashboard' && setFeedFilter && (
           <div className="left-panel-narrow-only">
-            <div className="left-panel-divider" />
-            <div className="left-panel-nextrun">
-              <PipelineTimeline mode="countdown" />
-            </div>
-
             <div className="left-panel-divider" />
             <div className="left-panel-buy-boxes">
               <div className="left-panel-section-header">

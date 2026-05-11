@@ -82,6 +82,15 @@ function devAuthPlugin() {
 
 export default defineConfig({
   plugins: [react(), devAuthPlugin()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://scoutgpt-app.onrender.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   test: {
     exclude: ['tests/**', 'node_modules/**'],
   },

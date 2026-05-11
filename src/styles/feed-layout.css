@@ -43,6 +43,19 @@
   flex-shrink: 0;
 }
 
+/* ── Header zones ──────────────────────────────────────────── */
+.top-header-left {
+  width: var(--left-panel-w);
+  min-width: var(--left-panel-w);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding-right: var(--s-4);
+  border-right: 1px solid rgba(91, 204, 72, 0.12);
+  flex-shrink: 0;
+}
+
 .top-header-wordmark {
   display: flex;
   align-items: center;
@@ -52,7 +65,6 @@
   font-size: 15px;
   color: var(--fg-1);
   white-space: nowrap;
-  min-width: 160px;
   letter-spacing: -0.01em;
 }
 
@@ -64,49 +76,68 @@
   flex-shrink: 0;
 }
 
-.top-header-pipeline {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  margin-left: var(--s-4);
-}
-
-.top-header-pipeline .pipeline-track-only {
-  flex: 1;
-  min-width: 0;
+.top-header-left .pipeline-phase-only {
   display: flex;
   align-items: center;
 }
 
-.top-header-pipeline .pipeline-track-panel {
+.top-header-left .pipeline-phase-pill {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.top-header-left .pipeline-phase-pill span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-header-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--s-5);
+  min-width: 0;
+}
+
+.top-header-center .pipeline-track-only {
   flex: 1;
   min-width: 0;
 }
 
-.top-header-countdown {
-  margin-left: auto;
+.top-header-right {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: var(--s-4);
+  border-left: 1px solid rgba(91, 204, 72, 0.12);
+  flex-shrink: 0;
+}
+
+.top-header-right .pipeline-cd-panel {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  gap: 4px;
   align-items: flex-end;
 }
 
-.top-header-countdown-label {
-  font-size: 10px;
-  font-weight: var(--w-semibold);
-  color: var(--fg-4);
-  letter-spacing: var(--track-eyebrow);
-  text-transform: uppercase;
-  line-height: 1;
+/* ── Node burst animation (fires on phase transition) ──────── */
+@keyframes nodeBurst {
+  0%   { opacity: 0.9; transform: scale(1);   }
+  60%  { opacity: 0.5; transform: scale(2.2); }
+  100% { opacity: 0;   transform: scale(3);   }
 }
 
-.top-header-countdown-clock {
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: var(--w-semibold);
-  color: var(--nightdrop-green-700);
-  letter-spacing: 0.04em;
-  line-height: 1.4;
+.pipeline-node.pipeline-node-burst::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(91, 204, 72, 0.85);
+  animation: nodeBurst 0.9s ease-out forwards;
+  pointer-events: none;
 }
 
 /* ── Left Panel ─────────────────────────────────────────────── */
