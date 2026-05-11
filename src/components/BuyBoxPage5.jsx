@@ -27,7 +27,7 @@ export function BuyBoxPage5({ form, setForm }) {
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">05 / 06</span>
+          <span className="mono-step mono">05/06</span>
           <span className="sep" />
           <span>Match threshold</span>
         </div>

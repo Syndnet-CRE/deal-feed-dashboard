@@ -140,12 +140,12 @@ export function BuyBoxPage1({ form, setForm }) {
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">01 / 06</span>
+          <span className="mono-step mono">01/06</span>
           <span className="sep" />
           <span>Target</span>
         </div>
         <h1 className="page-title">What are you hunting?</h1>
-        <p className="page-sub">Pick the asset classes and geographies that fit your thesis. You can revise either at any time.</p>
+        <p className="page-sub">Pick the asset classes and geographies that fit your thesis. You can revise either at any time — every filter narrows the pool in the rail.</p>
       </header>
 
       <section className="section">

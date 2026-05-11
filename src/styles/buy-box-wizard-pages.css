@@ -167,6 +167,24 @@
 }
 .buy-box-wizard .f-chip .label { color: var(--fg-mute); margin-right: 2px; }
 .buy-box-wizard .f-chip .val { color: var(--fg); font-family: var(--font-mono); font-size: 11px; }
+.buy-box-wizard .f-chip-x {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 2px; border-radius: 3px;
+  background: none; border: none; color: var(--fg-mute); cursor: pointer;
+  font-size: 14px; line-height: 1; padding: 0;
+  transition: background var(--fast), color var(--fast);
+}
+.buy-box-wizard .f-chip-x:hover { background: var(--surface-hi); color: var(--fg); }
+
+/* ── Geographic concentration (right rail) ── */
+.buy-box-wizard .rail-geo { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-sub); }
+.buy-box-wizard .rail-geo-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.buy-box-wizard .rail-geo-item { display: inline-flex; align-items: center; gap: 6px; }
+.buy-box-wizard .rail-geo-dot {
+  width: 7px; height: 7px; border-radius: 999px; background: var(--green); flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(91,204,72,0.5);
+}
+.buy-box-wizard .rail-geo-code { font-family: var(--font-mono); font-size: 12px; color: var(--fg-2); font-weight: 600; }
 
 /* ── Page 2/3: Preset chips ── */
 .buy-box-wizard .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }

@@ -14,7 +14,7 @@ export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, ac
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">06 / 06</span>
+          <span className="mono-step mono">06/06</span>
           <span className="sep" />
           <span>Review & activate</span>
         </div>

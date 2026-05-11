@@ -72,7 +72,7 @@ export function BuyBoxPage2({ form, setForm }) {
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">02 / 06</span>
+          <span className="mono-step mono">02/06</span>
           <span className="sep" />
           <span>Property profile</span>
         </div>
@@ -193,7 +193,7 @@ export function BuyBoxPage3({ form, setForm }) {
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">03 / 06</span>
+          <span className="mono-step mono">03/06</span>
           <span className="sep" />
           <span>Owner profile</span>
         </div>

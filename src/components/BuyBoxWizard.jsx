@@ -240,6 +240,23 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
   const filters = buildFilters(form);
   const summary = buildSummary(form);
 
+  const clearFilter = (id) => {
+    const f = form;
+    if (id === 'assets') setForm({ ...f, assets: [] });
+    else if (id === 'states') setForm({ ...f, geo: { ...f.geo, states: [], counties: [] } });
+    else if (id === 'counties') setForm({ ...f, geo: { ...f.geo, counties: [] } });
+    else if (id === 'zips') setForm({ ...f, geo: { ...f.geo, zips: [] } });
+    else if (id === 'equity') setForm({ ...f, fin: { ...f.fin, equity_preset: '' } });
+    else if (id === 'under') setForm({ ...f, fin: { ...f.fin, assessed_below_market: false } });
+    else if (id === 'occ') setForm({ ...f, owner: { ...f.owner, occupancy: '' } });
+    else if (id === 'hold') setForm({ ...f, owner: { ...f.owner, hold_min: '' } });
+    else if (id === 'oos') setForm({ ...f, owner: { ...f.owner, out_of_state: false } });
+    else if (id === 'entity') setForm({ ...f, owner: { ...f.owner, entity: '' } });
+    else if (id === 'signals') setForm({ ...f, signals: [] });
+    else if (id === 'climate') setForm({ ...f, risk: { ...f.risk, climate: 10 } });
+    else if (id === 'flood') setForm({ ...f, risk: { ...f.risk, flood: false } });
+  };
+
   const renderPage = () => {
     switch (page) {
       case 1: return <BuyBoxPage1 form={form} setForm={setForm} />;
@@ -299,8 +316,8 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
           </div>
 
           <div className="topbar-right">
-            <span>Nav</span>
-            <span className="kbd">⌥←→</span>
+            <button className="icon-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} aria-label="Previous step">←</button>
+            <button className="icon-btn" onClick={() => page < 6 && canGoNext(page, form) && setPage(p => p + 1)} disabled={page === 6 || !canGoNext(page, form)} aria-label="Next step">→</button>
             <span style={{ margin: '0 8px', color: 'var(--border-hi)' }}>|</span>
             <span>Next</span>
             <span className="kbd">⌘↵</span>
@@ -329,14 +346,14 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
                   </button>
                 ) : (
                   <button className="btn btn-primary" onClick={handleActivate} disabled={activating || !form.name.trim()}>
-                    {activating ? 'Saving…' : mode === 'edit' ? 'Save changes' : 'Activate buy box'}
+                    {activating ? 'Saving…' : mode === 'edit' ? 'Save changes' : 'Review & activate'}
                   </button>
                 )}
               </div>
             </footer>
           </div>
 
-          <BuyBoxRightRail matchCount={form.matchCount} filters={filters} />
+          <BuyBoxRightRail matchCount={form.matchCount} filters={filters} geoStates={form.geo.states} onRemoveFilter={clearFilter} />
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 
-export function BuyBoxRightRail({ matchCount, filters }) {
+export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter }) {
   const [clock, setClock] = useState(() => {
     const now = new Date();
     return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
@@ -62,19 +62,38 @@ export function BuyBoxRightRail({ matchCount, filters }) {
           <div className="stat-cell">
             <div className="stat-cell-label">Avg equity</div>
             <div className="stat-cell-value">$184K</div>
-            <div className="stat-cell-spark pos">↑ 2.1%</div>
+            <div className="stat-cell-spark pos">+2.4% MoM</div>
           </div>
           <div className="stat-cell">
             <div className="stat-cell-label">Hold</div>
             <div className="stat-cell-value">11.3yr</div>
-            <div className="stat-cell-spark">avg</div>
+            <div className="stat-cell-spark">14yr median</div>
           </div>
           <div className="stat-cell">
             <div className="stat-cell-label">Absentee</div>
             <div className="stat-cell-value">47%</div>
-            <div className="stat-cell-spark">of pool</div>
+            <div className="stat-cell-spark neg">-1.1% WoW</div>
           </div>
         </div>
+
+        {geoStates && geoStates.length > 0 && (
+          <div className="rail-geo">
+            <div className="quote-label" style={{ marginBottom: 10 }}>
+              Geographic concentration
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 400, marginLeft: 8, fontSize: 10, color: 'var(--fg-mute)', textTransform: 'none', letterSpacing: 0 }}>
+                · {geoStates.length} {geoStates.length === 1 ? 'state' : 'states'}
+              </span>
+            </div>
+            <div className="rail-geo-grid">
+              {geoStates.map(code => (
+                <div key={code} className="rail-geo-item">
+                  <span className="rail-geo-dot" />
+                  <span className="rail-geo-code">{code}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {filters.length > 0 && (
           <div>
@@ -84,6 +103,15 @@ export function BuyBoxRightRail({ matchCount, filters }) {
                 <span key={i} className="f-chip">
                   {f.label && <span className="label">{f.label}</span>}
                   <span className="val">{f.val}</span>
+                  {onRemoveFilter && (
+                    <button
+                      className="f-chip-x"
+                      onClick={() => onRemoveFilter(f.id)}
+                      aria-label={`Remove ${f.label || f.val} filter`}
+                    >
+                      ×
+                    </button>
+                  )}
                 </span>
               ))}
             </div>
