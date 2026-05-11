@@ -122,14 +122,11 @@
 }
 
 .pipeline-cd-container {
-  background: rgba(29, 175, 41, 0.10);
-  border: 1.5px solid rgba(29, 175, 41, 0.32);
-  border-radius: 10px;
-  padding: 8px 18px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 3px;
+  gap: 12px;
+  padding: 0;
 }
 
 /* ── Fill bar shimmer + glow ────────────────────────────────── */
@@ -154,6 +151,17 @@
   );
   background-size: 300% 100%;
   animation: fillShimmer 2.4s linear infinite, timelineGlow 2s ease-in-out infinite;
+}
+
+/* ── Active node icon glow (pulses behind the icon, never on it) */
+@keyframes iconGlowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29,175,41,0);        }
+  50%       { box-shadow: 0 0 10px 5px rgba(29,175,41,0.4); }
+}
+
+.pipeline-icon-active {
+  border-radius: 50%;
+  animation: iconGlowPulse 1.8s ease-in-out infinite;
 }
 
 /* ── Node burst animation (fires on phase transition) ──────── */

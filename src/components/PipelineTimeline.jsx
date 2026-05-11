@@ -39,10 +39,14 @@ function getMarkerPct(nowSecs) {
   return Math.max(0, Math.min(18, (sinceSix / 64800) * 18));
 }
 
-const NODE_LABELS    = ['Submit', 'Agents', 'Briefs', 'Delivered'];
-const NODE_PCTS      = [18, 50, 75, 100];
-const SEGMENT_MIDPTS = [9, 34, 62.5, 87.5];
-const SEGMENT_PHASES = ['Accepting Submissions', 'Agents Running', 'Briefs Generating', 'Deals Delivering'];
+const NODE_LABELS  = ['Submit', 'Agents', 'Briefs', 'Delivered'];
+const NODE_PCTS    = [18, 50, 75, 100];
+const PHASE_CONTEXT = [
+  '1 active box · accepting until 2:00 AM CT',
+  'scanning TX · 6 markets active',
+  'matched properties · building briefs',
+  'deals queued · delivering to feed',
+];
 const NODE_ICONS     = [
   <I.Edit size={18} />,
   <I.Sparkle size={18} />,
@@ -89,7 +93,6 @@ const s = {
   iconWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#40424D' },
   ring:     { position: 'absolute', inset: -5, borderRadius: '50%', border: '2px solid rgba(29,175,41,0.4)', pointerEvents: 'none', animation: 'ringPulse 2s ease-in-out infinite' },
   nodeLabel:{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9DA2B3', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', lineHeight: 1 },
-  segLabel: { position: 'absolute', top: 2, transform: 'translateX(-50%)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#1DAF29', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', opacity: 0, transition: 'opacity 0.4s ease', pointerEvents: 'none', zIndex: 5 },
 };
 
 // countdown size tokens
@@ -107,7 +110,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
   const ringRefs     = useRef([]);
   const iconRefs     = useRef([]);
   const checkRefs    = useRef([]);
-  const segLabelRefs = useRef([]);
+  const contextRef   = useRef(null);
   const cdHRef       = useRef(null);
   const cdMRef       = useRef(null);
   const cdSRef       = useRef(null);
@@ -142,6 +145,8 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
         if (iconRefs.current[i]) {
           iconRefs.current[i].style.display = done ? 'none' : 'flex';
           iconRefs.current[i].style.color   = active ? '#1DAF29' : '#40424D';
+          if (active) iconRefs.current[i].classList.add('pipeline-icon-active');
+          else iconRefs.current[i].classList.remove('pipeline-icon-active');
         }
         if (checkRefs.current[i]) {
           checkRefs.current[i].style.display = done ? 'flex' : 'none';
@@ -152,11 +157,8 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
         el.style.display = (i === nodeIdx) ? 'block' : 'none';
       });
 
-      // segment labels — show only the active segment
-      segLabelRefs.current.forEach((el, i) => {
-        if (!el) return;
-        el.style.opacity = (i === nodeIdx) ? '1' : '0';
-      });
+      // context line
+      if (contextRef.current) contextRef.current.textContent = PHASE_CONTEXT[nodeIdx];
 
       // burst on phase flip
       if (prevNodeIdx.current !== null && prevNodeIdx.current !== nodeIdx) {
@@ -176,32 +178,35 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
 
   // ── Renderers ──────────────────────────────────────────────────
 
+  const { nodeIdx: initialNodeIdx } = getStage(getCTSeconds());
   const numSz = CD[size]?.num ?? CD.xl.num;
   const sepSz = CD[size]?.sep ?? CD.xl.sep;
 
   const renderCountdown = () => (
     <div className="pipeline-cd-panel">
       <div className="pipeline-cd-container">
-        <div style={s.cdLabelRow}>
-          <Timer size={11} color="#1DAF29" />
-          <span style={s.cdLabel}>Next Run</span>
+        {/* Left: NEXT / RUN stack + icon to the right */}
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <span style={s.cdLabel}>NEXT</span>
+            <span style={s.cdLabel}>RUN</span>
+          </div>
+          <Timer size={13} color="#1DAF29" />
         </div>
-        <div style={s.cdClock} className="pipeline-cd-clock">
-          <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdHRef}>00</span>
-          <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.25)', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
-          <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdMRef}>00</span>
-          <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.25)', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
-          <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95, color: '#1DAF29' }} ref={cdSRef}>00</span>
+        {/* Divider */}
+        <div style={{ width: 1, alignSelf: 'stretch', background: 'rgba(91,204,72,0.18)', flexShrink: 0 }} />
+        {/* Right: digits + timestamp */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+          <div style={s.cdClock} className="pipeline-cd-clock">
+            <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdHRef}>00</span>
+            <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.45)', margin: '0 1px', position: 'relative', top: -2 }}>:</span>
+            <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdMRef}>00</span>
+            <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.45)', margin: '0 1px', position: 'relative', top: -2 }}>:</span>
+            <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95, color: '#1DAF29' }} ref={cdSRef}>00</span>
+          </div>
+          <div style={s.cdFoot}>2:00 AM CT</div>
         </div>
-        <div style={s.cdFoot}>2:00 AM CT</div>
       </div>
-    </div>
-  );
-
-  const renderPhasePill = () => (
-    <div style={s.phasePill} className="pipeline-phase-pill">
-      <span style={s.phaseDot} />
-      <span style={s.phaseName} ref={phaseRef}>Accepting Submissions</span>
     </div>
   );
 
@@ -220,7 +225,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
       position: 'relative',
       height: showLabels ? 44 : 28,
       marginLeft: 28, marginRight: 28,
-      flex: 1,
+      flexShrink: 0,
     };
 
     const markerStyle = {
@@ -240,57 +245,55 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
           </div>
         )}
 
-        <div style={trackRowStyle}>
-          <div style={s.trackBg} />
-          <div ref={fillRef} style={s.fill} className="pipeline-fill">
-            <div style={s.particle} />
-            <div style={{ ...s.particle, animationDelay: '0.65s' }} />
-            <div style={{ ...s.particle, animationDelay: '1.3s' }} />
-          </div>
-
-          {showLabels && SEGMENT_MIDPTS.map((midPct, i) => (
-            <div
-              key={`seg-${i}`}
-              ref={el => { segLabelRefs.current[i] = el; }}
-              style={{ ...s.segLabel, left: `${midPct}%` }}
-            >
-              {SEGMENT_PHASES[i]}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+          <div style={trackRowStyle}>
+            <div style={s.trackBg} />
+            <div ref={fillRef} style={s.fill} className="pipeline-fill">
+              <div style={s.particle} />
+              <div style={{ ...s.particle, animationDelay: '0.65s' }} />
+              <div style={{ ...s.particle, animationDelay: '1.3s' }} />
             </div>
-          ))}
 
-          <div ref={markerRef} style={markerStyle}>
-            <svg width={26} height={26} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}>
-              <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />
-              <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" fill="#F97316" stroke="#EA580C" strokeWidth="1.5" />
-              <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />
-              <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />
-            </svg>
-          </div>
+            <div ref={markerRef} style={markerStyle}>
+              <svg width={26} height={26} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}>
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" fill="#F97316" stroke="#EA580C" strokeWidth="1.5" />
+                <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />
+              </svg>
+            </div>
 
-          {NODE_LABELS.map((label, i) => (
-            <div key={label} style={{ ...nodeWrapStyle, left: `${NODE_PCTS[i]}%` }}>
-              <div ref={el => { nodeRefs.current[i] = el; }} style={nodeBoxStyle} className="pipeline-node">
-                <div ref={el => { ringRefs.current[i] = el; }} style={{ ...s.ring, display: 'none' }} />
-                <div ref={el => { iconRefs.current[i] = el; }} style={s.iconWrap}>
-                  {NODE_ICONS[i]}
+            {NODE_LABELS.map((label, i) => (
+              <div key={label} style={{ ...nodeWrapStyle, left: `${NODE_PCTS[i]}%` }}>
+                <div ref={el => { nodeRefs.current[i] = el; }} style={nodeBoxStyle} className="pipeline-node">
+                  <div ref={el => { ringRefs.current[i] = el; }} style={{ ...s.ring, display: 'none' }} />
+                  <div ref={el => { iconRefs.current[i] = el; }} style={s.iconWrap}>
+                    {NODE_ICONS[i]}
+                  </div>
+                  <div ref={el => { checkRefs.current[i] = el; }} style={{ ...s.iconWrap, display: 'none', color: '#ffffff' }}>
+                    <I.Check size={14} />
+                  </div>
                 </div>
-                <div ref={el => { checkRefs.current[i] = el; }} style={{ ...s.iconWrap, display: 'none', color: '#ffffff' }}>
-                  <I.Check size={14} />
-                </div>
+                {showLabels && <div style={s.nodeLabel}>{label}</div>}
               </div>
-              {showLabels && <div style={s.nodeLabel}>{label}</div>}
-            </div>
-          ))}
+            ))}
+          </div>
+          <div
+            ref={contextRef}
+            style={{
+              fontSize: 9, color: '#5C6070', fontWeight: 500,
+              letterSpacing: '0.04em', textAlign: 'center', marginTop: 6,
+              fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap',
+            }}
+          >
+            {PHASE_CONTEXT[initialNodeIdx]}
+          </div>
         </div>
       </div>
     );
   };
 
   // ── Mode routing ───────────────────────────────────────────────
-
-  if (mode === 'phase') {
-    return <div className="pipeline-phase-only">{renderPhasePill()}</div>;
-  }
 
   if (mode === 'countdown') {
     return <div className="pipeline-countdown-only">{renderCountdown()}</div>;
