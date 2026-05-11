@@ -1618,10 +1618,10 @@
   border-radius: var(--r-md);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
   position: sticky;
-  top: 12px;
+  top: 0;
   z-index: 7;
   flex-shrink: 0;
-  margin: -12px var(--s-4) 12px;
+  margin: 0 var(--s-4) 12px;
   transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
 }
 
