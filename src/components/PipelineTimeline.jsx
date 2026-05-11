@@ -51,12 +51,12 @@ const NODE_ICONS     = [
 ];
 
 const s = {
-  cdIcon: {
-    color: '#1DAF29', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  cdLabelRow: {
+    display: 'flex', alignItems: 'center', gap: 5,
   },
   cdLabel: {
     fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-    color: '#1DAF29', fontFamily: 'Manrope, system-ui, sans-serif',
+    color: '#FFFFFF', fontFamily: 'Manrope, system-ui, sans-serif',
   },
   cdClock: {
     display: 'flex', alignItems: 'baseline', gap: 4,
@@ -181,16 +181,20 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
 
   const renderCountdown = () => (
     <div className="pipeline-cd-panel">
-      <div style={s.cdIcon}><Timer size={13} /></div>
-      <div style={s.cdLabel}>Next Run</div>
-      <div style={s.cdClock} className="pipeline-cd-clock">
-        <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdHRef}>00</span>
-        <span style={{ fontSize: sepSz, color: '#40424D', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
-        <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdMRef}>00</span>
-        <span style={{ fontSize: sepSz, color: '#40424D', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
-        <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdSRef}>00</span>
+      <div className="pipeline-cd-container">
+        <div style={s.cdLabelRow}>
+          <Timer size={11} color="#1DAF29" />
+          <span style={s.cdLabel}>Next Run</span>
+        </div>
+        <div style={s.cdClock} className="pipeline-cd-clock">
+          <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdHRef}>00</span>
+          <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.25)', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
+          <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdMRef}>00</span>
+          <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.25)', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
+          <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95, color: '#1DAF29' }} ref={cdSRef}>00</span>
+        </div>
+        <div style={s.cdFoot}>2:00 AM CT</div>
       </div>
-      <div style={s.cdFoot}>2:00 AM CT</div>
     </div>
   );
 
