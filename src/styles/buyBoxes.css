@@ -30,7 +30,7 @@
   color: var(--fg, #e6e6e6);
 }
 .bb-pagehead__sub {
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -124,7 +124,7 @@
 }
 .bb-col__title { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
 .bb-col__count {
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-size: 11px;
   color: var(--fg-muted, #9a9a9a);
@@ -137,7 +137,7 @@
   text-align: center;
 }
 .bb-col__sub {
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -154,7 +154,7 @@
   text-align: center;
   font-size: 12px;
   color: var(--fg-dim, #6b6b6b);
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -223,7 +223,7 @@
   border: 1px solid var(--border-faint, #222226);
 }
 .bb-card__big {
-  font-family: var(--font-sans, system-ui, sans-serif);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 32px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -231,7 +231,7 @@
   line-height: 0.95;
 }
 .bb-card__lbl {
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -239,7 +239,7 @@
   margin-top: 2px;
 }
 .bb-card__delta {
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
   color: var(--accent, #1db954);
   font-variant-numeric: tabular-nums;
@@ -253,7 +253,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -269,7 +269,7 @@
 /* Next/last run row */
 .bb-card__nextrun {
   display: flex; align-items: center; justify-content: space-between;
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
@@ -290,7 +290,7 @@
   height: 24px;
   border-radius: 4px;
   display: grid; place-items: center;
-  font-family: var(--font-mono, monospace);
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.04em;
   font-weight: 500;
