@@ -201,7 +201,9 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
         if (typeof data.count === 'number') {
           setForm(f => ({ ...f, matchCount: data.count }));
         }
-      } catch (_) {}
+      } catch {
+        // preview endpoint may not exist; failure is non-fatal
+      }
     }, 400);
     return () => clearTimeout(debounceRef.current);
   }, [filterKey]);

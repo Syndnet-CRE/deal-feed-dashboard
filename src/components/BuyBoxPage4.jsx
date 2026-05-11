@@ -9,7 +9,7 @@ const SIGNALS = [
   { id: 'longhold', icon: 'clock', title: 'Long hold, no refi', count: 318_900, desc: 'Owned 10+ years with no mortgage activity in the last 7 years.' },
 ]
 
-function Slider({ value, min, max, onChange, format = v => v, ticks }) {
+function Slider({ value, min, max, onChange, ticks }) {
   const pct = ((value - min) / (max - min)) * 100
   const ref = useRef(null)
 

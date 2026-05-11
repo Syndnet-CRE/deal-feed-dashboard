@@ -54,7 +54,7 @@ function CountyList({ state, selectedCounties, onToggle, q }) {
       {filtered.map(c => {
         const key = `${state.code}:${c}`
         const checked = selectedCounties.includes(key)
-        const cnt = Math.round((state.count / state.counties.length) * (0.6 + Math.random() * 0.8))
+        const cnt = Math.round((state.count / state.counties.length) * (0.6 + (c.charCodeAt(0) % 5) * 0.08))
         return (
           <div key={key} className={`combo-item${checked ? ' checked' : ''}`} onClick={() => onToggle(key)}>
             <div className="combo-item-label">

@@ -8,9 +8,9 @@ export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter
     return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
   });
   const [pulse, setPulse] = useState(false);
-  const [prevCount, setPrevCount] = useState(matchCount);
   const [delta, setDelta] = useState(0);
   const timerRef = useRef(null);
+  const prevCountRef = useRef(matchCount);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -21,15 +21,14 @@ export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter
   }, []);
 
   useEffect(() => {
-    if (matchCount === prevCount) return;
-    setDelta(matchCount - prevCount);
+    const prev = prevCountRef.current;
+    if (matchCount === prev) return;
+    prevCountRef.current = matchCount;
+    setDelta(matchCount - prev);
     setPulse(true);
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setPulse(false);
-      setPrevCount(matchCount);
-    }, 600);
-  }, [matchCount, prevCount]);
+    timerRef.current = setTimeout(() => setPulse(false), 600);
+  }, [matchCount]);
 
   return (
     <aside className="rail">

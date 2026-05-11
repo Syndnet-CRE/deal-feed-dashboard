@@ -169,10 +169,8 @@ export function BuyBoxPage2({ form, setForm }) {
   )
 }
 
-export function BuyBoxPage3({ form, setForm }) {
-  const owner = form.owner || { entity: '', occupancy: '', hold_min: '', hold_max: '', out_of_state: false }
-
-  const Field = ({ label, options, value, onChange }) => (
+function OwnerField({ label, options, value, onChange }) {
+  return (
     <div style={{ padding: '18px 0', borderBottom: '1px solid var(--border-sub)' }}>
       <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', marginBottom: 10 }}>{label}</div>
       <div className="preset-row">
@@ -188,6 +186,10 @@ export function BuyBoxPage3({ form, setForm }) {
       </div>
     </div>
   )
+}
+
+export function BuyBoxPage3({ form, setForm }) {
+  const owner = form.owner || { entity: '', occupancy: '', hold_min: '', hold_max: '', out_of_state: false }
 
   return (
     <div className="page-fade">
@@ -209,7 +211,7 @@ export function BuyBoxPage3({ form, setForm }) {
           <span className="section-meta">Public record + parcel inference</span>
         </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border-sub)', borderRadius: 'var(--r-card)', padding: '4px 24px' }}>
-          <Field
+          <OwnerField
             label="Entity type"
             value={owner.entity}
             onChange={v => setForm({ ...form, owner: { ...owner, entity: v } })}
@@ -220,7 +222,7 @@ export function BuyBoxPage3({ form, setForm }) {
               { v: 'trust', label: 'Trust' },
             ]}
           />
-          <Field
+          <OwnerField
             label="Occupancy"
             value={owner.occupancy}
             onChange={v => setForm({ ...form, owner: { ...owner, occupancy: v } })}
@@ -231,7 +233,7 @@ export function BuyBoxPage3({ form, setForm }) {
               { v: 'rented', label: 'Renting out' },
             ]}
           />
-          <Field
+          <OwnerField
             label="Hold period"
             value={owner.hold_min}
             onChange={v => setForm({ ...form, owner: { ...owner, hold_min: v } })}

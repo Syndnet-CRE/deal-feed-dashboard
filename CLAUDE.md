@@ -32,6 +32,7 @@ npm run build     # production build to dist/
 npm run lint      # ESLint
 npm run preview   # preview production build locally
 npm test          # vitest unit tests (src/lib/*.test.js) — single run
+npm run knip      # dead code / unused exports report
 npx vitest        # vitest in watch mode (interactive, re-runs on save)
 npx vitest run src/lib/wizardHelpers.test.js   # run a single test file
 npx playwright test           # E2E smoke suite — requires dev server already running
@@ -44,9 +45,14 @@ E2E tests live in `tests/smoke.spec.js`. Story-level regression tests are in `te
 ## ENV VARS
 
 ```
-VITE_API_BASE_URL=   # backend base URL (empty = same origin)
+VITE_API_BASE_URL=   # backend base URL (empty = same origin, uses Vite proxy)
 VITE_MAPBOX_TOKEN=   # Mapbox public token
 ```
+
+Dev setup: copy `.env.example` to `.env` and fill in values. `.env` is gitignored.
+`.env.development` is committed and sets `VITE_API_BASE_URL=` so dev traffic routes through the Vite proxy (which targets `scoutgpt-app.onrender.com`). Playwright tests also hit prod via this proxy — use a test account or the bypass email list to avoid rate limits.
+
+CI requires a `VITE_MAPBOX_TOKEN` GitHub secret (Repo settings → Secrets → Actions).
 
 ## ARCHITECTURE
 
@@ -68,7 +74,7 @@ BrowserRouter
                 DealDetailModal  (/deal/:dealId — overlay, fromMap state set)
 ```
 
-`AuthProvider` holds the JWT (stored as `df_token` in localStorage) and the `subscriber` object. `ReadStateProvider`, `DealStateProvider`, and `DealsProvider` are all mounted inside `AppShell` (not at app root). `DealsProvider` exposes `{ deals, buyBoxes, contacts, loading, error, refetch, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }`.
+`AuthProvider` holds the JWT (stored as `nd_token` in localStorage) and the `subscriber` object. `ReadStateProvider`, `DealStateProvider`, and `DealsProvider` are all mounted inside `AppShell` (not at app root). `DealsProvider` exposes `{ deals, buyBoxes, contacts, loading, error, refetch, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox }`.
 
 `AppShell`, `DealDetailPage`, and `DealDetailModal` are all defined in `src/App.jsx` — there are no separate files for them.
 
@@ -105,7 +111,7 @@ src/
   components/           — shared/reusable UI components
   contexts/             — React context providers
   hooks/                — custom hooks (useAuth)
-  lib/                  — pure utilities (api, format, assetColors, wizardHelpers)
+  lib/                  — pure utilities (api, format, wizardHelpers, inviteHelpers, buyBoxTaxonomy)
   data/                 — static mock data
   styles/               — global CSS and design tokens
 ```
@@ -116,12 +122,11 @@ src/
 |------|------|
 | `src/components/TopHeader.jsx` | Active top nav bar — logo, view links, theme toggle, avatar dropdown. Imported directly in App.jsx. |
 | `src/components/LeftPanel.jsx` | Active left sidebar panel — navigation links, TonightsRunCard. Imported in App.jsx. |
-| `src/components/NightdropBar.jsx` | Exists but not imported anywhere — dead code / prototype. Do not add features here. |
 | `src/components/DealDetail.jsx` | Active full-page deal detail with 12 tabs: Summary, Property Record, Ownership, Financials, Capital Stack, Transactions, Site & Lot, Zoning, Site Context, Risk, Distress, Deal Intel. Styled by `src/styles/deal-detail.css`. |
 | `src/components/DealMap.jsx` | Reusable Mapbox map. Auto-fits to deal markers via `fitDeals()`. Props: `deals`, `selectedId`, `hoverId`, `onClickDeal`, `mapStyle`, `withPopup`. |
 | `src/components/DealPanel.jsx` | Collapsible sidebar inside MapView listing filtered/sorted deals. Owns filter state, sort, owner-type chips, CSV export. Persists collapsed state to `localStorage` key `dealfeed.mapPanel.collapsed`; filters to `parcyl-deals-filters`. |
 | `src/components/DealPanelCard.jsx` | Individual deal card within DealPanel. Expandable inline preview (signals, score, aerial thumb). Calls `onOpenDeal` to navigate to full deal detail. |
-| `src/components/DealComponents.jsx` | Shared atoms: `ScoreBubble`, `MapPinSVG`, `DealCard`. `MapPinSVG` uses `getPinColor` from `assetColors.js`. |
+| `src/components/DealComponents.jsx` | Shared atoms: `ScoreBubble`, `MapPinSVG`, `DealCard`. Pin colors are computed inline via `getAssetChipStyle()`. |
 | `src/components/Icons.jsx` | Central icon library — exports `I` object with named icons (e.g. `I.Pin`, `I.Alert`, `I.Trend`). Always import icons from here. |
 | `src/components/BuyBoxWizard.jsx` | Active buy box create/edit wizard. Imported in App.jsx. Multi-page: uses BuyBoxPage1, BuyBoxPage2/3 (from BuyBoxPage23.jsx), BuyBoxPage4, BuyBoxPage5, BuyBoxPage6, BuyBoxRightRail. Styled by `buy-box-wizard.css` and `buy-box-wizard-pages.css`. |
 | `src/components/BuyBoxPage1.jsx` | Wizard page 1 — imported by BuyBoxWizard. |
@@ -142,14 +147,12 @@ src/
 | `src/components/feed/TonightsRunCard.jsx` | Card showing tonight's deal run status. Imported by LeftPanel and LeftRail. |
 | `src/components/ScoreBadge.jsx` | Deal score badge component. Imported by FeedDealCard. |
 | `src/components/OverflowMenu.jsx` | Three-dot overflow menu on deal cards. Imported by FeedDealCard. |
-| `src/components/StatusSelector.jsx` | Inline deal status selector; calls `updateStatus` from DealsContext. |
 | `src/components/ContactLogModal.jsx` | Modal for logging and viewing contact attempts on a deal; calls `logContact` and `fetchContacts` from DealsContext. |
 | `src/components/BulkActionBar.jsx` | Bulk action toolbar shown in DealPanel when deals are selected. Props: `count`, `onStatus`, `onFeedback`, `onExport`, `onClear`. |
 | `src/components/ConfirmModal.jsx` | Generic danger-confirm modal; `kind` prop selects copy. |
 | `src/components/AerialThumb.jsx` | Aerial imagery thumbnail shown in deal cards/drawers. |
 | `src/components/PipelineTimeline.jsx` | Animated horizontal pipeline timeline on the Dashboard. All layout styles are inlined (no CSS class dependencies) to avoid cascade conflicts with `styles.css`. |
 | `src/components/MarketNewsfeed.jsx` | Scrolling market news ticker on the Dashboard. Data sourced from `src/data/marketPulse.json`. |
-| `src/components/CalendarModal.jsx` | Modal for scheduling/viewing calendar entries on a deal. |
 | `src/components/Toast.jsx` | Toast notification UI driven by `src/contexts/ToastContext.jsx`. Use the `useToast()` hook to fire toasts; never render Toast directly. |
 | `src/views/DashboardView.jsx` | Main deal feed view: LeftRail + center feed (WeekDayTabs + FeedDealCards + AgentMessageCards) + RightRail + ChatFab. Falls back to `MOCK_DEALS` when API returns empty. |
 | `src/views/MapView.jsx` | Full-screen Mapbox map + collapsible DealPanel sidebar. This is the primary deal browsing surface (My Deals was merged here). Map style persisted to `parcyl-map-style`; viewport to `parcyl-map-viewport`. |
@@ -161,7 +164,6 @@ src/
 | `src/views/InviteClaimView.jsx` | Unauthenticated view at `/invite/:token`. Validates the token via `GET /api/dealfeed/auth/invite/:token`, collects `full_name` + password, and activates the account. |
 | `src/views/SettingsView.jsx` | Profile and password settings. |
 | `src/lib/format.js` | `fmt(val)` — null-safe display (returns `—` for null/empty/`"null"`). `hasVal(val)`, `fmtMoney(n)` → `$1.2M`/`$420K`. `scoreClass(s)` → `hi/md/lo`. |
-| `src/lib/assetColors.js` | `getPinColor(assetClass)` → hex; exports `LEGEND_ITEMS`. |
 | `src/lib/buyBoxTaxonomy.js` | Taxonomy data for buy box asset classes and property types. Used by the wizard. |
 | `src/lib/wizardHelpers.js` | Pure functions for the buy box wizard: `toNum(v)`, `activeGeoHasData(form)`, `canProceed(step, form)`, `buildPayload(form)`. Fully unit-tested in `wizardHelpers.test.js`. Used by `BuyBoxWizard.jsx`. |
 | `src/lib/inviteHelpers.js` | Pure functions for the invite flow: `parseInvitesFromText(text)` — parses `Name <email>` or bare email lines; `validateInvite({email, full_name})` — returns error string or null; `dedupeByEmail(invites)` — removes duplicate emails. |
@@ -171,19 +173,21 @@ src/
 
 ### Design system
 
-All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `--green` = `#5BCC48`, `--warning` = `#F4B73E`, `--danger` = `#E5484D`. Font: Manrope (sans) + JetBrains Mono. Never hardcode hex colors that map to a token. Theme is toggled via `data-theme` attribute on `<html>`; persisted in `localStorage` as `parcyl-theme`.
+All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `--green` = `#5BCC48`, `--warning` = `#F4B73E`, `--danger` = `#E5484D`. Font: Manrope (sans) + JetBrains Mono. Never hardcode hex colors that map to a token. Theme is toggled via `data-theme` attribute on `<html>`; persisted in `localStorage` as `nightdrop-theme`.
 
 ## KEY FILES
 
 - `src/App.jsx` — defines AppShell, DealDetailPage, DealDetailModal, and all wizard/modal state; over 400 lines, edit carefully
 - `src/contexts/DealsContext.jsx` — central data fetch; touching this breaks all views
 - `src/components/DealDetail.jsx` — active full deal detail (12 tabs); powers both page and modal rendering modes
-- `src/styles/deal-detail.css` — styles for DealDetail; separate from the main `styles.css`
+- `src/styles/styles.css` — global app styles; ~3,900 lines; most component overrides live here
+- `src/styles/deal-detail.css` — styles for DealDetail; ~1,150 lines; separate from styles.css
+- `src/styles/feed-layout.css` — Dashboard three-column layout (LeftRail, feed-center-col, RightRail, WeekDayTabs); ~2,300 lines
+- `src/styles/buy-box-wizard.css` + `buy-box-wizard-pages.css` — wizard chrome and per-page styles
+- `src/styles/admin.css` — AdminView styles; ~530 lines; separate from styles.css
+- `src/styles/tokens.css` — source of truth for all colors, spacing, typography
 - `src/components/BuyBoxWizard.jsx` — active buy box wizard (create + edit); imported in App.jsx; multi-page flow across BuyBoxPage1–6
 - `src/components/DealMap.jsx` — Mapbox integration; `fitDeals()` must fire after `onLoad`, not before
-- `src/styles/tokens.css` — source of truth for all colors, spacing, typography
-- `src/styles/feed-layout.css` — layout for the Dashboard feed: three-column layout, LeftRail, RightRail, feed-center-col, WeekDayTabs
-- `src/styles/admin.css` — styles for AdminView; separate from `styles.css` and `deal-detail.css`
 - `src/lib/wizardHelpers.js` — pure helper functions for the wizard: `canProceed(step, form)` step gate logic, `buildPayload(form)` API payload builder, `toNum(v)` null-safe numeric converter
 
 ## KNOWN LANDMINES
@@ -195,7 +199,8 @@ All design tokens are in `src/styles/tokens.css` (Parcyl brand). Key aliases: `-
 - `saveNote` in `DealsContext` does an optimistic update but does NOT catch errors — a failed PATCH leaves stale UI state with no user feedback.
 - `BuyBoxWizard` backdrop has no onClick close handler — intentional to prevent accidental dismissal mid-flow.
 - `POST /api/dealfeed/buy-boxes/preview` is called by `BuyBoxWizard` on every form change (debounced). If this route does not exist on the backend, preview count fails silently — no error is surfaced to the user.
-- `NightdropBar.jsx` is dead code — exists in the file tree but not imported anywhere. Do not add features here.
+- Playwright smoke tests are hardcoded to port 5173. If another Vite instance is already running, the dev server starts on 5180+ and smoke tests fail with connection refused. Kill other Vite instances before running Playwright.
+- All Playwright tests run against the production backend via the Vite proxy. Use `RATE_LIMIT_BYPASS_EMAILS` on Render to avoid locking out real user accounts during test runs.
 - **Geo contract drift** — `buildPayload()` in `wizardHelpers.js` serializes `geo_cities`, `geo_zips`, and `geo_radius_*` to the DB, but the backend `matchProperties()` in `scoutgpt-api/scripts/run_deal_feed.js` only reads `geo_states` and `geo_counties`. Adding new geo modes to the wizard without updating the matcher causes silent zero-deal delivery. If you touch either file, verify both sides stay in sync. The local hookify rule `.claude/hookify.wizard-matcher-drift.local.md` will warn you.
 
 ## LOCAL HOOKIFY RULES
