@@ -43,8 +43,8 @@ function RangeRow({ label, hint, children }) {
 function Toggle({ checked, onChange }) {
   return (
     <div
-      className="toggle"
-      style={{ cursor: 'pointer', opacity: checked ? 1 : 0.6 }}
+      className={`toggle${checked ? ' on' : ''}`}
+      style={{ cursor: 'pointer' }}
       onClick={onChange}
     />
   )
