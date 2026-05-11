@@ -39,9 +39,11 @@ function getMarkerPct(nowSecs) {
   return Math.max(0, Math.min(18, (sinceSix / 64800) * 18));
 }
 
-const NODE_LABELS = ['Submit', 'Agents', 'Briefs', 'Delivered'];
-const NODE_PCTS   = [18, 50, 75, 100];
-const NODE_ICONS  = [
+const NODE_LABELS    = ['Submit', 'Agents', 'Briefs', 'Delivered'];
+const NODE_PCTS      = [18, 50, 75, 100];
+const SEGMENT_MIDPTS = [9, 34, 62.5, 87.5];
+const SEGMENT_PHASES = ['Accepting Submissions', 'Agents Running', 'Briefs Generating', 'Deals Delivering'];
+const NODE_ICONS     = [
   <I.Edit size={18} />,
   <I.Sparkle size={18} />,
   <I.Doc size={18} />,
@@ -49,8 +51,10 @@ const NODE_ICONS  = [
 ];
 
 const s = {
+  cdIcon: {
+    color: '#1DAF29', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
   cdLabel: {
-    display: 'flex', alignItems: 'center', gap: 6,
     fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
     color: '#1DAF29', fontFamily: 'Manrope, system-ui, sans-serif',
   },
@@ -79,32 +83,35 @@ const s = {
     fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap',
   },
   trackBg:  { position: 'absolute', left: 0, right: 0, top: '50%', marginTop: -2, height: 4, background: '#40424D', borderRadius: 2 },
-  fill:     { position: 'absolute', left: 0, top: '50%', marginTop: -2, height: 4, width: '0%', background: 'linear-gradient(90deg, #1DAF29, #3DE346)', borderRadius: 2, transition: 'width 0.25s linear', animation: 'timelineGlow 2s ease-in-out infinite', overflow: 'hidden' },
-  particle: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.75)', animation: 'particleFlow 2s linear infinite' },
+  // background and animation moved to .pipeline-fill CSS class
+  fill:     { position: 'absolute', left: 0, top: '50%', marginTop: -2, height: 4, width: '0%', borderRadius: 2, transition: 'width 0.25s linear', overflow: 'hidden' },
+  particle: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', animation: 'particleFlow 2s linear infinite', boxShadow: '0 0 5px rgba(255,255,255,0.7)' },
   iconWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#40424D' },
   ring:     { position: 'absolute', inset: -5, borderRadius: '50%', border: '2px solid rgba(29,175,41,0.4)', pointerEvents: 'none', animation: 'ringPulse 2s ease-in-out infinite' },
   nodeLabel:{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9DA2B3', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', lineHeight: 1 },
+  segLabel: { position: 'absolute', top: 2, transform: 'translateX(-50%)', fontSize: 8, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#1DAF29', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', opacity: 0, transition: 'opacity 0.4s ease', pointerEvents: 'none', zIndex: 5 },
 };
 
 // countdown size tokens
 const CD = {
   xl:     { num: 44, sep: 28 },
-  header: { num: 36, sep: 24 },
+  header: { num: 28, sep: 18 },
   rail:   { num: 28, sep: 20 },
 };
 
 export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = false, showPhase = true } = {}) {
-  const phaseRef    = useRef(null);
-  const fillRef     = useRef(null);
-  const markerRef   = useRef(null);
-  const nodeRefs    = useRef([]);
-  const ringRefs    = useRef([]);
-  const iconRefs    = useRef([]);
-  const checkRefs   = useRef([]);
-  const cdHRef      = useRef(null);
-  const cdMRef      = useRef(null);
-  const cdSRef      = useRef(null);
-  const prevNodeIdx = useRef(null);
+  const phaseRef     = useRef(null);
+  const fillRef      = useRef(null);
+  const markerRef    = useRef(null);
+  const nodeRefs     = useRef([]);
+  const ringRefs     = useRef([]);
+  const iconRefs     = useRef([]);
+  const checkRefs    = useRef([]);
+  const segLabelRefs = useRef([]);
+  const cdHRef       = useRef(null);
+  const cdMRef       = useRef(null);
+  const cdSRef       = useRef(null);
+  const prevNodeIdx  = useRef(null);
 
   useEffect(() => {
     function tick() {
@@ -145,6 +152,12 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
         el.style.display = (i === nodeIdx) ? 'block' : 'none';
       });
 
+      // segment labels — show only the active segment
+      segLabelRefs.current.forEach((el, i) => {
+        if (!el) return;
+        el.style.opacity = (i === nodeIdx) ? '1' : '0';
+      });
+
       // burst on phase flip
       if (prevNodeIdx.current !== null && prevNodeIdx.current !== nodeIdx) {
         const el = nodeRefs.current[nodeIdx];
@@ -168,10 +181,8 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
 
   const renderCountdown = () => (
     <div className="pipeline-cd-panel">
-      <div style={s.cdLabel}>
-        <Timer size={12} />
-        <span>Next Run</span>
-      </div>
+      <div style={s.cdIcon}><Timer size={13} /></div>
+      <div style={s.cdLabel}>Next Run</div>
       <div style={s.cdClock} className="pipeline-cd-clock">
         <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdHRef}>00</span>
         <span style={{ fontSize: sepSz, color: '#40424D', margin: '0 2px', position: 'relative', top: -2 }}>:</span>
@@ -191,7 +202,6 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
   );
 
   const renderTrack = () => {
-    // node wrap: when showLabels, anchor top of node to track line, label hangs below
     const nodeWrapStyle = showLabels
       ? { position: 'absolute', top: '50%', transform: 'translateX(-50%)', marginTop: -13, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }
       : { position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
@@ -228,11 +238,22 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
 
         <div style={trackRowStyle}>
           <div style={s.trackBg} />
-          <div ref={fillRef} style={s.fill}>
+          <div ref={fillRef} style={s.fill} className="pipeline-fill">
             <div style={s.particle} />
-            <div style={{ ...s.particle, animationDelay: '0.6s' }} />
-            <div style={{ ...s.particle, animationDelay: '1.2s' }} />
+            <div style={{ ...s.particle, animationDelay: '0.65s' }} />
+            <div style={{ ...s.particle, animationDelay: '1.3s' }} />
           </div>
+
+          {showLabels && SEGMENT_MIDPTS.map((midPct, i) => (
+            <div
+              key={`seg-${i}`}
+              ref={el => { segLabelRefs.current[i] = el; }}
+              style={{ ...s.segLabel, left: `${midPct}%` }}
+            >
+              {SEGMENT_PHASES[i]}
+            </div>
+          ))}
+
           <div ref={markerRef} style={markerStyle}>
             <svg width={26} height={26} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(45deg)' }}>
               <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" fill="#5BCC48" stroke="#40424D" strokeWidth="1.4" />

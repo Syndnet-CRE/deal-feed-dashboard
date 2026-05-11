@@ -119,8 +119,32 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
-  align-items: flex-end;
+  gap: 3px;
+  align-items: center;
+}
+
+/* ── Fill bar shimmer + glow ────────────────────────────────── */
+@keyframes fillShimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes timelineGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(29, 175, 41, 0.5); }
+  50%       { box-shadow: 0 0 14px rgba(29, 175, 41, 0.95), 0 0 28px rgba(29, 175, 41, 0.45); }
+}
+
+.pipeline-fill {
+  background: linear-gradient(
+    90deg,
+    #1DAF29 0%,
+    #28D436 18%,
+    #72FF62 44%,
+    #28D436 56%,
+    #1DAF29 82%
+  );
+  background-size: 300% 100%;
+  animation: fillShimmer 2.4s linear infinite, timelineGlow 2s ease-in-out infinite;
 }
 
 /* ── Node burst animation (fires on phase transition) ──────── */

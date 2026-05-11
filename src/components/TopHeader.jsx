@@ -8,7 +8,6 @@ export default function TopHeader() {
           <span className="top-header-logo-dot" />
           Nightdrop.ai
         </div>
-        <PipelineTimeline mode="phase" />
       </div>
 
       <div className="top-header-center">
