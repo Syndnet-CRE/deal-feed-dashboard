@@ -134,7 +134,7 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
     setIsRead(true);
     try {
       await api.patch(`/api/dealfeed/deals/${deal.id}/read`, {});
-    } catch (_) {}
+    } catch { /* silent — read tracking is best-effort */ }
   }, [deal.id]);
 
   useEffect(() => {
@@ -159,14 +159,14 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
     if (next === 'not_relevant') setNotRelevantUndo(true);
     try {
       await api.post(`/api/dealfeed/deals/${deal.id}/feedback`, { feedback: next });
-    } catch (_) { setFb(fb); }
+    } catch { setFb(fb); }
   }
 
   async function handleSave() {
     setSaved(s => !s);
     try {
       await api.patch(`/api/dealfeed/deals/${deal.id}/save`, {});
-    } catch (_) { setSaved(s => !s); }
+    } catch { setSaved(s => !s); }
   }
 
   function handleHide() {

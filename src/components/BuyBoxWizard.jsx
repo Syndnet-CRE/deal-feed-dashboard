@@ -12,8 +12,8 @@ import { I } from './Icons';
 import '../styles/buy-box-wizard.css';
 
 const STEP_LABELS = [
-  'Name', 'Geography', 'Asset Class', 'Sub-Asset',
-  'Criteria', 'Ownership', 'Distress', 'Schedule', 'Review',
+  'Asset Class', 'Sub-Asset', 'Name', 'Geography',
+  'Criteria', 'Ownership', 'Distress', 'Threshold', 'Schedule', 'Review',
 ];
 
 const EMPTY_FORM = {
@@ -36,6 +36,7 @@ const EMPTY_FORM = {
   distress_only: false,
   distress_match_mode: 'any',
   notes: '',
+  match_threshold: 80,
   run_schedule: { days: [...ALL_DAYS] },
 };
 
@@ -77,6 +78,7 @@ function toFormState(box) {
     distress_only: box.distress_only || false,
     distress_match_mode: box.distress_match_mode || 'any',
     notes: box.notes || '',
+    match_threshold: box.match_threshold ?? 80,
     run_schedule: box.run_schedule || { days: [...ALL_DAYS] },
   };
 }
@@ -94,17 +96,18 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
   const [submitting, setSubmitting] = useState(false);
   const [zipInput, setZipInput] = useState('');
   const [metroSearch, setMetroSearch] = useState('');
+  const [stateSearch, setStateSearch] = useState('');
   const [coverage, setCoverage] = useState(null);
   const coverageTimer = useRef(null);
 
   const set = useCallback((key, val) => setForm(f => ({ ...f, [key]: val })), []);
 
-  // Coverage check — fires on geo changes while on step 2
+  // Coverage check — fires on geo changes while on step 4 (Geo)
   useEffect(() => {
-    if (step !== 2) return;
-    setCoverage('loading');
+    if (step !== 4) return;
     clearTimeout(coverageTimer.current);
     coverageTimer.current = setTimeout(async () => {
+      setCoverage('loading');
       try {
         const payload = buildPayload(form);
         const res = await api.post('/api/dealfeed/buy-boxes/preview', payload);
@@ -130,7 +133,7 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
   function handleNext() {
     if (!canProceedStep(step, form)) { setTouched(true); return; }
     setTouched(false);
-    if (step === 9) { handleSubmit(); return; }
+    if (step === 10) { handleSubmit(); return; }
     setStep(s => s + 1);
   }
 
@@ -164,11 +167,13 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
 
   // ── Step renders ─────────────────────────────────────────────────────────
 
-  function renderStep1() {
+  function renderStep3() {
     const missing = touched && !form.label.trim();
+    const cls = getAssetClass(form.asset_class);
     return (
       <div className="bbwiz-step-body">
         <h2 className="bbwiz-step-title">Name Your Buy Box</h2>
+        {cls && <div className="bbwiz-context-chip">{cls.label}</div>}
         <p className="bbwiz-step-desc">Give this buy box a name that helps you identify it at a glance.</p>
         <div className="bbwiz-field">
           <label className="bbwiz-label">Buy Box Name <span className="bbwiz-req">*</span></label>
@@ -176,7 +181,7 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
             className={`bbwiz-input${missing ? ' is-error' : ''}`}
             value={form.label}
             onChange={e => set('label', e.target.value.slice(0, 60))}
-            placeholder="e.g. Austin Storage Play, DFW Industrial Watch"
+            placeholder={cls ? `e.g. ${cls.label} — ${form.geo_states?.[0] || 'My Market'}` : 'e.g. Austin Storage Play, DFW Industrial Watch'}
             maxLength={60}
             autoFocus
           />
@@ -187,8 +192,8 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
     );
   }
 
-  function renderStep2() {
-    const missingGeo = touched && !canProceedStep(2, form);
+  function renderStep4() {
+    const missingGeo = touched && !canProceedStep(4, form);
     const coverageLabel = { strong: 'Strong Coverage', limited: 'Limited Coverage', sparse: 'Sparse Coverage', loading: 'Checking coverage…' };
 
     function addZip() {
@@ -217,15 +222,25 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
           ))}
         </div>
         {form.geoMode === 'state' && (
-          <div className="bbwiz-select-list">
-            {US_STATES.map(([abbr, name]) => (
-              <label key={abbr} className={`bbwiz-select-item${form.geo_states.includes(abbr) ? ' is-selected' : ''}`}>
-                <input type="checkbox" checked={form.geo_states.includes(abbr)}
-                  onChange={() => set('geo_states', toggleArr(form.geo_states, abbr))} />
-                <span>{abbr} — {name}</span>
-              </label>
-            ))}
-          </div>
+          <>
+            <input className="bbwiz-input" placeholder="Search states…" value={stateSearch}
+              onChange={e => setStateSearch(e.target.value)} style={{ marginBottom: 8 }} />
+            <div className="bbwiz-select-list">
+              {US_STATES
+                .filter(([abbr, name]) => !stateSearch || abbr.toLowerCase().includes(stateSearch.toLowerCase()) || name.toLowerCase().includes(stateSearch.toLowerCase()))
+                .map(([abbr, name]) => (
+                  <label key={abbr} className={`bbwiz-select-item${form.geo_states.includes(abbr) ? ' is-selected' : ''}`}>
+                    <input type="checkbox" checked={form.geo_states.includes(abbr)}
+                      onChange={() => set('geo_states', toggleArr(form.geo_states, abbr))} />
+                    <span>{abbr} — {name}</span>
+                  </label>
+                ))}
+            </div>
+            {form.geo_states.length > 0 && (
+              <p className="bbwiz-selection-count">{form.geo_states.length} state{form.geo_states.length > 1 ? 's' : ''} selected</p>
+            )}
+            {/* TODO: cascading county/city picker */}
+          </>
         )}
         {form.geoMode === 'metro' && (
           <>
@@ -288,7 +303,7 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
     );
   }
 
-  function renderStep3() {
+  function renderStep1() {
     const missing = touched && !form.asset_class;
     return (
       <div className="bbwiz-step-body">
@@ -316,9 +331,8 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
     );
   }
 
-  function renderStep4() {
+  function renderStep2() {
     const cls = getAssetClass(form.asset_class);
-    const missing = touched && form.asset_use_codes.length === 0;
     if (!cls) return (
       <div className="bbwiz-step-body">
         <p className="bbwiz-step-desc">Go back and select an asset class first.</p>
@@ -327,8 +341,14 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
     return (
       <div className="bbwiz-step-body">
         <h2 className="bbwiz-step-title">Sub-Asset Class</h2>
-        <p className="bbwiz-step-desc">Select one or more property types within <strong>{cls.label}</strong>.</p>
-        {missing && <p className="bbwiz-inline-error">Select at least one sub-type to continue.</p>}
+        <p className="bbwiz-step-desc">
+          Select one or more property types within <strong>{cls.label}</strong>.
+          <span className="bbwiz-optional"> Optional — skip to include all types.</span>
+        </p>
+        <div className="bbwiz-subtype-actions">
+          <button className="bbwiz-link" onClick={() => set('asset_use_codes', cls.subtypes.map(s => s.code))}>Select all</button>
+          <button className="bbwiz-link" onClick={() => set('asset_use_codes', [])}>Clear all</button>
+        </div>
         <div className="bbwiz-subtype-grid">
           {cls.subtypes.map(st => {
             const on = form.asset_use_codes.includes(st.code);
@@ -344,33 +364,71 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
             );
           })}
         </div>
+        {form.asset_use_codes.length > 0 && (
+          <p className="bbwiz-selection-count">{form.asset_use_codes.length} of {cls.subtypes.length} selected</p>
+        )}
       </div>
     );
   }
 
   function renderStep5() {
+    const ac = form.asset_class;
+    const ZONING = ['AG', 'R1', 'R2', 'C1', 'C2', 'I1', 'MU', 'PD'];
+
+    const sfLabel = ac === 'multifamily' ? 'Unit Count' : ac === 'hospitality' ? 'Room Count' : 'Building Size (SF)';
+    const showSf = ['multifamily', 'sfr', 'industrial', 'retail', 'office', 'hospitality', 'special_purpose'].includes(ac);
+    const showAcres = ac === 'land';
+    const showZoning = ['land', 'multifamily'].includes(ac);
+
     return (
       <div className="bbwiz-step-body">
         <h2 className="bbwiz-step-title">Property Criteria</h2>
         <p className="bbwiz-step-desc">All fields optional. Leave blank to match any value.</p>
         <div className="bbwiz-criteria-grid">
-          {[
-            { label: 'Building Size (SF)', k1: 'sf_min', k2: 'sf_max', ph: 'Min SF', ph2: 'Max SF' },
-            { label: 'Lot Size (Acres)', k1: 'acres_min', k2: 'acres_max', ph: 'Min Acres', ph2: 'Max Acres' },
-            { label: 'Assessed Value ($)', k1: 'value_min', k2: 'value_max', ph: 'Min Value', ph2: 'Max Value' },
-            { label: 'Year Built', k1: 'year_built_min', k2: 'year_built_max', ph: 'From Year', ph2: 'To Year' },
-          ].map(({ label, k1, k2, ph, ph2 }) => (
-            <div key={k1} className="bbwiz-range-pair">
-              <label className="bbwiz-label">{label}</label>
+          {showSf && (
+            <div className="bbwiz-range-pair">
+              <label className="bbwiz-label">{sfLabel}</label>
               <div className="bbwiz-range-inputs">
-                <input className="bbwiz-input" type="number" placeholder={ph} value={form[k1]}
-                  onChange={e => set(k1, e.target.value)} />
+                <input className="bbwiz-input" type="number" placeholder="Min" value={form.sf_min}
+                  onChange={e => set('sf_min', e.target.value)} />
                 <span className="bbwiz-range-sep">–</span>
-                <input className="bbwiz-input" type="number" placeholder={ph2} value={form[k2]}
-                  onChange={e => set(k2, e.target.value)} />
+                <input className="bbwiz-input" type="number" placeholder="Max" value={form.sf_max}
+                  onChange={e => set('sf_max', e.target.value)} />
               </div>
             </div>
-          ))}
+          )}
+          {showAcres && (
+            <div className="bbwiz-range-pair">
+              <label className="bbwiz-label">Lot Size (Acres)</label>
+              <div className="bbwiz-range-inputs">
+                <input className="bbwiz-input" type="number" placeholder="Min Acres" value={form.acres_min}
+                  onChange={e => set('acres_min', e.target.value)} />
+                <span className="bbwiz-range-sep">–</span>
+                <input className="bbwiz-input" type="number" placeholder="Max Acres" value={form.acres_max}
+                  onChange={e => set('acres_max', e.target.value)} />
+              </div>
+            </div>
+          )}
+          <div className="bbwiz-range-pair">
+            <label className="bbwiz-label">Estimated Value ($)</label>
+            <div className="bbwiz-range-inputs">
+              <input className="bbwiz-input" type="number" placeholder="Min $" value={form.value_min}
+                onChange={e => set('value_min', e.target.value)} />
+              <span className="bbwiz-range-sep">–</span>
+              <input className="bbwiz-input" type="number" placeholder="Max $" value={form.value_max}
+                onChange={e => set('value_max', e.target.value)} />
+            </div>
+          </div>
+          <div className="bbwiz-range-pair">
+            <label className="bbwiz-label">Year Built</label>
+            <div className="bbwiz-range-inputs">
+              <input className="bbwiz-input" type="number" placeholder="From Year" value={form.year_built_min}
+                onChange={e => set('year_built_min', e.target.value)} />
+              <span className="bbwiz-range-sep">–</span>
+              <input className="bbwiz-input" type="number" placeholder="To Year" value={form.year_built_max}
+                onChange={e => set('year_built_max', e.target.value)} />
+            </div>
+          </div>
           <div className="bbwiz-range-pair">
             <label className="bbwiz-label">Minimum Years of Ownership: <strong>{form.min_hold_yrs || 0}</strong></label>
             <input type="range" className="bbwiz-slider" min={0} max={30} step={1}
@@ -378,6 +436,23 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
               onChange={e => set('min_hold_yrs', Number(e.target.value) || '')} />
             <div className="bbwiz-slider-labels"><span>0 yrs</span><span>30+ yrs</span></div>
           </div>
+          {showZoning && (
+            <div className="bbwiz-range-pair">
+              <label className="bbwiz-label">Zoning Codes</label>
+              <div className="bbwiz-subtype-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+                {ZONING.map(z => {
+                  const on = form.zoning_codes.includes(z);
+                  return (
+                    <button key={z} className={`bbwiz-subtype-card${on ? ' is-selected' : ''}`}
+                      onClick={() => set('zoning_codes', toggleArr(form.zoning_codes, z))}>
+                      {on && <span className="bbwiz-subtype-check"><I.Check size={12}/></span>}
+                      {z}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -390,14 +465,24 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
         <p className="bbwiz-step-desc">All optional. Leave blank to target all ownership types.</p>
         <div className="bbwiz-field">
           <label className="bbwiz-label">Ownership Type</label>
-          <div className="bbwiz-type-btns">
-            {OWNER_TYPE_OPTIONS.map(ot => (
-              <button
-                key={ot.value}
-                className={`bbwiz-type-btn${form.owner_types.includes(ot.value) ? ' is-on' : ''}`}
-                onClick={() => set('owner_types', toggleArr(form.owner_types, ot.value))}
-              >{ot.label}</button>
-            ))}
+          <div className="bbwiz-subtype-actions">
+            <button className="bbwiz-link" onClick={() => set('owner_types', OWNER_TYPE_OPTIONS.map(o => o.value))}>Select all</button>
+            <button className="bbwiz-link" onClick={() => set('owner_types', [])}>Clear all</button>
+          </div>
+          <div className="bbwiz-subtype-grid">
+            {OWNER_TYPE_OPTIONS.map(ot => {
+              const on = form.owner_types.includes(ot.value);
+              return (
+                <button
+                  key={ot.value}
+                  className={`bbwiz-subtype-card${on ? ' is-selected' : ''}`}
+                  onClick={() => set('owner_types', toggleArr(form.owner_types, ot.value))}
+                >
+                  {on && <span className="bbwiz-subtype-check"><I.Check size={12}/></span>}
+                  {ot.label}
+                </button>
+              );
+            })}
           </div>
         </div>
         {[
@@ -424,32 +509,74 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
   }
 
   function renderStep7() {
+    const SIGNAL_TOOLTIPS = {
+      'active-foreclosure': 'Property has a recorded notice of default or foreclosure filing.',
+      'tax-delinquent': 'Owner owes back property taxes.',
+      'absentee-owner': "Owner's mailing address differs from the property address.",
+      'long-term-hold': 'Property has been owned 10+ years with no refinance.',
+      'quit-claim-deed': 'Property was transferred via quit claim, often a distress indicator.',
+      'non-arms-length': 'Last sale was between related parties, often below market.',
+      'investor-buyer': 'Last buyer was an investor entity, not owner-occupant.',
+      'arm-mortgage': 'Owner has an adjustable-rate mortgage — rate resets may cause stress.',
+      'high-ltv': 'Owner is highly leveraged relative to property value.',
+      'free-and-clear': 'No recorded mortgage — owner has equity to negotiate with.',
+    };
+
     return (
       <div className="bbwiz-step-body">
         <h2 className="bbwiz-step-title">Distress Signals</h2>
         <p className="bbwiz-step-desc">All optional. Select signals to filter for motivated sellers.</p>
-        <div className="bbwiz-distress-list">
-          {DISTRESS_SIGNAL_OPTIONS.map(sig => (
-            <label key={sig.value} className={`bbwiz-distress-item${form.distress_signals.includes(sig.value) ? ' is-checked' : ''}`}>
-              <input type="checkbox" checked={form.distress_signals.includes(sig.value)}
-                onChange={() => set('distress_signals', toggleArr(form.distress_signals, sig.value))} />
-              <span>{sig.label}</span>
-            </label>
-          ))}
+        <div className="bbwiz-subtype-actions">
+          <button className="bbwiz-link" onClick={() => set('distress_signals', DISTRESS_SIGNAL_OPTIONS.map(s => s.value))}>Select all</button>
+          <button className="bbwiz-link" onClick={() => set('distress_signals', [])}>Clear all</button>
         </div>
+        <div className="bbwiz-subtype-grid">
+          {DISTRESS_SIGNAL_OPTIONS.map(sig => {
+            const on = form.distress_signals.includes(sig.value);
+            return (
+              <button
+                key={sig.value}
+                className={`bbwiz-subtype-card${on ? ' is-selected' : ''}`}
+                title={SIGNAL_TOOLTIPS[sig.value]}
+                onClick={() => set('distress_signals', toggleArr(form.distress_signals, sig.value))}
+              >
+                {on && <span className="bbwiz-subtype-check"><I.Check size={12}/></span>}
+                {sig.label}
+              </button>
+            );
+          })}
+        </div>
+        {form.distress_signals.length > 0 && (
+          <p className="bbwiz-selection-count">{form.distress_signals.length} signal{form.distress_signals.length > 1 ? 's' : ''} selected</p>
+        )}
         {form.distress_signals.length > 1 && (
           <div className="bbwiz-field" style={{ marginTop: 16 }}>
             <label className="bbwiz-label">Match mode</label>
-            <div className="bbwiz-type-btns">
-              {['any', 'all'].map(mode => (
-                <button key={mode} className={`bbwiz-type-btn${form.distress_match_mode === mode ? ' is-on' : ''}`}
-                  onClick={() => set('distress_match_mode', mode)}>
-                  Match {mode.toUpperCase()}
-                </button>
+            <div className="bbwiz-segmented">
+              {[{ value: 'any', label: 'Match ANY' }, { value: 'all', label: 'Match ALL' }].map(opt => (
+                <button
+                  key={opt.value}
+                  className={`bbwiz-segmented-btn${form.distress_match_mode === opt.value ? ' is-active' : ''}`}
+                  onClick={() => set('distress_match_mode', opt.value)}
+                >{opt.label}</button>
               ))}
             </div>
           </div>
         )}
+        <div className="bbwiz-toggle-row" style={{ marginTop: 20 }}>
+          <div className="bbwiz-toggle-info">
+            <span className="bbwiz-toggle-label">Distress signals required</span>
+            <span className="bbwiz-toggle-desc">Only deliver deals that match at least one selected signal</span>
+          </div>
+          <button
+            className={`bbwiz-toggle${form.distress_only ? ' is-on' : ''}`}
+            role="switch"
+            aria-checked={form.distress_only}
+            onClick={() => set('distress_only', !form.distress_only)}
+          >
+            <span className="bbwiz-toggle-thumb" />
+          </button>
+        </div>
         <div className="bbwiz-field" style={{ marginTop: 16 }}>
           <label className="bbwiz-label">Notes <span className="bbwiz-muted">(optional)</span></label>
           <textarea className="bbwiz-textarea" rows={3} maxLength={200}
@@ -463,42 +590,96 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
   }
 
   function renderStep8() {
-    const missing = touched && !(form.run_schedule?.days?.length > 0);
+    const t = form.match_threshold;
+    const thresholdDesc =
+      t <= 65 ? "You'll see every deal that matches at least 6 of 10 criteria. Expect a high-volume feed with some misses." :
+      t <= 75 ? "A broad feed with reasonable accuracy. Good for markets with limited inventory." :
+      t === 80 ? "Balanced. You'll see most relevant deals without significant noise." :
+      t <= 90 ? "A tighter, curated feed. Fewer deals, but they'll fit your criteria more closely." :
+                "Only near-perfect matches. Expect very few deals — best for highly specific searches.";
+
     return (
       <div className="bbwiz-step-body">
-        <h2 className="bbwiz-step-title">Run Schedule</h2>
-        <p className="bbwiz-step-desc">Choose which days the nightly deal runner should process this buy box. All days selected by default.</p>
-        <div className="bbwiz-day-btns">
-          {SCHEDULE_DAYS.map(d => {
-            const on = form.run_schedule?.days?.includes(d.abbr);
-            return (
-              <button
-                key={d.abbr}
-                className={`bbwiz-day-btn${on ? ' is-on' : ''}`}
-                onClick={() => {
-                  const days = on
-                    ? form.run_schedule.days.filter(x => x !== d.abbr)
-                    : [...(form.run_schedule?.days || []), d.abbr];
-                  set('run_schedule', { days });
-                }}
-              >{d.label}</button>
-            );
-          })}
+        <h2 className="bbwiz-step-title">Match Precision</h2>
+        <p className="bbwiz-step-desc">Control the tradeoff between deal volume and match accuracy.</p>
+        <div className="bbwiz-field" style={{ marginTop: 24 }}>
+          <div className="bbwiz-slider-anchors">
+            <span>More Deals</span>
+            <span className="bbwiz-threshold-val">{form.match_threshold}%</span>
+            <span>Fewer, Better Deals</span>
+          </div>
+          <input type="range" className="bbwiz-slider bbwiz-threshold-slider"
+            min={60} max={100} step={5}
+            value={form.match_threshold}
+            onChange={e => set('match_threshold', Number(e.target.value))} />
+          <div className="bbwiz-slider-labels"><span>60%</span><span>100%</span></div>
+          <div className="bbwiz-threshold-desc">{thresholdDesc}</div>
         </div>
-        {missing && <p className="bbwiz-inline-error" style={{ marginTop: 12 }}>At least one day must be selected.</p>}
       </div>
     );
   }
 
   function renderStep9() {
+    const selectedDays = form.run_schedule?.days || [];
+    const allSelected = selectedDays.length === ALL_DAYS.length;
+
+    const DAY_FULL = { mon: 'Monday', tue: 'Tuesday', wed: 'Wednesday', thu: 'Thursday', fri: 'Friday', sat: 'Saturday', sun: 'Sunday' };
+
+    function scheduleSummary() {
+      if (selectedDays.length === 0) return null;
+      if (allSelected) return 'Runs daily';
+      const names = SCHEDULE_DAYS.filter(d => selectedDays.includes(d.abbr)).map(d => d.label);
+      return `Runs ${names.join(' / ')}`;
+    }
+
+    return (
+      <div className="bbwiz-step-body">
+        <h2 className="bbwiz-step-title">Run Schedule</h2>
+        <p className="bbwiz-step-desc">Choose which days the nightly deal runner should process this buy box. Runs nightly between 1am–4am CT.</p>
+        <div className="bbwiz-subtype-actions">
+          <button className="bbwiz-link" onClick={() => set('run_schedule', { days: [...ALL_DAYS] })}>Run daily (all 7 days)</button>
+          <button className="bbwiz-link" onClick={() => set('run_schedule', { days: [] })}>Clear all</button>
+        </div>
+        <div className="bbwiz-subtype-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          {SCHEDULE_DAYS.map(d => {
+            const on = selectedDays.includes(d.abbr);
+            return (
+              <button
+                key={d.abbr}
+                className={`bbwiz-subtype-card${on ? ' is-selected' : ''}`}
+                title={DAY_FULL[d.abbr]}
+                onClick={() => {
+                  const days = on
+                    ? selectedDays.filter(x => x !== d.abbr)
+                    : [...selectedDays, d.abbr];
+                  set('run_schedule', { days });
+                }}
+              >
+                {on && <span className="bbwiz-subtype-check"><I.Check size={12}/></span>}
+                {d.label}
+              </button>
+            );
+          })}
+        </div>
+        {selectedDays.length === 0 && (
+          <p className="bbwiz-inline-hint" style={{ marginTop: 12 }}>Select at least one day to receive deals.</p>
+        )}
+        {selectedDays.length > 0 && (
+          <p className="bbwiz-selection-count" style={{ marginTop: 8 }}>{scheduleSummary()}</p>
+        )}
+      </div>
+    );
+  }
+
+  function renderStep10() {
     const cls = getAssetClass(form.asset_class);
-    const canSubmit = [1,2,3,4,8].every(s => canProceedStep(s, form));
+    const canSubmitReview = [1,3,4].every(s => canProceedStep(s, form));
 
     const sections = [
-      { step: 1, label: 'Name', value: form.label || <em className="bbwiz-missing">Not set</em> },
-      { step: 2, label: 'Geography', value: formatGeo(form) },
-      { step: 3, label: 'Asset Class', value: cls?.label || <em className="bbwiz-missing">Not set</em> },
-      { step: 4, label: 'Sub-Types', value: cls ? formatUseCodes(form.asset_class, form.asset_use_codes) : <em className="bbwiz-missing">Not set</em> },
+      { step: 1, label: 'Asset Class', value: cls?.label || <em className="bbwiz-missing">Not set</em> },
+      { step: 2, label: 'Sub-Types', value: cls ? (formatUseCodes(form.asset_class, form.asset_use_codes) || 'All types') : <em className="bbwiz-missing">—</em> },
+      { step: 3, label: 'Name', value: form.label || <em className="bbwiz-missing">Not set</em> },
+      { step: 4, label: 'Geography', value: formatGeo(form) },
       { step: 5, label: 'Property Criteria', value: [
           form.sf_min || form.sf_max ? `SF: ${form.sf_min || '—'} – ${form.sf_max || '—'}` : null,
           form.acres_min || form.acres_max ? `Acres: ${form.acres_min || '—'} – ${form.acres_max || '—'}` : null,
@@ -514,7 +695,12 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
       { step: 7, label: 'Distress Signals', value: form.distress_signals.length
           ? `${form.distress_signals.length} signal${form.distress_signals.length > 1 ? 's' : ''} (match ${form.distress_match_mode.toUpperCase()})`
           : 'None' },
-      { step: 8, label: 'Schedule', value: formatSchedule(form.run_schedule) },
+      { step: 8, label: 'Match Threshold', value: (() => {
+          const t = form.match_threshold;
+          const label = t <= 65 ? 'High Volume' : t <= 75 ? 'Broad' : t === 80 ? 'Balanced' : t <= 90 ? 'Curated' : 'Precise';
+          return `${t}% — ${label}`;
+        })() },
+      { step: 9, label: 'Schedule', value: formatSchedule(form.run_schedule) },
     ];
 
     return (
@@ -523,7 +709,7 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
         <p className="bbwiz-step-desc">Review your buy box configuration before activating.</p>
         <div className="bbwiz-review-cards">
           {sections.map(({ step: s, label, value }) => {
-            const isRequired = [1, 2, 3, 4, 8].includes(s);
+            const isRequired = [1, 3, 4].includes(s);
             const isEmpty = isRequired && !canProceedStep(s, form);
             return (
               <div key={s} className={`bbwiz-review-card${isEmpty ? ' is-incomplete' : ''}`}>
@@ -539,7 +725,7 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
             );
           })}
         </div>
-        {!canSubmit && (
+        {!canSubmitReview && (
           <p className="bbwiz-inline-error" style={{ marginTop: 16 }}>
             Complete all required fields before submitting.
           </p>
@@ -548,9 +734,9 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
     );
   }
 
-  const stepRenderers = [null, renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6, renderStep7, renderStep8, renderStep9];
+  const stepRenderers = [null, renderStep1, renderStep2, renderStep3, renderStep4, renderStep5, renderStep6, renderStep7, renderStep8, renderStep9, renderStep10];
 
-  const canSubmit = step === 9 && [1,2,3,4,8].every(s => canProceedStep(s, form));
+  const canSubmit = step === 10 && [1,3,4].every(s => canProceedStep(s, form));
 
   return (
     <div className="bbwiz" role="dialog" aria-label="Buy Box Wizard">
@@ -587,9 +773,9 @@ export function BuyBoxWizard({ mode = 'create', initialData = null, onSuccess, o
           <button
             className="bbwiz-btn-primary"
             onClick={handleNext}
-            disabled={submitting || (step === 9 && !canSubmit)}
+            disabled={submitting || (step === 10 && !canSubmit)}
           >
-            {submitting ? 'Saving…' : step === 9
+            {submitting ? 'Saving…' : step === 10
               ? (mode === 'edit' ? 'Save Changes — Takes Effect Tonight' : 'Activate Buy Box — We Start Tonight')
               : 'Continue'}
           </button>

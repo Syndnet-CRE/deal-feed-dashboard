@@ -8,6 +8,7 @@ const baseForm = {
   asset_class: null,
   asset_use_codes: [],
   asset_classes: null,
+  match_threshold: 80,
   run_schedule: { days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] },
   geoMode: 'state',
   geo_states: [],
@@ -219,29 +220,65 @@ describe('activeGeoHasData', () => {
 });
 
 describe('canProceedStep', () => {
-  describe('step 1: label validation', () => {
+  describe('step 1: asset class — required', () => {
+    it('returns false when asset_class is null', () => {
+      expect(canProceedStep(1, { asset_class: null })).toBe(false);
+    });
+
+    it('returns false when asset_class is empty string', () => {
+      expect(canProceedStep(1, { asset_class: '' })).toBe(false);
+    });
+
+    it('returns false when asset_class is undefined', () => {
+      expect(canProceedStep(1, {})).toBe(false);
+    });
+
+    it('returns true when asset_class is set', () => {
+      expect(canProceedStep(1, { asset_class: 'industrial' })).toBe(true);
+    });
+
+    it('returns true for any non-empty string', () => {
+      expect(canProceedStep(1, { asset_class: 'multifamily' })).toBe(true);
+    });
+  });
+
+  describe('step 2: sub-asset class — optional, always proceed', () => {
+    it('returns true even when asset_use_codes is undefined', () => {
+      expect(canProceedStep(2, {})).toBe(true);
+    });
+
+    it('returns true when asset_use_codes is empty array', () => {
+      expect(canProceedStep(2, { asset_use_codes: [] })).toBe(true);
+    });
+
+    it('returns true when asset_use_codes has codes', () => {
+      expect(canProceedStep(2, { asset_use_codes: [238] })).toBe(true);
+    });
+  });
+
+  describe('step 3: label validation', () => {
     it('returns false when label is empty', () => {
       const form = { label: '' };
-      expect(canProceedStep(1, form)).toBe(false);
+      expect(canProceedStep(3, form)).toBe(false);
     });
 
     it('returns false when label is whitespace-only', () => {
       const form = { label: '   ' };
-      expect(canProceedStep(1, form)).toBe(false);
+      expect(canProceedStep(3, form)).toBe(false);
     });
 
     it('returns true when label has content', () => {
       const form = { label: 'My Box' };
-      expect(canProceedStep(1, form)).toBe(true);
+      expect(canProceedStep(3, form)).toBe(true);
     });
 
     it('trims label before checking', () => {
       const form = { label: '  My Box  ' };
-      expect(canProceedStep(1, form)).toBe(true);
+      expect(canProceedStep(3, form)).toBe(true);
     });
   });
 
-  describe('step 2: geo validation', () => {
+  describe('step 4: geo validation', () => {
     it('returns true for state mode with states selected', () => {
       const form = {
         geoMode: 'state',
@@ -250,7 +287,7 @@ describe('canProceedStep', () => {
         geo_zips: [],
         geo_radius_address: '',
       };
-      expect(canProceedStep(2, form)).toBe(true);
+      expect(canProceedStep(4, form)).toBe(true);
     });
 
     it('returns false for state mode with no states', () => {
@@ -261,7 +298,7 @@ describe('canProceedStep', () => {
         geo_zips: [],
         geo_radius_address: '',
       };
-      expect(canProceedStep(2, form)).toBe(false);
+      expect(canProceedStep(4, form)).toBe(false);
     });
 
     it('returns true for metro mode with cities selected', () => {
@@ -272,7 +309,7 @@ describe('canProceedStep', () => {
         geo_zips: [],
         geo_radius_address: '',
       };
-      expect(canProceedStep(2, form)).toBe(true);
+      expect(canProceedStep(4, form)).toBe(true);
     });
 
     it('returns true for zip mode with zips selected', () => {
@@ -283,7 +320,7 @@ describe('canProceedStep', () => {
         geo_zips: ['37201'],
         geo_radius_address: '',
       };
-      expect(canProceedStep(2, form)).toBe(true);
+      expect(canProceedStep(4, form)).toBe(true);
     });
 
     it('returns true for radius mode with address and miles', () => {
@@ -295,7 +332,7 @@ describe('canProceedStep', () => {
         geo_radius_address: '123 Main St',
         geo_radius_miles: '35',
       };
-      expect(canProceedStep(2, form)).toBe(true);
+      expect(canProceedStep(4, form)).toBe(true);
     });
 
     it('returns false for radius mode without address', () => {
@@ -307,51 +344,11 @@ describe('canProceedStep', () => {
         geo_radius_address: '',
         geo_radius_miles: '35',
       };
-      expect(canProceedStep(2, form)).toBe(false);
+      expect(canProceedStep(4, form)).toBe(false);
     });
   });
 
-  describe('step 3: asset class — single string required', () => {
-    it('returns false when asset_class is null', () => {
-      expect(canProceedStep(3, { asset_class: null })).toBe(false);
-    });
-
-    it('returns false when asset_class is empty string', () => {
-      expect(canProceedStep(3, { asset_class: '' })).toBe(false);
-    });
-
-    it('returns false when asset_class is undefined', () => {
-      expect(canProceedStep(3, {})).toBe(false);
-    });
-
-    it('returns true when asset_class is a valid class id', () => {
-      expect(canProceedStep(3, { asset_class: 'industrial' })).toBe(true);
-    });
-
-    it('returns true for any non-empty string', () => {
-      expect(canProceedStep(3, { asset_class: 'multifamily' })).toBe(true);
-    });
-  });
-
-  describe('step 4: sub-asset class — at least one use code required', () => {
-    it('returns false when asset_use_codes is undefined', () => {
-      expect(canProceedStep(4, {})).toBe(false);
-    });
-
-    it('returns false when asset_use_codes is empty array', () => {
-      expect(canProceedStep(4, { asset_use_codes: [] })).toBe(false);
-    });
-
-    it('returns true when asset_use_codes has one code', () => {
-      expect(canProceedStep(4, { asset_use_codes: [238] })).toBe(true);
-    });
-
-    it('returns true when asset_use_codes has multiple codes', () => {
-      expect(canProceedStep(4, { asset_use_codes: [212, 238, 220] })).toBe(true);
-    });
-  });
-
-  describe('steps 5, 6, 7, 9: always proceed', () => {
+  describe('steps 5-10: always proceed (optional or review)', () => {
     const minimalForm = {};
 
     it('returns true for step 5 (criteria — all optional)', () => {
@@ -366,28 +363,16 @@ describe('canProceedStep', () => {
       expect(canProceedStep(7, minimalForm)).toBe(true);
     });
 
-    it('returns true for step 9 (review)', () => {
+    it('returns true for step 8 (threshold — optional, has default)', () => {
+      expect(canProceedStep(8, minimalForm)).toBe(true);
+    });
+
+    it('returns true for step 9 (schedule — optional, has default)', () => {
       expect(canProceedStep(9, minimalForm)).toBe(true);
     });
-  });
 
-  describe('step 8: schedule — at least one day required', () => {
-    it('returns false when run_schedule is undefined', () => {
-      expect(canProceedStep(8, {})).toBe(false);
-    });
-
-    it('returns false when run_schedule.days is empty', () => {
-      expect(canProceedStep(8, { run_schedule: { days: [] } })).toBe(false);
-    });
-
-    it('returns true when run_schedule.days has one day', () => {
-      expect(canProceedStep(8, { run_schedule: { days: ['mon'] } })).toBe(true);
-    });
-
-    it('returns true when run_schedule.days has all 7 days', () => {
-      expect(canProceedStep(8, {
-        run_schedule: { days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] },
-      })).toBe(true);
+    it('returns true for step 10 (review)', () => {
+      expect(canProceedStep(10, minimalForm)).toBe(true);
     });
   });
 
@@ -613,6 +598,24 @@ describe('buildPayload', () => {
     });
   });
 
+  describe('match_threshold', () => {
+    it('includes match_threshold from form', () => {
+      const payload = buildPayload({ ...baseForm, match_threshold: 75 });
+      expect(payload.match_threshold).toBe(75);
+    });
+
+    it('defaults match_threshold to 80 when undefined', () => {
+      const formWithout = Object.fromEntries(Object.entries(baseForm).filter(([k]) => k !== 'match_threshold'));
+      const payload = buildPayload(formWithout);
+      expect(payload.match_threshold).toBe(80);
+    });
+
+    it('defaults match_threshold to 80 when null', () => {
+      const payload = buildPayload({ ...baseForm, match_threshold: null });
+      expect(payload.match_threshold).toBe(80);
+    });
+  });
+
   describe('complete payload example', () => {
     it('builds complete payload with all fields populated', () => {
       const form = {
@@ -621,6 +624,7 @@ describe('buildPayload', () => {
         asset_class: 'industrial',
         asset_use_codes: [212, 238],
         asset_classes: ['industrial'],
+        match_threshold: 80,
         run_schedule: { days: ['mon', 'wed', 'fri'] },
         geoMode: 'metro',
         geo_states: [],
@@ -653,6 +657,7 @@ describe('buildPayload', () => {
         asset_class: 'industrial',
         asset_use_codes: [212, 238],
         asset_classes: ['industrial'],
+        match_threshold: 80,
         run_schedule: { days: ['mon', 'wed', 'fri'] },
         geo_cities: ['Nashville', 'Atlanta'],
         sf_min: 5000,

@@ -11,8 +11,8 @@ export function scoreClass(s) {
   if (s == null) return "lo";
   const num = Number(s);
   if (!isFinite(num)) return "lo";
-  if (num >= 8) return "hi";
-  if (num >= 5) return "md";
+  if (num >= 80) return "hi";
+  if (num >= 60) return "md";
   return "lo";
 }
 

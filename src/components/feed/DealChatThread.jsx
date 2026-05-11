@@ -25,7 +25,7 @@ export default function DealChatThread({ dealId, dealAddress, autoFocus }) {
         const all = data?.messages || [];
         const scoped = all.filter(m => String(m.deal_id || '') === String(dealId));
         setMessages(scoped);
-      } catch (_) {
+      } catch {
         // silent — fresh thread is fine for MVP
       } finally {
         if (!cancelled) setLoading(false);
@@ -62,7 +62,7 @@ export default function DealChatThread({ dealId, dealAddress, autoFocus }) {
           created_at: new Date().toISOString(),
         }]);
       }
-    } catch (_) {
+    } catch {
       setValue(text);
       setMessages(prev => prev.filter(m => m.id !== userMsg.id));
     } finally {

@@ -21,10 +21,10 @@ async function runTests() {
   console.log('\n=== STORY-4.2: Wire Edit Buy Box Tests ===\n');
 
   const root = path.join(__dirname, '..', 'src');
-  const ctx  = fs.readFileSync(path.join(root, 'contexts/DealsContext.jsx'),           'utf-8');
-  const ovl  = fs.readFileSync(path.join(root, 'components/ConfigurationOverlay.jsx'), 'utf-8');
-  const app  = fs.readFileSync(path.join(root, 'App.jsx'),                              'utf-8');
-  const bbv  = fs.readFileSync(path.join(root, 'views/BuyBoxesView.jsx'),               'utf-8');
+  const ctx  = fs.readFileSync(path.join(root, 'contexts/DealsContext.jsx'),     'utf-8');
+  const wiz  = fs.readFileSync(path.join(root, 'components/BuyBoxWizard.jsx'),   'utf-8');
+  const app  = fs.readFileSync(path.join(root, 'App.jsx'),                        'utf-8');
+  const bbv  = fs.readFileSync(path.join(root, 'views/BuyBoxesView.jsx'),         'utf-8');
 
   test('4.2-1: patchBuyBox defined in DealsContext', () => {
     assert(ctx.includes('patchBuyBox'), 'patchBuyBox must be defined');
@@ -43,32 +43,32 @@ async function runTests() {
     assert(after.includes('patchBuyBox'), 'patchBuyBox must appear in context value object');
   });
 
-  test('4.2-5: ConfigurationOverlay accepts mode prop', () => {
-    const sig = ovl.match(/function ConfigurationOverlay\s*\(\s*\{([^}]+)\}/);
+  test('4.2-5: BuyBoxWizard accepts mode prop', () => {
+    const sig = wiz.match(/function BuyBoxWizard\s*\(\s*\{([^}]+)\}/);
     assert(sig && sig[1].includes('mode'), 'mode prop required');
   });
 
-  test('4.2-6: ConfigurationOverlay accepts initialData prop', () => {
-    const sig = ovl.match(/function ConfigurationOverlay\s*\(\s*\{([^}]+)\}/);
+  test('4.2-6: BuyBoxWizard accepts initialData prop', () => {
+    const sig = wiz.match(/function BuyBoxWizard\s*\(\s*\{([^}]+)\}/);
     assert(sig && sig[1].includes('initialData'), 'initialData prop required');
   });
 
   test('4.2-7: edit mode uses api.patch to buy-boxes', () => {
-    assert(ovl.includes('api.patch') && ovl.includes('buy-boxes'), 'must PATCH buy-boxes in edit mode');
+    assert(wiz.includes('api.patch') && wiz.includes('buy-boxes'), 'must PATCH buy-boxes in edit mode');
   });
 
   test('4.2-8: edit mode shows different submit label', () => {
-    assert(ovl.includes('Save') || ovl.includes('Update'), 'submit label must differ in edit mode');
+    assert(wiz.includes('Save') || wiz.includes('Update'), 'submit label must differ in edit mode');
   });
 
-  test('4.2-9: Your Info section conditionally hidden in edit mode', () => {
-    const hasGuard = ovl.includes("mode === 'edit'") || ovl.includes("mode !== 'create'") ||
-      ovl.includes('isEdit') || ovl.includes('isCreate');
-    assert(hasGuard, 'Your Info section must be guarded by a mode check');
+  test('4.2-9: form conditionally differs in edit mode', () => {
+    const hasGuard = wiz.includes("mode === 'edit'") || wiz.includes("mode !== 'create'") ||
+      wiz.includes('isEdit') || wiz.includes('isCreate');
+    assert(hasGuard, 'Wizard must have an edit mode guard');
   });
 
   test('4.2-10: form initialised from initialData', () => {
-    assert(ovl.includes('initialData'), 'form init must reference initialData');
+    assert(wiz.includes('initialData'), 'form init must reference initialData');
   });
 
   test('4.2-11: App.jsx has editingBuyBox state', () => {
@@ -79,10 +79,10 @@ async function runTests() {
     assert(app.includes('onEdit'), 'App.jsx must pass onEdit to BuyBoxesView');
   });
 
-  test('4.2-13: App.jsx renders overlay in edit mode with initialData', () => {
+  test('4.2-13: App.jsx renders wizard in edit mode with initialData', () => {
     assert(
       (app.includes("mode=\"edit\"") || app.includes("mode='edit'")) && app.includes('initialData'),
-      'App.jsx must render ConfigurationOverlay with mode="edit" and initialData'
+      'App.jsx must render BuyBoxWizard with mode="edit" and initialData'
     );
   });
 

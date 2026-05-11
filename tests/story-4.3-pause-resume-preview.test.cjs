@@ -6,7 +6,7 @@
  *  - ConfirmModal has pause-box config and onConfirm prop
  *  - App.jsx tracks pausingBuyBox and wires onPause/onConfirm
  *  - BuyBoxesView Pause button calls onPause; Resume button calls patchBuyBox
- *  - ConfigurationOverlay preview: debounce ref, previewCount state, api call
+ *  - BuyBoxWizard preview: debounce ref, coverage state, api call
  */
 const fs   = require('fs');
 const path = require('path');
@@ -27,10 +27,10 @@ async function runTests() {
   console.log('\n=== STORY-4.3: Pause/Resume/Preview Tests ===\n');
 
   const root = path.join(__dirname, '..', 'src');
-  const cm   = fs.readFileSync(path.join(root, 'components/ConfirmModal.jsx'),          'utf-8');
-  const app  = fs.readFileSync(path.join(root, 'App.jsx'),                               'utf-8');
-  const bbv  = fs.readFileSync(path.join(root, 'views/BuyBoxesView.jsx'),                'utf-8');
-  const ovl  = fs.readFileSync(path.join(root, 'components/ConfigurationOverlay.jsx'),   'utf-8');
+  const cm   = fs.readFileSync(path.join(root, 'components/ConfirmModal.jsx'),  'utf-8');
+  const app  = fs.readFileSync(path.join(root, 'App.jsx'),                       'utf-8');
+  const bbv  = fs.readFileSync(path.join(root, 'views/BuyBoxesView.jsx'),        'utf-8');
+  const wiz  = fs.readFileSync(path.join(root, 'components/BuyBoxWizard.jsx'),   'utf-8');
 
   // --- ConfirmModal ---
   test('4.3-1: ConfirmModal has pause-box config', () => {
@@ -54,14 +54,14 @@ async function runTests() {
     assert(app.includes('onPause'), 'App.jsx must pass onPause to BuyBoxesView');
   });
 
-  test('4.3-6: App.jsx renders ConfirmModal with pause-box kind', () => {
+  test('4.3-6: App.jsx renders pause-box confirm flow', () => {
     assert(
-      app.includes('"pause-box"') || app.includes("'pause-box'"),
-      'App.jsx must render ConfirmModal with kind="pause-box"'
+      app.includes('"pause-box"') || app.includes("'pause-box'") || app.includes('PauseBoxConfirm'),
+      'App.jsx must render pause-box confirm (ConfirmModal with kind="pause-box" or PauseBoxConfirm component)'
     );
   });
 
-  test('4.3-7: App.jsx onConfirm for pause calls patchBuyBox with paused status', () => {
+  test('4.3-7: App.jsx pause confirm calls patchBuyBox with paused status', () => {
     assert(
       app.includes("'paused'") || app.includes('"paused"'),
       'Pause confirm must call patchBuyBox with status paused'
@@ -81,32 +81,41 @@ async function runTests() {
     assert(bbv.includes('patchBuyBox'), 'Resume button must call patchBuyBox from context');
   });
 
-  // --- ConfigurationOverlay preview ---
-  test('4.3-11: ConfigurationOverlay has preview debounce timer ref', () => {
+  // --- BuyBoxWizard preview ---
+  test('4.3-11: BuyBoxWizard has preview debounce timer ref', () => {
     assert(
-      ovl.includes('previewTimer') || ovl.includes('debounce') || ovl.includes('clearTimeout'),
+      wiz.includes('coverageTimer') || wiz.includes('previewTimer') ||
+      wiz.includes('debounce') || wiz.includes('clearTimeout'),
       'Preview must use a debounce timer (useRef + clearTimeout)'
     );
   });
 
-  test('4.3-12: ConfigurationOverlay has previewCount state', () => {
-    assert(ovl.includes('previewCount'), 'Must track previewCount state');
+  test('4.3-12: BuyBoxWizard has coverage/preview state', () => {
+    assert(
+      wiz.includes('coverage') || wiz.includes('previewCount'),
+      'Must track coverage or previewCount state'
+    );
   });
 
-  test('4.3-13: ConfigurationOverlay calls preview API endpoint', () => {
+  test('4.3-13: BuyBoxWizard calls preview API endpoint', () => {
     assert(
-      ovl.includes('/preview') || ovl.includes('buy-boxes/preview'),
+      wiz.includes('/preview') || wiz.includes('buy-boxes/preview'),
       'Must call the /preview endpoint'
     );
   });
 
-  test('4.3-14: ConfigurationOverlay renders previewCount in review bar', () => {
-    const reviewSection = ovl.slice(ovl.indexOf('co-review'));
-    assert(reviewSection.includes('previewCount'), 'previewCount must be rendered in review bar');
+  test('4.3-14: BuyBoxWizard renders coverage/preview in UI', () => {
+    assert(
+      wiz.includes('coverage') && wiz.includes('bbwiz-coverage'),
+      'coverage state must be rendered in wizard UI'
+    );
   });
 
-  test('4.3-15: ConfigurationOverlay has previewLoading state for spinner', () => {
-    assert(ovl.includes('previewLoading'), 'Must have previewLoading state for spinner');
+  test('4.3-15: BuyBoxWizard has loading state for preview spinner', () => {
+    assert(
+      wiz.includes("'loading'") || wiz.includes('"loading"') || wiz.includes('previewLoading'),
+      'Must have a loading indicator for the preview fetch'
+    );
   });
 
   console.log(`\n${passed} passed, ${failed} failed\n`);

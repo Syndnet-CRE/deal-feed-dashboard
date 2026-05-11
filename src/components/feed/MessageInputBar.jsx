@@ -22,7 +22,7 @@ export default function MessageInputBar({ onMessage, activeDealId }) {
       if (data?.reply) {
         onMessage?.({ role: 'agent', content: data.reply, message_type: 'chat', created_at: new Date().toISOString() });
       }
-    } catch (_) {
+    } catch {
       setValue(text);
     } finally {
       setSending(false);

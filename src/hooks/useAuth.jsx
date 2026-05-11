@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
             setSubscriber(data.subscriber);
             return;
           }
-        } catch (_) { /* token invalid — fall through */ }
+        } catch { /* token invalid — fall through */ }
         clearToken();
       }
 
@@ -48,7 +48,7 @@ export function AuthProvider({ children }) {
               return;
             }
           }
-        } catch (_) { /* fall through to manual /login */ }
+        } catch { /* fall through to manual /login */ }
       }
       // Production or DEV without creds → AppShell will redirect to /login.
     }

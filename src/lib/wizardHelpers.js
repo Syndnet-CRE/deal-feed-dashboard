@@ -29,25 +29,19 @@ export function activeGeoHasData(form) {
 }
 
 /**
- * 9-step gate for the BuyBoxWizard.
- * Steps: 1=Name, 2=Geo, 3=AssetClass, 4=SubAsset, 5=Criteria,
- *        6=Ownership, 7=Distress, 8=Schedule, 9=Review
+ * 10-step gate for the BuyBoxWizard.
+ * Steps: 1=AssetClass, 2=SubAsset(opt), 3=Name, 4=Geo,
+ *        5=Criteria(opt), 6=Ownership(opt), 7=Distress(opt),
+ *        8=Threshold(opt), 9=Schedule(opt), 10=Review
  * @param {number} step
  * @param {Object} form
  * @returns {boolean}
  */
 export function canProceedStep(step, form) {
-  if (step === 1) return form.label.trim().length > 0;
-  if (step === 2) return activeGeoHasData(form);
-  if (step === 3) return !!form.asset_class;
-  if (step === 4) return Array.isArray(form.asset_use_codes) && form.asset_use_codes.length > 0;
-  if (step === 5) return true;
-  if (step === 6) return true;
-  if (step === 7) return true;
-  if (step === 8) {
-    const days = form.run_schedule?.days;
-    return Array.isArray(days) && days.length > 0;
-  }
+  if (step === 1) return !!form.asset_class;
+  if (step === 2) return true;
+  if (step === 3) return form.label.trim().length > 0;
+  if (step === 4) return activeGeoHasData(form);
   return true;
 }
 
@@ -97,5 +91,6 @@ export function buildPayload(form) {
     out_of_state_only: form.out_of_state_only || false,
     distress_signals: form.distress_signals?.length ? form.distress_signals : null,
     distress_only: form.distress_only || false,
+    match_threshold: toNum(form.match_threshold) ?? 80,
   };
 }
