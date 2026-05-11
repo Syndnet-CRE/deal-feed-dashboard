@@ -216,6 +216,8 @@
 .buy-box-wizard .signal-count { font-family: var(--font-mono); font-size: 12px; color: var(--fg-mute); white-space: nowrap; }
 .buy-box-wizard .signal.on .signal-count { color: var(--green-tint-fg); }
 .buy-box-wizard .signal-desc { margin-top: 6px; font-size: 12px; color: var(--fg-mute); line-height: 1.45; }
+.buy-box-wizard .signal .signal-head svg { color: var(--fg-mute); }
+.buy-box-wizard .signal.on .signal-head svg { color: var(--green); }
 
 /* Logic toggle */
 .buy-box-wizard .logic-row {
@@ -364,3 +366,42 @@
 }
 .buy-box-wizard .activate-ribbon-text { color: var(--fg-2); font-size: 14px; max-width: 480px; line-height: 1.5; }
 .buy-box-wizard .activate-ribbon-text strong { color: var(--fg); }
+
+/* ── Success confirm overlay ── */
+.buy-box-wizard .confirm {
+  position: fixed; inset: 0; z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(13,13,13,0.88);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  animation: bbwFadeIn 200ms cubic-bezier(.22, 1, .36, 1);
+}
+@keyframes bbwFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.buy-box-wizard .confirm-card {
+  background: var(--surface); border: 1px solid rgba(91,204,72,0.25);
+  border-radius: var(--r-card-lg); padding: 48px 56px; text-align: center;
+  max-width: 440px; width: 90%; display: flex; flex-direction: column; align-items: center;
+  animation: bbwSlideUp 200ms 50ms cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes bbwSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.buy-box-wizard .confirm-check {
+  width: 56px; height: 56px; border-radius: 999px; background: var(--green-tint);
+  border: 1px solid rgba(91,204,72,0.4); display: grid; place-items: center;
+  color: var(--green); margin-bottom: 24px;
+  animation: bbwCheckPop 0.4s 0.15s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes bbwCheckPop {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.buy-box-wizard .confirm-title {
+  font-size: 36px; font-weight: 700; letter-spacing: -0.02em;
+  color: var(--fg); margin-bottom: 12px; line-height: 1.05;
+}
+.buy-box-wizard .confirm-sub {
+  font-size: 15px; color: var(--fg-2); line-height: 1.55; margin-bottom: 32px;
+}
+.buy-box-wizard .confirm-sub strong { color: var(--fg); }

@@ -65,13 +65,12 @@ export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, ac
           {CADENCES.map(c => (
             <button
               key={c.id}
-              className="delivery"
-              style={{ opacity: delivery.cadence === c.id ? 1 : 0.6, borderColor: delivery.cadence === c.id ? 'var(--green)' : 'var(--border-sub)' }}
+              className={`delivery${delivery.cadence === c.id ? ' on' : ''}`}
               onClick={() => setForm({ ...form, delivery: { ...delivery, cadence: c.id } })}
             >
               <div className="delivery-head">
                 <span className="delivery-title">{c.title}</span>
-                <span className="delivery-radio" style={{ backgroundColor: delivery.cadence === c.id ? 'var(--green)' : 'transparent' }} />
+                <span className="delivery-radio" />
               </div>
               <div className="delivery-sub">{c.sub}</div>
               <div className="delivery-time">{c.time}</div>

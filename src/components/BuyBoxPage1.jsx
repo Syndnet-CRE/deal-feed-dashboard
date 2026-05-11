@@ -30,9 +30,9 @@ const STATES = [
 function AssetClassCard({ entry, selected, onToggle }) {
   const Icon = Ic[entry.icon]
   return (
-    <button className="asset-card" style={{ opacity: selected ? 1 : 0.7, border: selected ? '2px solid var(--green)' : '2px solid transparent' }} onClick={() => onToggle(entry.id)}>
+    <button className={`asset-card${selected ? ' selected' : ''}`} onClick={() => onToggle(entry.id)}>
       <div className="asset-card-check">
-        {selected && <Ic.check width="11" height="11" />}
+        <Ic.check width="11" height="11" />
       </div>
       <div className="asset-card-icon">
         <Icon width="20" height="20" />
@@ -56,9 +56,9 @@ function CountyList({ state, selectedCounties, onToggle, q }) {
         const checked = selectedCounties.includes(key)
         const cnt = Math.round((state.count / state.counties.length) * (0.6 + Math.random() * 0.8))
         return (
-          <div key={key} className="combo-item" style={{ backgroundColor: checked ? 'var(--bg-selected)' : 'transparent' }} onClick={() => onToggle(key)}>
+          <div key={key} className={`combo-item${checked ? ' checked' : ''}`} onClick={() => onToggle(key)}>
             <div className="combo-item-label">
-              <span className="check">{checked && <Ic.check width="10" height="10" />}</span>
+              <span className="check"><Ic.check width="10" height="10" /></span>
               <span style={{ fontSize: 13 }}>{c} County</span>
             </div>
             <span className="combo-item-count">{(cnt / 1000).toFixed(1)}K</span>
@@ -189,12 +189,11 @@ export function BuyBoxPage1({ form, setForm }) {
                   return (
                     <div
                       key={s.code}
-                      className="combo-item"
-                      style={{ backgroundColor: checked ? 'var(--bg-selected)' : 'transparent' }}
+                      className={`combo-item${checked ? ' checked' : ''}`}
                       onClick={() => toggleState(s.code)}
                     >
                       <div className="combo-item-label">
-                        <span className="check">{checked && <Ic.check width="10" height="10" />}</span>
+                        <span className="check"><Ic.check width="10" height="10" /></span>
                         <span style={{ fontSize: 13 }}>{s.name}</span>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-mute)' }}>{s.code}</span>
                       </div>

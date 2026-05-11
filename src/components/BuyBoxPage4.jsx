@@ -92,15 +92,14 @@ export function BuyBoxPage4({ form, setForm }) {
             return (
               <button
                 key={s.id}
-                className="signal"
-                style={{ opacity: on ? 1 : 0.6, borderColor: on ? 'var(--green)' : 'var(--border-sub)' }}
+                className={`signal${on ? ' on' : ''}`}
                 onClick={() => toggle(s.id)}
               >
-                <span className="signal-toggle" style={{ backgroundColor: on ? 'var(--green)' : 'transparent' }} />
+                <span className="signal-toggle" />
                 <div className="signal-body">
                   <div className="signal-head">
                     <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Icon width="14" height="14" style={{ color: on ? 'var(--green)' : 'var(--fg-mute)' }} />
+                      <Icon width="14" height="14" />
                       <span className="signal-title">{s.title}</span>
                     </span>
                     <span className="signal-count">{(s.count / 1000).toFixed(1)}K in geo</span>
@@ -117,10 +116,10 @@ export function BuyBoxPage4({ form, setForm }) {
             Match logic - properties must satisfy <strong>{logic === 'AND' ? 'every active signal' : 'any one active signal'}</strong>.
           </div>
           <div className="seg">
-            <button className="seg-item" style={{ opacity: logic === 'AND' ? 1 : 0.6 }} onClick={() => setForm({ ...form, logic: 'AND' })}>
+            <button className={`seg-item${logic === 'AND' ? ' active' : ''}`} onClick={() => setForm({ ...form, logic: 'AND' })}>
               AND
             </button>
-            <button className="seg-item" style={{ opacity: logic === 'OR' ? 1 : 0.6 }} onClick={() => setForm({ ...form, logic: 'OR' })}>
+            <button className={`seg-item${logic === 'OR' ? ' active' : ''}`} onClick={() => setForm({ ...form, logic: 'OR' })}>
               OR
             </button>
           </div>
@@ -152,13 +151,12 @@ export function BuyBoxPage4({ form, setForm }) {
               <span className="hint">FEMA AE / VE zones and 100-year floodplain overlap</span>
             </div>
             <div
-              className="toggle"
-              style={{ cursor: 'pointer', opacity: risk.flood ? 1 : 0.6 }}
+              className={`toggle${risk.flood ? ' on' : ''}`}
               onClick={() => setForm({ ...form, risk: { ...risk, flood: !risk.flood } })}
             />
           </div>
 
-          <div className="expand" style={{ borderTop: '1px solid var(--border-sub)' }}>
+          <div className={`expand${risk.wildfireOpen ? ' open' : ''}`} style={{ borderTop: '1px solid var(--border-sub)' }}>
             <div
               className="expand-head"
               style={{ cursor: 'pointer' }}
@@ -169,7 +167,7 @@ export function BuyBoxPage4({ form, setForm }) {
                 <span className="slider-value" style={{ fontSize: 12 }}>
                   ≤ {risk.wildfire} / 10
                 </span>
-                <span className="chev" style={{ transform: risk.wildfireOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                <span className="chev">
                   <Ic.chev width="12" height="12" />
                 </span>
               </span>
@@ -181,7 +179,7 @@ export function BuyBoxPage4({ form, setForm }) {
             )}
           </div>
 
-          <div className="expand" style={{ borderTop: '1px solid var(--border-sub)' }}>
+          <div className={`expand${risk.heatOpen ? ' open' : ''}`} style={{ borderTop: '1px solid var(--border-sub)' }}>
             <div
               className="expand-head"
               style={{ cursor: 'pointer' }}
@@ -192,7 +190,7 @@ export function BuyBoxPage4({ form, setForm }) {
                 <span className="slider-value" style={{ fontSize: 12 }}>
                   ≤ {risk.heat} / 10
                 </span>
-                <span className="chev" style={{ transform: risk.heatOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>
+                <span className="chev">
                   <Ic.chev width="12" height="12" />
                 </span>
               </span>

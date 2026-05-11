@@ -49,15 +49,14 @@ export function BuyBoxPage5({ form, setForm }) {
             return (
               <button
                 key={t.id}
-                className="threshold"
-                style={{ opacity: on ? 1 : 0.6, borderColor: on ? 'var(--green)' : 'var(--border-sub)' }}
+                className={`threshold${on ? ' on' : ''}`}
                 onClick={() => setForm({ ...form, threshold: t.id })}
               >
                 <div className="threshold-pct mono">{t.pct}<span className="threshold-pct-sym">%{t.id === 'precision' ? '+' : ''}</span></div>
                 <div className="threshold-title">{t.title}</div>
                 <div className="threshold-sub">{t.sub}</div>
                 <div className="threshold-desc">{t.desc}</div>
-                <div className="threshold-radio" style={{ backgroundColor: on ? 'var(--green)' : 'transparent' }} />
+                <div className="threshold-radio" />
               </button>
             )
           })}

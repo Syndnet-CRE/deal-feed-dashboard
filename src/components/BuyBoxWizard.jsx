@@ -179,6 +179,8 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
   const [page, setPage] = useState(1);
   const [form, setForm] = useState(() => mode === 'edit' && initialData ? toNativeForm(initialData) : { ...NATIVE_FORM });
   const [activating, setActivating] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [activatedForm, setActivatedForm] = useState(null);
   const formRef = useRef(form);
   const debounceRef = useRef(null);
 
@@ -226,7 +228,8 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
       } else {
         await api.post('/api/dealfeed/onboarding', payload);
       }
-      onSuccess();
+      setActivatedForm(form);
+      setSubmitted(true);
     } catch (err) {
       showToast(err.message || 'Something went wrong. Please try again.', 'error');
     } finally {
@@ -252,6 +255,23 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
   return (
     <div className="buy-box-wizard">
       <div className="backdrop" />
+      {submitted && (
+        <div className="confirm">
+          <div className="confirm-card">
+            <div className="confirm-check">
+              <Ic.check width="24" height="24" />
+            </div>
+            <div className="confirm-title">You're hunting.</div>
+            <div className="confirm-sub">
+              <strong>{activatedForm?.name || 'Your buy box'}</strong> is live.
+              First batch lands at <strong>06:00 AM tomorrow</strong>.
+            </div>
+            <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={onSuccess}>
+              Back to dashboard
+            </button>
+          </div>
+        </div>
+      )}
       <div className="app">
         <header className="topbar">
           <div className="brand">

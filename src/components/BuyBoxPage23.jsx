@@ -103,8 +103,7 @@ export function BuyBoxPage2({ form, setForm }) {
               {['1', '2', '3', '4–6', '7+'].map(s => (
                 <button
                   key={s}
-                  className="preset-chip"
-                  style={{ opacity: phys.stories_min === s ? 1 : 0.5 }}
+                  className={`preset-chip${phys.stories_min === s ? ' on' : ''}`}
                   onClick={() => setRange('stories', 'min', phys.stories_min === s ? '' : s)}
                 >
                   {s}
@@ -136,8 +135,7 @@ export function BuyBoxPage2({ form, setForm }) {
               {['25%', '40%', '50%', '60%', '75%'].map(s => (
                 <button
                   key={s}
-                  className="preset-chip"
-                  style={{ opacity: fin.equity_preset === s ? 1 : 0.5 }}
+                  className={`preset-chip${fin.equity_preset === s ? ' on' : ''}`}
                   onClick={() =>
                     setForm({
                       ...form,
@@ -181,8 +179,7 @@ export function BuyBoxPage3({ form, setForm }) {
         {options.map(o => (
           <button
             key={o.v}
-            className="preset-chip"
-            style={{ opacity: value === o.v ? 1 : 0.5 }}
+            className={`preset-chip${value === o.v ? ' on' : ''}`}
             onClick={() => onChange(o.v)}
           >
             {o.label}
