@@ -24,7 +24,7 @@ const STEPS = [
 const NATIVE_FORM = {
   assets: [],
   subtypes: [],
-  geo: { states: [], counties: [], zips: [] },
+  geo: { states: [], counties: [], metros: [], zips: [] },
   phys: { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '' },
   fin: { price_min: '', price_max: '', equity_preset: '', assessed_below_market: false },
   owner: { entity: '', occupancy: '', hold_min: '', hold_max: '', out_of_state: false },
@@ -63,7 +63,7 @@ function toNativeForm(b) {
   return {
     assets: b.asset_classes || [],
     subtypes: b.asset_use_codes || [],
-    geo: { states: b.geo_states || [], counties: b.geo_counties || [], zips: b.geo_zips || [] },
+    geo: { states: b.geo_states || [], counties: b.geo_counties || [], metros: b.geo_cities || [], zips: b.geo_zips || [] },
     phys: {
       sf_min: b.sf_min ?? '', sf_max: b.sf_max ?? '',
       acres_min: b.acres_min ?? '', acres_max: b.acres_max ?? '',
@@ -108,6 +108,7 @@ function nativeToPayload(form) {
     asset_use_codes: form.subtypes?.length ? form.subtypes : null,
     geo_states: form.geo.states.length ? form.geo.states : null,
     geo_counties: form.geo.counties.length ? form.geo.counties : null,
+    geo_cities: form.geo.metros?.length ? form.geo.metros : null,
     geo_zips: form.geo.zips.length ? form.geo.zips : null,
     sf_min: toNum(form.phys.sf_min), sf_max: toNum(form.phys.sf_max),
     acres_min: toNum(form.phys.acres_min), acres_max: toNum(form.phys.acres_max),
@@ -138,6 +139,7 @@ function buildFilters(form) {
   const out = [];
   if (form.assets.length) out.push({ id: 'assets', label: 'Assets', val: form.assets.length === 1 ? (ASSET_CLASS_TITLES[form.assets[0]] || form.assets[0]) : `${form.assets.length} classes` });
   if (form.geo.states.length) out.push({ id: 'states', label: 'States', val: form.geo.states.join(', ') });
+  if (form.geo.metros?.length) out.push({ id: 'metros', label: 'Metros', val: form.geo.metros.length === 1 ? form.geo.metros[0] : `${form.geo.metros.length} metros` });
   if (form.geo.counties.length) out.push({ id: 'counties', label: 'Counties', val: `${form.geo.counties.length}` });
   if (form.geo.zips.length) out.push({ id: 'zips', label: 'Zips', val: form.geo.zips.length === 1 ? form.geo.zips[0] : `${form.geo.zips.length}` });
   if (form.fin.equity_preset) out.push({ id: 'equity', label: 'Equity', val: `≥ ${form.fin.equity_preset}` });
@@ -156,6 +158,7 @@ function buildSummary(form) {
   const arr = [];
   form.assets.forEach(a => arr.push({ label: 'Asset', val: ASSET_CLASS_TITLES[a] || a }));
   if (form.geo.states.length) arr.push({ label: 'States', val: form.geo.states.join(', ') });
+  if (form.geo.metros?.length) arr.push({ label: 'Metros', val: form.geo.metros.length === 1 ? form.geo.metros[0] : `${form.geo.metros.length} selected` });
   if (form.geo.counties.length) arr.push({ label: 'Counties', val: `${form.geo.counties.length} selected` });
   if (form.geo.zips.length) arr.push({ label: 'Zips', val: form.geo.zips.join(', ') });
   if (form.phys.sf_min || form.phys.sf_max) arr.push({ label: 'Sqft', val: `${form.phys.sf_min || 'any'}–${form.phys.sf_max || 'any'}` });
@@ -250,7 +253,8 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
   const clearFilter = (id) => {
     const f = form;
     if (id === 'assets') setForm({ ...f, assets: [] });
-    else if (id === 'states') setForm({ ...f, geo: { ...f.geo, states: [], counties: [] } });
+    else if (id === 'states') setForm({ ...f, geo: { ...f.geo, states: [], counties: [], metros: [] } });
+    else if (id === 'metros') setForm({ ...f, geo: { ...f.geo, metros: [] } });
     else if (id === 'counties') setForm({ ...f, geo: { ...f.geo, counties: [] } });
     else if (id === 'zips') setForm({ ...f, geo: { ...f.geo, zips: [] } });
     else if (id === 'equity') setForm({ ...f, fin: { ...f.fin, equity_preset: '' } });

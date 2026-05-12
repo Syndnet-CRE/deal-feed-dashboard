@@ -9,7 +9,7 @@
 //   onBuildAnother()    — caller resets wizard to step 1 blank
 //   onClose()           — Esc / backdrop click / "Return to dashboard"
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Check } from 'lucide-react';
 import '../styles/buyBoxActivated.css';

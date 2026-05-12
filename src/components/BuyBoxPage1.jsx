@@ -8,29 +8,21 @@ import {
   Fuel, ParkingSquare, Hospital, Heart, MapPin, Landmark, School, Dumbbell, Building as ChurchIcon,
 } from 'lucide-react'
 import { Ic } from './buybox-icons'
-import { ASSET_CLASSES as TAXONOMY_CLASSES } from '../lib/buyBoxTaxonomy'
+import { ASSET_CLASSES as TAXONOMY_CLASSES, US_STATES, MAJOR_METROS } from '../lib/buyBoxTaxonomy'
 
 const SUBTYPE_ICONS = {
-  // SFR
   100: Home, 102: Building, 104: Building2, 373: Home,
-  // Multifamily
   366: Home, 383: Building, 386: Building2, 369: Building2,
   378: Layers, 375: Coins,
-  // Retail
   135: ShoppingBag, 393: Store, 126: Store, 361: Store, 148: ShoppingCart,
   124: ShoppingBag, 169: Utensils, 146: Utensils, 171: Car, 172: Wrench,
   127: Stethoscope, 186: Car, 161: Tag,
-  // Office
   178: Building2, 160: Briefcase, 139: Stethoscope, 193: Building,
   194: Layers, 183: Layers, 181: Home, 359: Building2,
-  // Industrial
   212: Factory, 238: Warehouse, 220: Wrench, 222: Package, 229: Archive,
   231: Truck, 210: Package, 280: Factory, 395: Building2,
-  // Land
   389: Map, 120: Sprout, 392: Wheat, 117: Fence, 105: Wheat, 109: Sprout, 118: TreePine,
-  // Hospitality
   260: Hotel, 265: BedDouble, 270: BedSingle, 275: Umbrella, 293: Home,
-  // Special Purpose
   167: Fuel, 339: ParkingSquare, 296: Hospital, 155: Heart,
   360: Home, 380: MapPin, 150: Landmark, 175: School, 267: Dumbbell, 348: ChurchIcon, 133: ChurchIcon,
 }
@@ -52,20 +44,82 @@ const DISPLAY_CLASSES = TAXONOMY_CLASSES.map(c => ({
   ...ASSET_DISPLAY[c.id],
 }))
 
-const STATES = [
-  { code: 'TX', name: 'Texas', count: 612_400, counties: ['Harris','Dallas','Tarrant','Bexar','Travis','Collin','Denton','Fort Bend'] },
-  { code: 'FL', name: 'Florida', count: 488_200, counties: ['Miami-Dade','Broward','Palm Beach','Hillsborough','Orange','Duval'] },
-  { code: 'CA', name: 'California', count: 612_900, counties: ['Los Angeles','San Diego','Orange','Riverside','San Bernardino','Sacramento'] },
-  { code: 'GA', name: 'Georgia', count: 218_800, counties: ['Fulton','DeKalb','Cobb','Gwinnett','Clayton'] },
-  { code: 'NC', name: 'North Carolina', count: 184_500, counties: ['Mecklenburg','Wake','Guilford','Forsyth','Durham'] },
-  { code: 'AZ', name: 'Arizona', count: 162_300, counties: ['Maricopa','Pima','Pinal','Yavapai'] },
-  { code: 'OH', name: 'Ohio', count: 196_200, counties: ['Cuyahoga','Franklin','Hamilton','Summit','Montgomery'] },
-  { code: 'TN', name: 'Tennessee', count: 142_700, counties: ['Davidson','Shelby','Knox','Hamilton'] },
-  { code: 'CO', name: 'Colorado', count: 121_400, counties: ['Denver','El Paso','Arapahoe','Jefferson','Adams'] },
-  { code: 'PA', name: 'Pennsylvania', count: 178_900, counties: ['Philadelphia','Allegheny','Montgomery','Bucks'] },
-  { code: 'IL', name: 'Illinois', count: 188_400, counties: ['Cook','DuPage','Lake','Will','Kane'] },
-  { code: 'NV', name: 'Nevada', count: 82_100, counties: ['Clark','Washoe','Carson City'] },
-]
+// Tracked distressed property counts by state
+const STATE_COUNTS = {
+  AL: 98_400,  AK: 22_100,  AZ: 162_300, AR: 62_800,  CA: 612_900,
+  CO: 121_400, CT: 74_200,  DE: 24_600,  FL: 488_200, GA: 218_800,
+  HI: 42_100,  ID: 48_600,  IL: 188_400, IN: 128_700, IA: 68_200,
+  KS: 58_400,  KY: 98_100,  LA: 104_200, ME: 44_800,  MD: 118_600,
+  MA: 148_200, MI: 218_400, MN: 128_600, MS: 64_800,  MO: 128_400,
+  MT: 28_200,  NE: 48_600,  NV: 82_100,  NH: 48_400,  NJ: 182_600,
+  NM: 48_800,  NY: 388_400, NC: 184_500, ND: 18_200,  OH: 196_200,
+  OK: 84_600,  OR: 98_400,  PA: 178_900, RI: 28_800,  SC: 102_400,
+  SD: 22_800,  TN: 142_700, TX: 612_400, UT: 68_600,  VT: 18_400,
+  VA: 162_800, WA: 142_600, WV: 38_400,  WI: 118_200, WY: 12_800,
+  DC: 28_400,
+}
+
+// Top counties by state (used for backward compat with existing buy boxes)
+const STATE_COUNTIES = {
+  AL: ['Jefferson','Mobile','Madison','Montgomery','Shelby'],
+  AK: ['Anchorage','Fairbanks North Star','Matanuska-Susitna','Kenai Peninsula'],
+  AZ: ['Maricopa','Pima','Pinal','Yavapai','Coconino','Yuma'],
+  AR: ['Pulaski','Benton','Sebastian','Washington','Craighead'],
+  CA: ['Los Angeles','San Diego','Orange','Riverside','San Bernardino','Sacramento','Santa Clara','Alameda'],
+  CO: ['Denver','El Paso','Arapahoe','Jefferson','Adams','Douglas','Larimer'],
+  CT: ['Fairfield','Hartford','New Haven','Middlesex'],
+  DE: ['New Castle','Kent','Sussex'],
+  FL: ['Miami-Dade','Broward','Palm Beach','Hillsborough','Orange','Duval','Pinellas','Polk'],
+  GA: ['Fulton','DeKalb','Cobb','Gwinnett','Clayton','Cherokee','Forsyth'],
+  HI: ['Honolulu','Maui','Hawaii','Kauai'],
+  ID: ['Ada','Canyon','Kootenai','Twin Falls','Bannock'],
+  IL: ['Cook','DuPage','Lake','Will','Kane','McHenry','Winnebago'],
+  IN: ['Marion','Hamilton','Allen','Lake','St. Joseph','Hendricks'],
+  IA: ['Polk','Linn','Scott','Johnson','Black Hawk','Woodbury'],
+  KS: ['Johnson','Sedgwick','Shawnee','Wyandotte','Douglas'],
+  KY: ['Jefferson','Fayette','Kenton','Boone','Warren','Campbell'],
+  LA: ['Jefferson','Orleans','Bossier','Caddo','St. Tammany','Lafayette'],
+  ME: ['Cumberland','York','Penobscot','Kennebec','Androscoggin'],
+  MD: ['Montgomery','Prince Georges','Baltimore','Anne Arundel','Howard','Frederick'],
+  MA: ['Middlesex','Worcester','Essex','Suffolk','Norfolk','Bristol'],
+  MI: ['Wayne','Oakland','Macomb','Kent','Genesee','Washtenaw','Ingham'],
+  MN: ['Hennepin','Ramsey','Dakota','Anoka','Washington','Scott','Carver'],
+  MS: ['Hinds','Harrison','DeSoto','Rankin','Forrest','Jackson'],
+  MO: ['St. Louis City','Jackson','St. Charles','Jefferson','Greene','Boone'],
+  MT: ['Yellowstone','Cascade','Missoula','Gallatin','Lewis and Clark'],
+  NE: ['Douglas','Lancaster','Sarpy','Hall','Madison'],
+  NV: ['Clark','Washoe','Carson City','Elko','Douglas'],
+  NH: ['Hillsborough','Rockingham','Merrimack','Strafford','Grafton'],
+  NJ: ['Bergen','Middlesex','Essex','Monmouth','Hudson','Union','Morris'],
+  NM: ['Bernalillo','Dona Ana','Santa Fe','Sandoval','Valencia'],
+  NY: ['Kings','Queens','New York','Suffolk','Bronx','Nassau','Westchester'],
+  NC: ['Mecklenburg','Wake','Guilford','Forsyth','Durham','Cumberland','Buncombe'],
+  ND: ['Cass','Burleigh','Grand Forks','Ward','Morton'],
+  OH: ['Cuyahoga','Franklin','Hamilton','Summit','Montgomery','Stark','Butler'],
+  OK: ['Oklahoma','Tulsa','Cleveland','Comanche','Canadian'],
+  OR: ['Multnomah','Washington','Clackamas','Lane','Marion','Jackson','Deschutes'],
+  PA: ['Philadelphia','Allegheny','Montgomery','Bucks','Delaware','Chester','Lancaster'],
+  RI: ['Providence','Kent','Washington','Newport','Bristol'],
+  SC: ['Greenville','Richland','Horry','Charleston','Lexington','Spartanburg'],
+  SD: ['Minnehaha','Pennington','Lincoln','Brown','Codington'],
+  TN: ['Shelby','Davidson','Knox','Hamilton','Rutherford','Williamson'],
+  TX: ['Harris','Dallas','Tarrant','Bexar','Travis','Collin','Denton','Fort Bend','Montgomery','El Paso'],
+  UT: ['Salt Lake','Utah','Davis','Weber','Washington','Cache','Tooele'],
+  VT: ['Chittenden','Rutland','Washington','Windsor','Addison'],
+  VA: ['Fairfax','Prince William','Loudoun','Chesterfield','Henrico','Virginia Beach City','Arlington'],
+  WA: ['King','Pierce','Snohomish','Spokane','Clark','Thurston','Kitsap'],
+  WV: ['Kanawha','Cabell','Berkeley','Monongalia','Putnam'],
+  WI: ['Milwaukee','Waukesha','Dane','Brown','Racine','Outagamie'],
+  WY: ['Laramie','Natrona','Campbell','Sweetwater','Fremont'],
+  DC: ['District of Columbia'],
+}
+
+const STATES = US_STATES.map(([code, name]) => ({
+  code,
+  name,
+  count: STATE_COUNTS[code] || 10_000,
+  counties: STATE_COUNTIES[code] || [],
+}))
 
 function AssetClassCard({ entry, selected, onToggle }) {
   const Icon = Ic[entry.icon]
@@ -87,36 +141,15 @@ function AssetClassCard({ entry, selected, onToggle }) {
   )
 }
 
-function CountyList({ state, selectedCounties, onToggle, q }) {
-  const filtered = state.counties.filter(c => c.toLowerCase().includes(q.toLowerCase()))
-  return (
-    <>
-      {filtered.map(c => {
-        const key = `${state.code}:${c}`
-        const checked = selectedCounties.includes(key)
-        const cnt = Math.round((state.count / state.counties.length) * (0.6 + (c.charCodeAt(0) % 5) * 0.08))
-        return (
-          <div key={key} className={`combo-item${checked ? ' checked' : ''}`} onClick={() => onToggle(key)}>
-            <div className="combo-item-label">
-              <span className="check"><Ic.check width="10" height="10" /></span>
-              <span style={{ fontSize: 13 }}>{c} County</span>
-            </div>
-            <span className="combo-item-count">{(cnt / 1000).toFixed(1)}K</span>
-          </div>
-        )
-      })}
-    </>
-  )
-}
-
 export function BuyBoxPage1({ form, setForm }) {
   const [stateQ, setStateQ] = useState('')
-  const [countyQ, setCountyQ] = useState('')
+  const [metroQ, setMetroQ] = useState('')
   const [zipInput, setZipInput] = useState('')
 
   const sel = form.assets || []
   const subtypes = form.subtypes || []
-  const geo = form.geo || { states: [], counties: [], zips: [] }
+  const geo = form.geo || { states: [], counties: [], metros: [], zips: [] }
+  const metros = geo.metros || []
 
   const selectedClass = sel.length === 1 ? DISPLAY_CLASSES.find(c => c.id === sel[0]) : null
 
@@ -139,7 +172,7 @@ export function BuyBoxPage1({ form, setForm }) {
         geo: {
           ...geo,
           states: geo.states.filter(x => x !== code),
-          counties: geo.counties.filter(c => !c.startsWith(code + ':')),
+          counties: (geo.counties || []).filter(c => !c.startsWith(code + ':')),
         },
       })
     } else {
@@ -150,31 +183,31 @@ export function BuyBoxPage1({ form, setForm }) {
     }
   }
 
-  const toggleCounty = (key) => {
+  const toggleMetro = (metro) => {
     setForm({
       ...form,
       geo: {
         ...geo,
-        counties: geo.counties.includes(key)
-          ? geo.counties.filter(c => c !== key)
-          : [...geo.counties, key],
+        metros: metros.includes(metro)
+          ? metros.filter(m => m !== metro)
+          : [...metros, metro],
       },
     })
   }
 
   const addZip = (e) => {
     if (e.key === 'Enter' && zipInput.match(/^\d{5}$/)) {
-      if (!geo.zips.includes(zipInput)) {
+      if (!(geo.zips || []).includes(zipInput)) {
         setForm({
           ...form,
-          geo: { ...geo, zips: [...geo.zips, zipInput] },
+          geo: { ...geo, zips: [...(geo.zips || []), zipInput] },
         })
       }
       setZipInput('')
-    } else if (e.key === 'Backspace' && !zipInput && geo.zips.length) {
+    } else if (e.key === 'Backspace' && !zipInput && (geo.zips || []).length) {
       setForm({
         ...form,
-        geo: { ...geo, zips: geo.zips.slice(0, -1) },
+        geo: { ...geo, zips: (geo.zips || []).slice(0, -1) },
       })
     }
   }
@@ -182,7 +215,15 @@ export function BuyBoxPage1({ form, setForm }) {
   const stateList = STATES.filter(
     s => s.name.toLowerCase().includes(stateQ.toLowerCase()) || s.code.toLowerCase().includes(stateQ.toLowerCase())
   )
+
   const activeStates = STATES.filter(s => geo.states.includes(s.code))
+
+  // Filter metros: by search query first; if states selected and no query, filter to those states
+  const metroList = metroQ
+    ? MAJOR_METROS.filter(m => m.toLowerCase().includes(metroQ.toLowerCase()))
+    : activeStates.length > 0
+      ? MAJOR_METROS.filter(m => activeStates.some(s => m.endsWith(', ' + s.code)))
+      : MAJOR_METROS
 
   return (
     <div className="page-fade">
@@ -248,7 +289,7 @@ export function BuyBoxPage1({ form, setForm }) {
             <span className="section-title-num">B</span> Geography
           </div>
           <span className="section-meta">
-            {geo.states.length} states · {geo.counties.length} counties · {geo.zips.length} zip codes
+            {geo.states.length} states · {metros.length} metros · {(geo.zips || []).length} zip codes
           </span>
         </div>
 
@@ -287,33 +328,44 @@ export function BuyBoxPage1({ form, setForm }) {
 
           <div className="geo-block">
             <div className="geo-label">
-              <span>Counties</span>
-              <span className="geo-label-count">{geo.counties.length}</span>
+              <span>Cities / Metros</span>
+              <span className="geo-label-count">{metros.length}</span>
             </div>
             <div className="combo">
               <div className="combo-search">
                 <Ic.search width="14" height="14" />
                 <input
-                  placeholder={activeStates.length ? 'Search counties...' : 'Pick states first →'}
-                  value={countyQ}
-                  onChange={e => setCountyQ(e.target.value)}
-                  disabled={!activeStates.length}
+                  placeholder={activeStates.length ? `Metros in ${activeStates.map(s => s.code).join(', ')}…` : 'Search all metros…'}
+                  value={metroQ}
+                  onChange={e => setMetroQ(e.target.value)}
                 />
               </div>
               <div className="combo-list">
-                {activeStates.length === 0 && (
+                {metroList.length === 0 && (
                   <div style={{ padding: '24px 14px', fontSize: 12, color: 'var(--fg-mute)', textAlign: 'center' }}>
-                    Select at least one state to drill into counties.
+                    No metros match your search.
                   </div>
                 )}
-                {activeStates.map(s => (
-                  <div key={s.code}>
-                    <div style={{ padding: '8px 14px 4px', fontSize: 10, color: 'var(--fg-mute)', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-                      {s.name}
+                {metroList.map(m => {
+                  const checked = metros.includes(m)
+                  return (
+                    <div
+                      key={m}
+                      className={`combo-item${checked ? ' checked' : ''}`}
+                      onClick={() => toggleMetro(m)}
+                    >
+                      <div className="combo-item-label">
+                        <span className="check"><Ic.check width="10" height="10" /></span>
+                        <span style={{ fontSize: 13 }}>{m}</span>
+                      </div>
                     </div>
-                    <CountyList state={s} selectedCounties={geo.counties} onToggle={toggleCounty} q={countyQ} />
+                  )
+                })}
+                {activeStates.length > 0 && metroList.length > 0 && !metroQ && (
+                  <div style={{ padding: '8px 14px', fontSize: 11, color: 'var(--fg-mute)', borderTop: '1px solid var(--border-sub)' }}>
+                    Showing metros in selected states. Clear search to see all.
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -324,19 +376,19 @@ export function BuyBoxPage1({ form, setForm }) {
             <span>
               Specific ZIP codes<span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--fg-mute)', fontWeight: 400, marginLeft: 8 }}>· optional · type a 5-digit code and press Enter</span>
             </span>
-            <span className="geo-label-count">{geo.zips.length}</span>
+            <span className="geo-label-count">{(geo.zips || []).length}</span>
           </div>
           <div className="chip-input">
-            {geo.zips.map(z => (
+            {(geo.zips || []).map(z => (
               <span key={z} className="chip">
                 {z}
-                <span className="chip-x" onClick={() => setForm({ ...form, geo: { ...geo, zips: geo.zips.filter(x => x !== z) } })}>
+                <span className="chip-x" onClick={() => setForm({ ...form, geo: { ...geo, zips: (geo.zips || []).filter(x => x !== z) } })}>
                   <Ic.close width="10" height="10" />
                 </span>
               </span>
             ))}
             <input
-              placeholder={geo.zips.length ? '' : '75205, 33139, 90025…'}
+              placeholder={(geo.zips || []).length ? '' : '75205, 33139, 90025…'}
               value={zipInput}
               onChange={e => setZipInput(e.target.value.replace(/\D/g, '').slice(0, 5))}
               onKeyDown={addZip}
