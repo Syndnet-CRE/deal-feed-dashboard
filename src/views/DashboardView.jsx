@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Star, Flame, Mail, Inbox } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import FeedDealCard from '../components/feed/FeedDealCard';
-import AgentMessageCard from '../components/feed/AgentMessageCard';
 import ChatFab from '../components/feed/ChatFab';
 import RightRail from '../components/RightRail';
 import LeftRail from '../components/LeftRail';
@@ -18,7 +17,6 @@ function sameDay(a, b) {
 
 export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = () => {} }) {
   const { deals, loading } = useDeals();
-  const [agentMessages, setAgentMessages] = useState([]);
   const [hiddenIds, setHiddenIds] = useState(new Set());
   const [selectedDealId, setSelectedDealId] = useState(null);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -50,10 +48,6 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
     setHiddenIds(prev => new Set([...prev, id]));
   }
 
-  function handleMessage(msg) {
-    setAgentMessages(prev => [...prev, { ...msg, id: Date.now() + Math.random() }]);
-  }
-
   const counts = useMemo(() => ({
     all:    deals.filter(d => !hiddenIds.has(d.id)).length,
     unread: deals.filter(d => !hiddenIds.has(d.id) && !d.is_read).length,
@@ -83,16 +77,6 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
                 <div className="feed-loading">Loading your deals…</div>
               ) : (
                 <>
-                  {agentMessages.map(msg =>
-                    msg.role === 'agent'
-                      ? <AgentMessageCard key={msg.id} message={msg} />
-                      : (
-                        <div key={msg.id} className="user-message-card">
-                          <span className="user-message-content">{msg.content}</span>
-                        </div>
-                      )
-                  )}
-
                   {filteredDeals.length === 0 && (
                     <div className="feed-empty-state">
                       <div className="feed-empty-icon">
@@ -141,7 +125,7 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
         </div>
       </div>
 
-      <ChatFab onMessage={handleMessage} activeDealId={selectedDealId} />
+      <ChatFab activeDealId={selectedDealId} />
     </div>
   );
 }

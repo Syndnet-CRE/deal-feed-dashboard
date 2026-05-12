@@ -1176,6 +1176,8 @@
    inside the popup. Same technique as .feed-center-col (Firefox + WebKit). */
 .chat-fab-popup,
 .chat-fab-popup *,
+.chat-fab-thread-messages,
+.chat-fab-thread-textarea,
 .rail-card-scroll,
 .message-input-textarea {
   scrollbar-width: none;        /* Firefox */
@@ -1183,12 +1185,169 @@
 }
 .chat-fab-popup::-webkit-scrollbar,
 .chat-fab-popup *::-webkit-scrollbar,
+.chat-fab-thread-messages::-webkit-scrollbar,
+.chat-fab-thread-textarea::-webkit-scrollbar,
 .rail-card-scroll::-webkit-scrollbar,
 .message-input-textarea::-webkit-scrollbar {
   display: none;                /* Safari, Chrome, modern Edge */
   width: 0;
   height: 0;
 }
+
+/* ── ChatFab conversation thread ───────────────────────────────── */
+.chat-fab-thread-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-fab-thread-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.chat-fab-thread-status {
+  font-size: 12px;
+  color: var(--fg-4);
+  text-align: center;
+  padding: var(--s-4);
+}
+
+.chat-fab-thread-msg {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-2);
+}
+.chat-fab-thread-msg.user {
+  flex-direction: row-reverse;
+}
+
+.chat-fab-thread-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(29, 175, 41, 0.15);
+  color: var(--nightdrop-green-700);
+  font-size: 10px;
+  font-weight: var(--w-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chat-fab-thread-msg-body {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.chat-fab-thread-msg.user .chat-fab-thread-msg-body {
+  align-items: flex-end;
+}
+
+.chat-fab-thread-msg-text {
+  font-size: 12px;
+  line-height: 1.5;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md);
+  color: var(--fg-1);
+  background: var(--bg-subtle);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-fab-thread-msg.user .chat-fab-thread-msg-text {
+  background: var(--nightdrop-green-700);
+  color: #fff;
+}
+
+.chat-fab-thread-msg-ts {
+  font-size: 10px;
+  color: var(--fg-4);
+  padding: 0 var(--s-1);
+}
+
+.chat-fab-thread-typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--s-2) var(--s-3);
+  background: var(--bg-subtle);
+  border-radius: var(--r-md);
+}
+.chat-fab-thread-typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--fg-4);
+  animation: chat-fab-bounce 1.2s ease-in-out infinite;
+}
+.chat-fab-thread-typing span:nth-child(2) { animation-delay: 0.2s; }
+.chat-fab-thread-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes chat-fab-bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%            { transform: translateY(-4px); }
+}
+
+.chat-fab-thread-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  border-top: 1px solid var(--border-1);
+  flex-shrink: 0;
+}
+
+.chat-fab-thread-textarea {
+  flex: 1;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+  padding: var(--s-2) var(--s-3);
+  resize: none;
+  min-height: 36px;
+  max-height: 120px;
+  overflow-y: auto;
+  transition: border-color var(--dur-fast);
+}
+.chat-fab-thread-textarea:focus {
+  outline: none;
+  border-color: var(--nightdrop-green-700);
+}
+.chat-fab-thread-textarea::placeholder { color: var(--fg-4); }
+.chat-fab-thread-textarea:disabled { opacity: 0.5; }
+
+.chat-fab-thread-send {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--nightdrop-green-700);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity var(--dur-fast);
+}
+.chat-fab-thread-send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.chat-fab-thread-send:not(:disabled):hover { opacity: 0.82; }
+
+/* ── end ChatFab thread ─────────────────────────────────────────── */
 
 .message-input-textarea {
   flex: 1;

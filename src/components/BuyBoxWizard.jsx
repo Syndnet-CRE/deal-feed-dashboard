@@ -206,8 +206,8 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
       try {
         const payload = nativeToPayload(formRef.current);
         const data = await api.post('/api/dealfeed/buy-boxes/preview', payload);
-        if (typeof data.count === 'number') {
-          setForm(f => ({ ...f, matchCount: data.count }));
+        if (typeof data.estimated_count === 'number') {
+          setForm(f => ({ ...f, matchCount: data.estimated_count }));
         }
       } catch {
         // preview endpoint may not exist; failure is non-fatal

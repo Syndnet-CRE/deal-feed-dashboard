@@ -49,7 +49,7 @@ function devAuthPlugin() {
         const body = JSON.stringify({ email: creds.email, password: creds.password });
         const apiReq = https.request(
           {
-            hostname: 'scoutgpt-app.onrender.com',
+            hostname: 'nightdrop-api.onrender.com',
             port: 443,
             path: '/api/dealfeed/auth/login',
             method: 'POST',
@@ -85,7 +85,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://scoutgpt-app.onrender.com',
+        target: 'https://nightdrop-api.onrender.com',
         changeOrigin: true,
         secure: true,
       },
