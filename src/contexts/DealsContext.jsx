@@ -118,6 +118,11 @@ export function DealsProvider({ children }) {
     return res.buy_box;
   }, []);
 
+  const deleteBuyBox = useCallback(async (id) => {
+    await api.delete(`/api/dealfeed/buy-boxes/${id}`);
+    setBuyBoxes(prev => prev.filter(b => b.id !== id));
+  }, []);
+
   const fetchDealNotes = useCallback(async (dealId) => {
     try {
       const res = await api.get(`/api/dealfeed/deals/${dealId}/notes`);
@@ -137,7 +142,7 @@ export function DealsProvider({ children }) {
   }, []);
 
   return (
-    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, dealNotes, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox, fetchDealNotes, createDealNote }}>
+    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, dealNotes, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox, deleteBuyBox, fetchDealNotes, createDealNote }}>
       {children}
     </DealsCtx.Provider>
   );

@@ -10,6 +10,7 @@ import LeftPanel from './components/LeftPanel';
 import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
 import { BuyBoxWizard } from './components/BuyBoxWizard';
+import { BuyBoxEditModal } from './components/BuyBoxEditModal';
 import { DashboardView } from './views/DashboardView';
 import { BuyBoxesView } from './views/BuyBoxesView';
 import { MapView } from './views/MapView';
@@ -117,16 +118,7 @@ function WizardLayer({ showWizard, editingBuyBox, onboardingMatch, onDismissCrea
         />
       )}
       {editingBuyBox && (
-        <BuyBoxWizard
-          mode="edit"
-          initialData={editingBuyBox}
-          onSuccess={() => {
-            addToast('Buy box saved.', 'success');
-            onDismissEdit();
-            refetch();
-          }}
-          onCancel={onDismissEdit}
-        />
+        <BuyBoxEditModal box={editingBuyBox} onClose={onDismissEdit} />
       )}
     </>
   );
