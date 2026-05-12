@@ -267,7 +267,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
       case 3: return <BuyBoxPage3 form={form} setForm={setForm} />;
       case 4: return <BuyBoxPage4 form={form} setForm={setForm} />;
       case 5: return <BuyBoxPage5 form={form} setForm={setForm} />;
-      case 6: return <BuyBoxPage6 form={form} setForm={setForm} matchCount={form.matchCount} summary={summary} onActivate={handleActivate} activating={activating} />;
+      case 6: return <BuyBoxPage6 form={form} setForm={setForm} matchCount={form.matchCount} summary={summary} onActivate={handleActivate} activating={activating} goToStep={setPage} />;
       default: return null;
     }
   };

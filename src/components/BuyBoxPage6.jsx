@@ -6,9 +6,10 @@ const CADENCES = [
   { id: 'realtime', title: 'Real-time', sub: 'Pushed as they hit the criteria', time: 'No SLA' },
 ]
 
-export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, activating }) {
+export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, activating, goToStep }) {
   const name = form.name || ''
   const delivery = form.delivery || { cadence: 'daily', max: 25 }
+  const cadence = CADENCES.find(c => c.id === delivery.cadence) ?? CADENCES[0]
 
   return (
     <div className="page-fade">
@@ -43,7 +44,7 @@ export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, ac
       <div className="review-section">
         <div className="review-section-title">
           <span>Filters</span>
-          <button className="review-section-edit">Edit ↗</button>
+          <button className="review-section-edit" onClick={() => goToStep?.(1)}>Edit ↗</button>
         </div>
         <div className="review-chips">
           {summary.length === 0 && <span className="caption">No filters configured — your match pool is the entire universe.</span>}
@@ -59,7 +60,7 @@ export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, ac
       <div className="review-section">
         <div className="review-section-title">
           <span>Delivery cadence</span>
-          <button className="review-section-edit">Connect to email →</button>
+          <button className="review-section-edit" onClick={() => goToStep?.(5)}>Connect to email →</button>
         </div>
         <div className="delivery-grid">
           {CADENCES.map(c => (
@@ -102,8 +103,12 @@ export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, ac
 
       <div className="activate-ribbon">
         <div className="activate-ribbon-text">
-          You're about to activate <strong>{name || 'this buy box'}</strong>. The first batch will land in your inbox at{' '}
-          <strong>06:00 AM tomorrow</strong>. Pause or adjust anytime — no charges either way.
+          You're about to activate <strong>{name || 'this buy box'}</strong>.{' '}
+          {cadence.id === 'realtime'
+            ? <>Matches will be pushed <strong>as they arrive</strong>.</>
+            : <>The first batch will land in your inbox at <strong>{cadence.time}</strong>.</>
+          }{' '}
+          Pause or adjust anytime — no charges either way.
         </div>
         <button className="btn btn-fire" onClick={onActivate} disabled={activating} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {activating ? 'Placing trade…' : <>Activate buy box <Ic.zap width="16" height="16" /></>}
