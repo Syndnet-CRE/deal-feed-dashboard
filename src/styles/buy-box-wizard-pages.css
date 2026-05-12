@@ -58,6 +58,22 @@
 .buy-box-wizard .combo-empty {
   padding: 28px 14px; font-size: 12px; color: var(--fg-mute); text-align: center;
 }
+.buy-box-wizard .combo-loading {
+  padding: 28px 14px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.buy-box-wizard .combo-spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--border-sub);
+  border-top-color: var(--green);
+  animation: combo-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes combo-spin {
+  to { transform: rotate(360deg); }
+}
+.buy-box-wizard .combo-loading-text {
+  font-size: 11px; color: var(--fg-mute); font-family: var(--font-mono); letter-spacing: 0.02em;
+}
 .buy-box-wizard .geo-label {
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--fg-mute); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;

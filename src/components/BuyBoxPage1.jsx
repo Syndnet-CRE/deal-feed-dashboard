@@ -386,7 +386,10 @@ export function BuyBoxPage1({ form, setForm }) {
                   {activeStates.length === 0 ? (
                     <div className="combo-empty">Select one or more states to see counties.</div>
                   ) : countiesLoading ? (
-                    <div className="combo-empty">Loading counties…</div>
+                    <div className="combo-loading">
+                      <span className="combo-spinner" />
+                      <span className="combo-loading-text">Searching counties in database…</span>
+                    </div>
                   ) : (
                     activeStates.map(s => {
                       const allCounties = countyData[s.code] || STATE_COUNTIES[s.code] || []
