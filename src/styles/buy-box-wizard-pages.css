@@ -423,3 +423,45 @@
   font-size: 15px; color: var(--fg-2); line-height: 1.55; margin-bottom: 32px;
 }
 .buy-box-wizard .confirm-sub strong { color: var(--fg); }
+
+/* Sub-asset class picker */
+.buy-box-wizard .subtype-section {
+  border-left: 3px solid var(--green);
+  padding-left: 20px;
+  margin-top: 0;
+}
+.buy-box-wizard .subtype-section-title {
+  display: flex; align-items: center; gap: 6px;
+}
+.buy-box-wizard .subtype-arrow {
+  color: var(--green); font-size: 15px; line-height: 1;
+}
+.buy-box-wizard .subtype-chips {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px;
+}
+.buy-box-wizard .subtype-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 13px; border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--fg-2); font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: border-color 120ms, background 120ms, color 120ms, opacity 120ms;
+  font-family: var(--font-sans);
+}
+.buy-box-wizard .subtype-chip:hover:not(.dim) {
+  border-color: var(--green); color: var(--fg);
+}
+.buy-box-wizard .subtype-chip.active {
+  border-color: var(--green);
+  background: var(--green-tint);
+  color: var(--fg);
+}
+.buy-box-wizard .subtype-chip.dim {
+  opacity: 0.35; cursor: default;
+}
+.buy-box-wizard .subtype-chip-check {
+  display: inline-flex; align-items: center; color: var(--green);
+}
+.buy-box-wizard .subtype-hint {
+  font-size: 12px; color: var(--fg-mute); margin-top: 10px; line-height: 1.5;
+}

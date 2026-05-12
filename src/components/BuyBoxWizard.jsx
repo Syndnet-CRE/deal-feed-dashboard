@@ -22,6 +22,7 @@ const STEPS = [
 
 const NATIVE_FORM = {
   assets: [],
+  subtypes: [],
   geo: { states: [], counties: [], zips: [] },
   phys: { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '' },
   fin: { price_min: '', price_max: '', equity_preset: '', assessed_below_market: false },
@@ -36,9 +37,9 @@ const NATIVE_FORM = {
 };
 
 const ASSET_CLASS_TITLES = {
-  sfr: 'SFR', small_mf: 'Small MF', large_mf: 'Large MF',
-  commercial: 'Commercial', industrial: 'Industrial',
-  mixed_use: 'Mixed Use', land: 'Land', hospitality: 'Hospitality',
+  sfr: 'SFR', multifamily: 'Multifamily', retail: 'Retail',
+  office: 'Office', industrial: 'Industrial',
+  land: 'Land', hospitality: 'Hospitality', special_purpose: 'Special Purpose',
 };
 
 const EQUITY_MAP = { '25%': 0.25, '40%': 0.40, '50%': 0.50, '60%': 0.60, '75%': 0.75 };
@@ -60,6 +61,7 @@ function toNativeForm(b) {
     : rawEntity?.length > 1 ? 'any' : '';
   return {
     assets: b.asset_classes || [],
+    subtypes: b.asset_use_codes || [],
     geo: { states: b.geo_states || [], counties: b.geo_counties || [], zips: b.geo_zips || [] },
     phys: {
       sf_min: b.sf_min ?? '', sf_max: b.sf_max ?? '',
@@ -102,6 +104,7 @@ function nativeToPayload(form) {
     label: form.name || '',
     asset_classes: form.assets.length ? form.assets : null,
     asset_class: null,
+    asset_use_codes: form.subtypes?.length ? form.subtypes : null,
     geo_states: form.geo.states.length ? form.geo.states : null,
     geo_counties: form.geo.counties.length ? form.geo.counties : null,
     geo_zips: form.geo.zips.length ? form.geo.zips : null,

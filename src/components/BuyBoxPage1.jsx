@@ -1,16 +1,23 @@
 import { useState } from 'react'
 import { Ic } from './buybox-icons'
+import { ASSET_CLASSES as TAXONOMY_CLASSES } from '../lib/buyBoxTaxonomy'
 
-const ASSET_CLASSES = [
-  { id: 'sfr', icon: 'sfr', title: 'Single-family', sub: 'Detached, 1 unit', count: 4_280_400 },
-  { id: 'small_mf', icon: 'smm', title: 'Small multifamily', sub: '2–4 units', count: 1_104_800 },
-  { id: 'large_mf', icon: 'lmm', title: 'Large multifamily', sub: '5+ units', count: 286_200 },
-  { id: 'commercial', icon: 'commercial', title: 'Commercial', sub: 'Office, retail, mixed', count: 412_100 },
-  { id: 'industrial', icon: 'industrial', title: 'Industrial', sub: 'Warehouse, flex', count: 198_400 },
-  { id: 'mixed', icon: 'mixed', title: 'Mixed-use', sub: 'Live/work, vertical', count: 92_300 },
-  { id: 'land', icon: 'land', title: 'Vacant land', sub: 'Lots & acreage', count: 1_840_000 },
-  { id: 'hospitality', icon: 'hospitality', title: 'Hospitality', sub: 'Hotels, motels, STR', count: 64_800 },
-]
+const ASSET_DISPLAY = {
+  sfr:             { icon: 'sfr',         title: 'Single-family',       sub: 'Detached, condo, co-op',         count: 4_280_400 },
+  multifamily:     { icon: 'smm',         title: 'Multifamily',         sub: '2+ units, apartments',            count: 1_391_000 },
+  retail:          { icon: 'commercial',  title: 'Commercial / Retail',  sub: 'Storefronts, shopping centers',  count: 412_100   },
+  office:          { icon: 'lmm',         title: 'Office',              sub: 'Professional, medical',           count: 218_400   },
+  industrial:      { icon: 'industrial',  title: 'Industrial',          sub: 'Warehouse, flex, storage',        count: 198_400   },
+  land:            { icon: 'land',        title: 'Vacant land',         sub: 'Lots, acreage, agricultural',    count: 1_840_000 },
+  hospitality:     { icon: 'hospitality', title: 'Hospitality',         sub: 'Hotels, motels, resorts',        count: 64_800    },
+  special_purpose: { icon: 'mixed',       title: 'Special Purpose',     sub: 'Gas station, parking, medical',  count: 48_200    },
+}
+
+const DISPLAY_CLASSES = TAXONOMY_CLASSES.map(c => ({
+  id: c.id,
+  subtypes: c.subtypes,
+  ...ASSET_DISPLAY[c.id],
+}))
 
 const STATES = [
   { code: 'TX', name: 'Texas', count: 612_400, counties: ['Harris','Dallas','Tarrant','Bexar','Travis','Collin','Denton','Fort Bend'] },
@@ -75,13 +82,21 @@ export function BuyBoxPage1({ form, setForm }) {
   const [zipInput, setZipInput] = useState('')
 
   const sel = form.assets || []
+  const subtypes = form.subtypes || []
   const geo = form.geo || { states: [], counties: [], zips: [] }
 
+  const selectedClass = sel.length === 1 ? DISPLAY_CLASSES.find(c => c.id === sel[0]) : null
+
   const toggleAsset = (id) => {
-    setForm({
-      ...form,
-      assets: sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id],
-    })
+    const next = sel[0] === id ? [] : [id]
+    setForm({ ...form, assets: next, subtypes: [] })
+  }
+
+  const toggleSubtype = (code) => {
+    const active = subtypes.includes(code)
+    if (!active && subtypes.length >= 3) return
+    const next = active ? subtypes.filter(c => c !== code) : [...subtypes, code]
+    setForm({ ...form, subtypes: next })
   }
 
   const toggleState = (code) => {
@@ -145,7 +160,7 @@ export function BuyBoxPage1({ form, setForm }) {
           <span>Target</span>
         </div>
         <h1 className="page-title">What are you hunting?</h1>
-        <p className="page-sub">Pick the asset classes and geographies that fit your thesis. You can revise either at any time — every filter narrows the pool in the rail.</p>
+        <p className="page-sub">Pick the asset class and geographies that fit your thesis. You can revise either at any time — every filter narrows the pool in the rail.</p>
       </header>
 
       <section className="section">
@@ -153,14 +168,44 @@ export function BuyBoxPage1({ form, setForm }) {
           <div className="section-title">
             <span className="section-title-num">A</span> Asset class
           </div>
-          <span className="section-meta">{sel.length || 0} selected · multi-select</span>
+          <span className="section-meta">{sel.length ? '1 selected' : 'pick one'}</span>
         </div>
         <div className="asset-grid">
-          {ASSET_CLASSES.map(a => (
+          {DISPLAY_CLASSES.map(a => (
             <AssetClassCard key={a.id} entry={a} selected={sel.includes(a.id)} onToggle={toggleAsset} />
           ))}
         </div>
       </section>
+
+      {selectedClass && (
+        <section className="section subtype-section">
+          <div className="section-head">
+            <div className="section-title subtype-section-title">
+              <span className="subtype-arrow">↳</span> Sub-asset class
+            </div>
+            <span className="section-meta">{subtypes.length}/3 selected · optional</span>
+          </div>
+          <div className="subtype-chips">
+            {selectedClass.subtypes.map(st => {
+              const active = subtypes.includes(st.code)
+              const dim = !active && subtypes.length >= 3
+              return (
+                <button
+                  key={st.code}
+                  className={`subtype-chip${active ? ' active' : ''}${dim ? ' dim' : ''}`}
+                  onClick={() => toggleSubtype(st.code)}
+                >
+                  {active && <span className="subtype-chip-check"><Ic.check width="10" height="10" /></span>}
+                  {st.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="subtype-hint">
+            Pick up to 3 to narrow your pool. Leave all unselected to match every {selectedClass.title.toLowerCase()} type.
+          </p>
+        </section>
+      )}
 
       <section className="section">
         <div className="section-head">
