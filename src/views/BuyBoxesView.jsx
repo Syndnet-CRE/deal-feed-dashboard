@@ -167,7 +167,7 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
           type="button"
           className="bb-card__menu"
           aria-label="More"
-          onClick={() => onEdit?.(box.id)}
+          onClick={() => onEdit?.(box)}
         >
           <MoreHorizontal size={14} strokeWidth={1.5} />
         </button>
@@ -228,12 +228,12 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
           </button>
         )}
         {column === 'gap' && (
-          <button type="button" className="bb-btn bb-btn--danger" onClick={() => onEdit?.(box.id)}>
+          <button type="button" className="bb-btn bb-btn--danger" onClick={() => onEdit?.(box)}>
             <MapPin size={13} strokeWidth={1.6} /> Edit geo
           </button>
         )}
         {(column === 'pending' || column === 'validating') && (
-          <button type="button" className="bb-btn" onClick={() => onEdit?.(box.id)}>
+          <button type="button" className="bb-btn" onClick={() => onEdit?.(box)}>
             Configure
           </button>
         )}
@@ -241,7 +241,7 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
           type="button"
           className="bb-iconbtn"
           aria-label="Tune"
-          onClick={() => onEdit?.(box.id)}
+          onClick={() => onEdit?.(box)}
         >
           <Sliders size={14} strokeWidth={1.6} />
         </button>

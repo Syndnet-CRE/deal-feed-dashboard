@@ -175,7 +175,7 @@ function canGoNext(page, form) {
 }
 
 export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
-  const { showToast } = useToast();
+  const addToast = useToast();
   const [page, setPage] = useState(1);
   const [form, setForm] = useState(() => mode === 'edit' && initialData ? toNativeForm(initialData) : { ...NATIVE_FORM });
   const [activating, setActivating] = useState(false);
@@ -233,7 +233,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
       setActivatedForm(form);
       setSubmitted(true);
     } catch (err) {
-      showToast(err.message || 'Something went wrong. Please try again.', 'error');
+      addToast(err.message || 'Something went wrong. Please try again.', 'error');
     } finally {
       setActivating(false);
     }

@@ -100,6 +100,38 @@ function PauseBoxConfirm({ buyBox, onClose }) {
   );
 }
 
+function WizardLayer({ showWizard, editingBuyBox, onboardingMatch, onDismissCreate, onDismissEdit, addToast, handleSetView, navigate }) {
+  const { refetch } = useDeals();
+  return (
+    <>
+      {(showWizard || onboardingMatch) && (
+        <BuyBoxWizard
+          mode="create"
+          onSuccess={() => {
+            addToast('Buy box activated! We start tonight.', 'success');
+            onDismissCreate();
+            handleSetView('boxes');
+            refetch();
+          }}
+          onCancel={() => { onDismissCreate(); if (onboardingMatch) navigate('/dashboard', { replace: true }); }}
+        />
+      )}
+      {editingBuyBox && (
+        <BuyBoxWizard
+          mode="edit"
+          initialData={editingBuyBox}
+          onSuccess={() => {
+            addToast('Buy box saved.', 'success');
+            onDismissEdit();
+            refetch();
+          }}
+          onCancel={onDismissEdit}
+        />
+      )}
+    </>
+  );
+}
+
 function AppShell() {
   const addToast = useToast();
   const { subscriber, loading } = useAuth();
@@ -238,28 +270,16 @@ function AppShell() {
 
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
         {pausingBuyBox && <PauseBoxConfirm buyBox={pausingBuyBox} onClose={() => setPausingBuyBox(null)}/>}
-        {(showWizard || onboardingMatch) && (
-          <BuyBoxWizard
-            mode="create"
-            onSuccess={() => {
-              addToast('Buy box activated! We start tonight.', 'success');
-              setShowWizard(false);
-              handleSetView('boxes');
-            }}
-            onCancel={() => { setShowWizard(false); if (onboardingMatch) navigate('/dashboard', { replace: true }); }}
-          />
-        )}
-        {editingBuyBox && (
-          <BuyBoxWizard
-            mode="edit"
-            initialData={editingBuyBox}
-            onSuccess={() => {
-              addToast('Buy box saved.', 'success');
-              setEditingBuyBox(null);
-            }}
-            onCancel={() => setEditingBuyBox(null)}
-          />
-        )}
+        <WizardLayer
+          showWizard={showWizard}
+          editingBuyBox={editingBuyBox}
+          onboardingMatch={onboardingMatch}
+          onDismissCreate={() => setShowWizard(false)}
+          onDismissEdit={() => setEditingBuyBox(null)}
+          addToast={addToast}
+          handleSetView={handleSetView}
+          navigate={navigate}
+        />
       </div>
     </DealsProvider>
     </DealStateProvider>
