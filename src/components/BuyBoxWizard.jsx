@@ -69,7 +69,7 @@ function toNativeForm(b) {
     },
     fin: {
       price_min: b.value_min ?? '', price_max: b.value_max ?? '',
-      equity_preset: reversedEquity, assessed_below_market: b.under_assessed || false,
+      equity_preset: reversedEquity, assessed_below_market: b.assessed_below_market || false,
     },
     owner: {
       entity: reversedEntity,
@@ -112,7 +112,7 @@ function nativeToPayload(form) {
     units_min: toNum(form.phys.units_min), units_max: toNum(form.phys.units_max),
     value_min: toNum(form.fin.price_min), value_max: toNum(form.fin.price_max),
     min_equity_pct: form.fin.equity_preset ? (EQUITY_MAP[form.fin.equity_preset] ?? null) : null,
-    under_assessed: form.fin.assessed_below_market || false,
+    assessed_below_market: form.fin.assessed_below_market || false,
     owner_types: ENTITY_MAP[form.owner.entity] ?? null,
     absentee_only: form.owner.occupancy === 'absentee',
     out_of_state_only: form.owner.out_of_state || false,
