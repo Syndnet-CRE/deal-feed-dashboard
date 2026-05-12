@@ -65,7 +65,7 @@ function toNativeForm(b) {
       sf_min: b.sf_min ?? '', sf_max: b.sf_max ?? '',
       acres_min: b.acres_min ?? '', acres_max: b.acres_max ?? '',
       year_min: b.year_built_min ?? '', year_max: b.year_built_max ?? '',
-      stories_min: '', units_min: b.units_min ?? '', units_max: b.units_max ?? '',
+      stories_min: b.stories_min ?? '', units_min: b.units_min ?? '', units_max: b.units_max ?? '',
     },
     fin: {
       price_min: b.value_min ?? '', price_max: b.value_max ?? '',
@@ -108,6 +108,7 @@ function nativeToPayload(form) {
     sf_min: toNum(form.phys.sf_min), sf_max: toNum(form.phys.sf_max),
     acres_min: toNum(form.phys.acres_min), acres_max: toNum(form.phys.acres_max),
     year_built_min: toNum(form.phys.year_min), year_built_max: toNum(form.phys.year_max),
+    stories_min: toNum(form.phys.stories_min),
     units_min: toNum(form.phys.units_min), units_max: toNum(form.phys.units_max),
     value_min: toNum(form.fin.price_min), value_max: toNum(form.fin.price_max),
     min_equity_pct: form.fin.equity_preset ? (EQUITY_MAP[form.fin.equity_preset] ?? null) : null,
