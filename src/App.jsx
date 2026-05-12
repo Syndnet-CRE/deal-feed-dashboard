@@ -101,7 +101,7 @@ function PauseBoxConfirm({ buyBox, onClose }) {
   );
 }
 
-function WizardLayer({ showWizard, editingBuyBox, onboardingMatch, onDismissCreate, onDismissEdit, addToast, handleSetView, navigate }) {
+function WizardLayer({ showWizard, editingBuyBox, editingGeoBuyBox, onboardingMatch, onDismissCreate, onDismissEdit, onDismissGeoEdit, addToast, handleSetView, navigate }) {
   const { refetch } = useDeals();
   return (
     <>
@@ -118,7 +118,19 @@ function WizardLayer({ showWizard, editingBuyBox, onboardingMatch, onDismissCrea
         />
       )}
       {editingBuyBox && (
-        <BuyBoxEditModal box={editingBuyBox} onClose={onDismissEdit} />
+        <BuyBoxEditModal
+          box={editingBuyBox}
+          onClose={onDismissEdit}
+          onSaved={() => { onDismissEdit(); refetch(); }}
+        />
+      )}
+      {editingGeoBuyBox && (
+        <BuyBoxEditModal
+          geoOnly
+          box={editingGeoBuyBox}
+          onClose={onDismissGeoEdit}
+          onSaved={() => { onDismissGeoEdit(); refetch(); }}
+        />
       )}
     </>
   );
@@ -135,6 +147,7 @@ function AppShell() {
   const [confirmDanger, setConfirmDanger] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
   const [editingBuyBox, setEditingBuyBox] = useState(null);
+  const [editingGeoBox, setEditingGeoBox] = useState(null);
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
   const [kpis, setKpis] = useState(null);
   const [feedFilter, setFeedFilter] = useState('all');
@@ -172,6 +185,7 @@ function AppShell() {
       setShowWizard(prev => (prev ? false : prev));
       setConfirmDanger(prev => (prev ? null : prev));
       setEditingBuyBox(prev => (prev ? null : prev));
+      setEditingGeoBox(prev => (prev ? null : prev));
       setPausingBuyBox(prev => (prev ? null : prev));
     };
     window.addEventListener('keydown', onKey);
@@ -236,6 +250,7 @@ function AppShell() {
                         <BuyBoxesView
                           onCreate={() => setShowWizard(true)}
                           onEdit={setEditingBuyBox}
+                          onEditGeo={setEditingGeoBox}
                           onPause={setPausingBuyBox}
                         />
                       )}
@@ -265,9 +280,11 @@ function AppShell() {
         <WizardLayer
           showWizard={showWizard}
           editingBuyBox={editingBuyBox}
+          editingGeoBuyBox={editingGeoBox}
           onboardingMatch={onboardingMatch}
           onDismissCreate={() => setShowWizard(false)}
           onDismissEdit={() => setEditingBuyBox(null)}
+          onDismissGeoEdit={() => setEditingGeoBox(null)}
           addToast={addToast}
           handleSetView={handleSetView}
           navigate={navigate}

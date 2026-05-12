@@ -7,10 +7,10 @@
 //   onEdit(id)    — opens wizard for edit
 //   onPause(box)  — opens pause-confirm modal
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import {
   Search, Plus, MapPin, Pause, Play, Sliders, MoreHorizontal,
-  AlertTriangle, ArrowUpRight,
+  AlertTriangle, ArrowUpRight, Trash2, Edit3,
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import { useToast } from '../contexts/ToastContext';
@@ -142,12 +142,82 @@ function WeekStrip({ schedule, dim = false }) {
 // ────────────────────────────────────────────────────────────
 // Card
 // ────────────────────────────────────────────────────────────
-function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
+function CardMenu({ box, column, onEdit, onEditGeo, onPause, onResume }) {
+  const { deleteBuyBox } = useDeals();
+  const addToast = useToast();
+  const [open, setOpen] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (!wrapRef.current?.contains(e.target)) { setOpen(false); setConfirmDel(false); } };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const close = () => { setOpen(false); setConfirmDel(false); };
+
+  const handleDelete = async () => {
+    try {
+      await deleteBuyBox(box.id);
+      addToast('Buy box deleted.', 'success');
+      close();
+    } catch (err) {
+      addToast(err.message || 'Delete failed.', 'error');
+      close();
+    }
+  };
+
+  return (
+    <div className="bb-card__menu-wrap" ref={wrapRef}>
+      <button type="button" className="bb-card__menu" aria-label="More" onClick={() => { setOpen(v => !v); setConfirmDel(false); }}>
+        <MoreHorizontal size={14} strokeWidth={1.5} />
+      </button>
+      {open && (
+        <div className="bb-card__dd">
+          <button className="bb-card__dd-item" onClick={() => { close(); onEdit?.(box); }}>
+            <Edit3 size={12} strokeWidth={1.6} /> Edit buy box
+          </button>
+          {column === 'active' && (
+            <button className="bb-card__dd-item" onClick={() => { close(); onPause?.(box); }}>
+              <Pause size={12} strokeWidth={1.6} /> Pause
+            </button>
+          )}
+          {column === 'paused' && (
+            <button className="bb-card__dd-item" onClick={() => { close(); onResume?.(box.id); }}>
+              <Play size={12} strokeWidth={1.6} /> Resume
+            </button>
+          )}
+          {column === 'gap' && (
+            <button className="bb-card__dd-item" onClick={() => { close(); onEditGeo?.(box); }}>
+              <MapPin size={12} strokeWidth={1.6} /> Fix geography
+            </button>
+          )}
+          <div className="bb-card__dd-sep" />
+          {!confirmDel ? (
+            <button className="bb-card__dd-item bb-card__dd-item--danger" onClick={() => setConfirmDel(true)}>
+              <Trash2 size={12} strokeWidth={1.6} /> Delete
+            </button>
+          ) : (
+            <div className="bb-card__dd-confirm">
+              <span>Delete this box?</span>
+              <button className="bb-card__dd-no" onClick={() => setConfirmDel(false)}>No</button>
+              <button className="bb-card__dd-yes" onClick={handleDelete}>Yes</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BuyBoxCard({ box, column, onEdit, onEditGeo, onPause, onResume, onDragStart }) {
   const geo = formatGeo(box);
   const asset = formatAsset(box);
   const schedule = scheduleArray(box);
   const lastRun = formatLastRun(box.lastRun ?? box.last_run_at);
-  const delivered = box.deals ?? 0;  // Fix E: was box.deliveredCount
+  const delivered = box.deals ?? 0;
   const thisWeek = box.deliveredThisWeek ?? 0;
   const spark = box.deliveredSpark ?? null;
   const isGap = column === 'gap';
@@ -163,14 +233,7 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
       <header className="bb-card__head">
         <span className="bb-card__dot" />
         <h3 className="bb-card__title" title={box.label}>{box.label}</h3>
-        <button
-          type="button"
-          className="bb-card__menu"
-          aria-label="More"
-          onClick={() => onEdit?.(box)}
-        >
-          <MoreHorizontal size={14} strokeWidth={1.5} />
-        </button>
+        <CardMenu box={box} column={column} onEdit={onEdit} onEditGeo={onEditGeo} onPause={onPause} onResume={onResume} />
       </header>
 
       {isGap ? (
@@ -218,7 +281,6 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
       <div className="bb-card__actions">
         {column === 'active' && (
           <button type="button" className="bb-btn" onClick={() => onPause?.(box)}>
-            {/* Fix F: pass whole box to trigger pause-confirm modal */}
             <Pause size={13} strokeWidth={1.6} /> Pause
           </button>
         )}
@@ -228,7 +290,7 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
           </button>
         )}
         {column === 'gap' && (
-          <button type="button" className="bb-btn bb-btn--danger" onClick={() => onEdit?.(box)}>
+          <button type="button" className="bb-btn bb-btn--danger" onClick={() => onEditGeo?.(box)}>
             <MapPin size={13} strokeWidth={1.6} /> Edit geo
           </button>
         )}
@@ -253,7 +315,7 @@ function BuyBoxCard({ box, column, onEdit, onPause, onResume, onDragStart }) {
 // ────────────────────────────────────────────────────────────
 // Column
 // ────────────────────────────────────────────────────────────
-function Column({ col, items, onEdit, onPause, onResume, onDragStart, onDrop }) {
+function Column({ col, items, onEdit, onEditGeo, onPause, onResume, onDragStart, onDrop }) {
   const empty = items.length === 0;
   return (
     <div
@@ -278,6 +340,7 @@ function Column({ col, items, onEdit, onPause, onResume, onDragStart, onDrop }) 
             box={b}
             column={col.id}
             onEdit={onEdit}
+            onEditGeo={onEditGeo}
             onPause={onPause}
             onResume={onResume}
             onDragStart={onDragStart}
@@ -291,7 +354,7 @@ function Column({ col, items, onEdit, onPause, onResume, onDragStart, onDrop }) 
 // ────────────────────────────────────────────────────────────
 // View — Fix A (named export) + Fix B (correct props) + Fix G (internal DnD)
 // ────────────────────────────────────────────────────────────
-export function BuyBoxesView({ onCreate, onEdit, onPause }) {
+export function BuyBoxesView({ onCreate, onEdit, onEditGeo, onPause }) {
   const { buyBoxes, patchBuyBox } = useDeals();
   const addToast = useToast();  // Fix H
 
@@ -363,6 +426,7 @@ export function BuyBoxesView({ onCreate, onEdit, onPause }) {
                 col={col}
                 items={grouped[col.id]}
                 onEdit={onEdit}
+                onEditGeo={onEditGeo}
                 onPause={handlePause}
                 onResume={handleResume}
                 onDragStart={handleDragStart}

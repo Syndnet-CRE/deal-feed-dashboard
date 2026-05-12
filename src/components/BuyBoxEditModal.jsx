@@ -13,13 +13,14 @@ function buildSavePayload(f) {
   const p = buildPayload(f);
   return {
     ...p,
+    status: 'pending',
     asset_use_codes: f.subtypes?.length > 0 ? f.subtypes : null,
     geo_cities: f.geo.metros?.length > 0 ? f.geo.metros : null,
     run_schedule: { days: f.days?.length > 0 ? f.days : ALL_DAYS },
   };
 }
 
-export function BuyBoxEditModal({ box, onClose }) {
+export function BuyBoxEditModal({ box, onClose, onSaved, geoOnly = false }) {
   const { patchBuyBox, deleteBuyBox } = useDeals();
   const addToast = useToast();
 
@@ -71,8 +72,8 @@ export function BuyBoxEditModal({ box, onClose }) {
       const zips = zipInput.split(/[\s,]+/).map(z => z.trim()).filter(Boolean);
       const finalForm = { ...form, geo: { ...form.geo, zips } };
       await patchBuyBox(box.id, buildSavePayload(finalForm));
-      addToast('Buy box saved.', 'success');
-      onClose();
+      addToast('Buy box saved — moved to Pending for next run.', 'success');
+      (onSaved ?? onClose)();
     } catch (err) {
       addToast(err.message || 'Save failed. Try again.', 'error');
     } finally {
@@ -107,7 +108,7 @@ export function BuyBoxEditModal({ box, onClose }) {
           <div className="bbem-header-icon"><I.Sliders size={13} /></div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="bbem-title">{box.label || 'Edit Buy Box'}</div>
-            <div className="bbem-subtitle">Buy box configuration</div>
+            <div className="bbem-subtitle">{geoOnly ? 'Fix geography to restore coverage' : 'Buy box configuration'}</div>
           </div>
           <button className="bbem-close" onClick={onClose} aria-label="Close">
             <I.Close size={13} />
@@ -174,6 +175,8 @@ export function BuyBoxEditModal({ box, onClose }) {
               <span className="bbem-empty-hint">Radius targeting coming soon.</span>
             )}
           </div>
+
+          {!geoOnly && (<>
 
           {/* Asset Class */}
           <div className="bbem-section">
@@ -359,11 +362,13 @@ export function BuyBoxEditModal({ box, onClose }) {
             </div>
           </div>
 
+          </>)}
+
         </div>
 
         <footer className="bbem-footer">
           <div className="bbem-footer-left">
-            {!confirmDelete ? (
+            {!geoOnly && (!confirmDelete ? (
               <button className="bbem-btn bbem-btn-danger" onClick={() => setConfirmDelete(true)}>
                 Delete
               </button>
@@ -373,7 +378,7 @@ export function BuyBoxEditModal({ box, onClose }) {
                 <button className="bbem-btn bbem-btn-ghost" onClick={() => setConfirmDelete(false)}>No</button>
                 <button className="bbem-btn bbem-btn-danger" onClick={handleDelete}>Yes, delete</button>
               </>
-            )}
+            ))}
           </div>
           <div className="bbem-footer-right">
             <button className="bbem-btn bbem-btn-ghost" onClick={onClose}>Cancel</button>
