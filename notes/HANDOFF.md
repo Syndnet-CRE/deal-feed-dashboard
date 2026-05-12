@@ -1,59 +1,55 @@
 HANDOFF
 Date: 2026-05-12
 Repo: deal-feed-dashboard
-Session objective: Fix P1/P2 buy box bugs from audit — RC-4 through RC-10
-Status: COMPLETE (all actionable fixes done; RC-5 and RC-6 are feature gaps, not surgical fixes)
+Session objective: Lucide icons + taxonomy expansion on subtype chips, 20px gap fix
+Status: COMPLETE
 
 ---
 
 What was done:
 
-RC-4 fixed (commit fa08b8f):
-- nativeToPayload() was missing stories_min entirely — added stories_min: toNum(form.phys.stories_min)
-- toNativeForm() was hardcoding '' for stories_min on pre-fill — fixed to b.stories_min ?? ''
-- BuyBoxPage23.jsx stories chip values were label strings ('1','2','3','4–6','7+') — changed to numeric floor values (1,2,3,4,7) so toNum() can serialize them correctly
-- Files: src/components/BuyBoxWizard.jsx, src/components/BuyBoxPage23.jsx
+SUBTYPE CHIP POLISH (commit 3bc06c8):
 
-RC-7 fixed (commit b6c8209):
-- nativeToPayload() was sending under_assessed field — backend schema uses assessed_below_market. Fixed.
-- toNativeForm() was reading b.under_assessed on pre-fill — fixed to b.assessed_below_market
-- Root cause confirmed against scoutgpt-api migration 046_buybox_wizard_v2.sql
-- File: src/components/BuyBoxWizard.jsx
+BuyBoxPage1.jsx:
+- Added Lucide icon imports (Home, Building, Warehouse, Factory, Truck, Fuel, Hotel, Utensils, Wrench, Stethoscope, etc.)
+- Added SUBTYPE_ICONS map keyed by ATTOM use code — covers all 8 asset classes
+- Updated chip render: Icon renders left of label at 12x12, muted opacity 0.55, turns green (opacity 0.8) when chip is active
+- Check mark still renders after the icon when active
 
-RC-8 fixed (commit 56386d5):
-- BuyBoxPage6 "Edit ↗" and "Connect to email →" buttons had no onClick — both were dead
-- Added goToStep prop to BuyBoxPage6 component signature
-- "Edit ↗" now calls goToStep(1) — jumps back to asset/geo filters page
-- "Connect to email →" now calls goToStep(5) — jumps back to delivery settings page
-- Wired goToStep={setPage} in BuyBoxWizard.jsx at case 6 render call
-- Files: src/components/BuyBoxPage6.jsx, src/components/BuyBoxWizard.jsx
+buyBoxTaxonomy.js — taxonomy expanded with DB-verified codes:
+- Retail: added Fast Food/QSR (146), Auto Repair/Service (172), Drugstore/Pharmacy (127), Car Wash/Laundromat (186)
+- Office: added Office Park (193), Mixed-Use Commercial (194), Commercial Loft/Mixed-Use (183)
+- Industrial: added Industrial Park (280)
+- All codes confirmed against property_use_standardized column (character varying) in DB before adding
 
-RC-10 fixed (commit 56386d5):
-- Activate ribbon hardcoded "06:00 AM tomorrow" regardless of user's cadence selection
-- Now derives time from CADENCES array using delivery.cadence; realtime cadence gets a separate message
-- Files: src/components/BuyBoxPage6.jsx
+buy-box-wizard-pages.css:
+- Changed .subtype-section margin-top: 0 to margin-top: 20px (gap between asset grid and subtype section)
+- Added .subtype-chip-icon CSS (opacity 0.55 default, opacity 0.8 + green when chip is active)
 
-Pushed to main — Netlify deploy triggered.
+DB audit findings (done before expanding taxonomy):
+- Truck Terminal (231) and Gas Station (167) are SEPARATE codes for different property types — NOT the same
+- Car Wash confirmed as code 186 "Laundromat / Car Wash" — 12 records in DB
+- RV parks / campgrounds: no code found in DB — not added
+- property_use_standardized is character varying (NOT integer) — always use string literals in queries
+
+Browser-verified via Playwright:
+- Retail selected: all 13 subtypes visible with icons
+- 20px gap visible between asset grid and sub-asset section
+- Green left border on sub-asset section confirmed
+
+Pushed to main (3bc06c8) — Netlify deploy triggered.
 
 ---
 
-What was NOT done (and why):
+What was NOT done:
 
-RC-5 (zoning_codes payload):
-- Audit claimed zoning was collected in form.phys.zoning. This field does not exist anywhere.
-- NATIVE_FORM has no zoning key. No wizard page collects it. The audit hallucinated the form field.
-- Real fix requires new UI (zoning input on Page 2) + form state + payload serialization. Feature gap, not a bug fix.
+RC-9 (right rail stats hardcoded $184K/11.3yr/47%):
+- Stats are still hardcoded literals in BuyBoxRightRail.jsx
+- Not broken enough to block beta — deferred
 
-RC-6 (sub-asset class UI on Page 1):
-- Audit called this "Page 1 must import buyBoxTaxonomy.js and render a sub-asset selector."
-- Reality: BuyBoxPage1's asset class IDs (small_mf, large_mf, commercial, mixed) don't exist in buyBoxTaxonomy.js at all.
-- The payload model diverges too: wizard uses asset_classes (plural string IDs); taxonomy system uses asset_class (singular) + asset_use_codes (ATTOM numeric codes).
-- This is an architectural redesign, not a page edit. Needs dedicated BMAD session.
-
-RC-9 (right rail stat trio):
-- Stats ($184K, 11.3yr, 47%) are hardcoded literals in BuyBoxRightRail.jsx.
-- Wiring them requires either the preview API response or deriving from form.fin.* fields.
-- Not broken enough to block beta — deferred.
+Special purpose taxonomy expansion:
+- Bank (150), Day Care (175), Gym/Fitness (267), Theater (348), Funeral Home (133) all confirmed in DB
+- Not added this session — optional enhancement
 
 ---
 
@@ -65,8 +61,8 @@ Remaining audit items by priority:
 | RC-2 | DONE | showToast was undefined |
 | RC-3 | DONE | No refetch after create/edit |
 | RC-4 | DONE | stories_min missing + string chip values |
-| RC-5 | DEFERRED | Zoning field is a feature gap |
-| RC-6 | DEFERRED | Sub-asset class is architectural redesign |
+| RC-5 | DEFERRED | Zoning field is a feature gap (no UI exists) |
+| RC-6 | DONE | Sub-asset class chip picker live |
 | RC-7 | DONE | assessed_below_market field name |
 | RC-8 | DONE | Page 6 edit buttons wired |
 | RC-9 | DEFERRED | Right rail stats still hardcoded |
@@ -76,10 +72,10 @@ Remaining audit items by priority:
 
 Next session:
 
-Decide whether to tackle RC-5 (new zoning UI), RC-6 (asset class architectural redesign), or RC-9 (right rail stats). All three require new features, not bug fixes. RC-5 and RC-9 are smaller; RC-6 needs a BMAD planning session first.
+RC-9 (right rail stat trio) — wire $184K / 11.3yr / 47% to actual form.fin.* values or preview API response.
 
 cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
 
 Blockers for Brady:
 
-None. All 7 actionable RC fixes are live. RC-5/RC-6/RC-9 need Brady to scope before implementation.
+None. All actionable RC items are live. RC-9 is cosmetic/deferred.

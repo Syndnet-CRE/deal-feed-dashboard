@@ -359,7 +359,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
             </footer>
           </div>
 
-          <BuyBoxRightRail matchCount={form.matchCount} filters={filters} geoStates={form.geo.states} onRemoveFilter={clearFilter} />
+          <BuyBoxRightRail matchCount={form.matchCount} filters={filters} geoStates={form.geo.states} onRemoveFilter={clearFilter} form={form} />
         </div>
       </div>
     </div>

@@ -2,7 +2,28 @@ import { useState, useEffect, useRef } from 'react';
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 
-export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter }) {
+function deriveStatTrio(form) {
+  const equity = form?.fin?.equity_preset
+  const holdMin = form?.owner?.hold_min
+  const holdMax = form?.owner?.hold_max
+  const occupancy = form?.owner?.occupancy
+
+  const equityVal = equity ? `≥ ${equity}` : '--'
+  const equitySub = equity ? 'filter active' : 'not filtered'
+
+  let holdVal = '--'
+  let holdSub = 'not filtered'
+  if (holdMin && holdMax) { holdVal = `${holdMin}–${holdMax}yr`; holdSub = 'hold range set' }
+  else if (holdMin) { holdVal = `≥ ${holdMin}yr`; holdSub = 'min hold set' }
+  else if (holdMax) { holdVal = `≤ ${holdMax}yr`; holdSub = 'max hold set' }
+
+  const occupancyVal = occupancy === 'absentee' ? 'Absentee' : '--'
+  const occupancySub = occupancy === 'absentee' ? 'filter active' : 'not filtered'
+
+  return { equityVal, equitySub, holdVal, holdSub, occupancyVal, occupancySub }
+}
+
+export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter, form }) {
   const [clock, setClock] = useState(() => {
     const now = new Date();
     return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
@@ -29,6 +50,8 @@ export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => setPulse(false), 600);
   }, [matchCount]);
+
+  const { equityVal, equitySub, holdVal, holdSub, occupancyVal, occupancySub } = deriveStatTrio(form)
 
   return (
     <aside className="rail">
@@ -59,19 +82,19 @@ export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter
 
         <div className="stat-trio">
           <div className="stat-cell">
-            <div className="stat-cell-label">Avg equity</div>
-            <div className="stat-cell-value">$184K</div>
-            <div className="stat-cell-spark pos">+2.4% MoM</div>
+            <div className="stat-cell-label">Min equity</div>
+            <div className="stat-cell-value">{equityVal}</div>
+            <div className="stat-cell-spark">{equitySub}</div>
           </div>
           <div className="stat-cell">
-            <div className="stat-cell-label">Hold</div>
-            <div className="stat-cell-value">11.3yr</div>
-            <div className="stat-cell-spark">14yr median</div>
+            <div className="stat-cell-label">Hold period</div>
+            <div className="stat-cell-value">{holdVal}</div>
+            <div className="stat-cell-spark">{holdSub}</div>
           </div>
           <div className="stat-cell">
-            <div className="stat-cell-label">Absentee</div>
-            <div className="stat-cell-value">47%</div>
-            <div className="stat-cell-spark neg">-1.1% WoW</div>
+            <div className="stat-cell-label">Occupancy</div>
+            <div className="stat-cell-value">{occupancyVal}</div>
+            <div className="stat-cell-spark">{occupancySub}</div>
           </div>
         </div>
 
