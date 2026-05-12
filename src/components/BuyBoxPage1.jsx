@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import {
   Home, Building, Building2, Layers, Coins,
   ShoppingBag, ShoppingCart, Store, Utensils, Car, Wrench, Stethoscope, Tag,
@@ -143,12 +143,15 @@ function AssetClassCard({ entry, selected, onToggle }) {
 
 export function BuyBoxPage1({ form, setForm }) {
   const [stateQ, setStateQ] = useState('')
+  const [geoTab, setGeoTab] = useState('counties')
+  const [countyQ, setCountyQ] = useState('')
   const [metroQ, setMetroQ] = useState('')
   const [zipInput, setZipInput] = useState('')
 
   const sel = form.assets || []
   const subtypes = form.subtypes || []
   const geo = form.geo || { states: [], counties: [], metros: [], zips: [] }
+  const counties = geo.counties || []
   const metros = geo.metros || []
 
   const selectedClass = sel.length === 1 ? DISPLAY_CLASSES.find(c => c.id === sel[0]) : null
@@ -181,6 +184,19 @@ export function BuyBoxPage1({ form, setForm }) {
         geo: { ...geo, states: [...geo.states, code] },
       })
     }
+  }
+
+  const toggleCounty = (stateCode, countyName) => {
+    const key = `${stateCode}:${countyName}`
+    setForm({
+      ...form,
+      geo: {
+        ...geo,
+        counties: counties.includes(key)
+          ? counties.filter(c => c !== key)
+          : [...counties, key],
+      },
+    })
   }
 
   const toggleMetro = (metro) => {
@@ -289,7 +305,7 @@ export function BuyBoxPage1({ form, setForm }) {
             <span className="section-title-num">B</span> Geography
           </div>
           <span className="section-meta">
-            {geo.states.length} states · {metros.length} metros · {(geo.zips || []).length} zip codes
+            {geo.states.length} states · {counties.length} counties · {metros.length} metros · {(geo.zips || []).length} zip codes
           </span>
         </div>
 
@@ -328,46 +344,100 @@ export function BuyBoxPage1({ form, setForm }) {
 
           <div className="geo-block">
             <div className="geo-label">
-              <span>Cities / Metros</span>
-              <span className="geo-label-count">{metros.length}</span>
+              <span>{geoTab === 'counties' ? 'Counties' : 'Cities / Metros'}</span>
+              <span className="geo-label-count">{geoTab === 'counties' ? counties.length : metros.length}</span>
             </div>
-            <div className="combo">
-              <div className="combo-search">
-                <Ic.search width="14" height="14" />
-                <input
-                  placeholder={activeStates.length ? `Metros in ${activeStates.map(s => s.code).join(', ')}…` : 'Search all metros…'}
-                  value={metroQ}
-                  onChange={e => setMetroQ(e.target.value)}
-                />
+
+            <div className="geo-seg">
+              <button className={`geo-seg-btn${geoTab === 'counties' ? ' active' : ''}`} onClick={() => setGeoTab('counties')}>Counties</button>
+              <button className={`geo-seg-btn${geoTab === 'metros' ? ' active' : ''}`} onClick={() => setGeoTab('metros')}>Metros</button>
+            </div>
+
+            {geoTab === 'counties' ? (
+              <div className="combo">
+                <div className="combo-search">
+                  <Ic.search width="14" height="14" />
+                  <input
+                    placeholder={activeStates.length ? 'Search counties…' : 'Select a state first…'}
+                    value={countyQ}
+                    onChange={e => setCountyQ(e.target.value)}
+                    disabled={activeStates.length === 0}
+                  />
+                </div>
+                <div className="combo-list">
+                  {activeStates.length === 0 ? (
+                    <div className="combo-empty">Select one or more states to see counties.</div>
+                  ) : (
+                    activeStates.map(s => {
+                      const allCounties = STATE_COUNTIES[s.code] || []
+                      const filtered = countyQ
+                        ? allCounties.filter(c => c.toLowerCase().includes(countyQ.toLowerCase()))
+                        : allCounties
+                      if (filtered.length === 0) return null
+                      return (
+                        <Fragment key={s.code}>
+                          {activeStates.length > 1 && (
+                            <div className="combo-group-header">{s.name}</div>
+                          )}
+                          {filtered.map(c => {
+                            const key = `${s.code}:${c}`
+                            const checked = counties.includes(key)
+                            return (
+                              <div
+                                key={key}
+                                className={`combo-item${checked ? ' checked' : ''}`}
+                                onClick={() => toggleCounty(s.code, c)}
+                              >
+                                <div className="combo-item-label">
+                                  <span className="check"><Ic.check width="10" height="10" /></span>
+                                  <span style={{ fontSize: 13 }}>{c}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </Fragment>
+                      )
+                    })
+                  )}
+                </div>
               </div>
-              <div className="combo-list">
-                {metroList.length === 0 && (
-                  <div style={{ padding: '24px 14px', fontSize: 12, color: 'var(--fg-mute)', textAlign: 'center' }}>
-                    No metros match your search.
-                  </div>
-                )}
-                {metroList.map(m => {
-                  const checked = metros.includes(m)
-                  return (
-                    <div
-                      key={m}
-                      className={`combo-item${checked ? ' checked' : ''}`}
-                      onClick={() => toggleMetro(m)}
-                    >
-                      <div className="combo-item-label">
-                        <span className="check"><Ic.check width="10" height="10" /></span>
-                        <span style={{ fontSize: 13 }}>{m}</span>
+            ) : (
+              <div className="combo">
+                <div className="combo-search">
+                  <Ic.search width="14" height="14" />
+                  <input
+                    placeholder={activeStates.length ? `Metros in ${activeStates.map(s => s.code).join(', ')}…` : 'Search all metros…'}
+                    value={metroQ}
+                    onChange={e => setMetroQ(e.target.value)}
+                  />
+                </div>
+                <div className="combo-list">
+                  {metroList.length === 0 && (
+                    <div className="combo-empty">No metros match your search.</div>
+                  )}
+                  {metroList.map(m => {
+                    const checked = metros.includes(m)
+                    return (
+                      <div
+                        key={m}
+                        className={`combo-item${checked ? ' checked' : ''}`}
+                        onClick={() => toggleMetro(m)}
+                      >
+                        <div className="combo-item-label">
+                          <span className="check"><Ic.check width="10" height="10" /></span>
+                          <span style={{ fontSize: 13 }}>{m}</span>
+                        </div>
                       </div>
+                    )
+                  })}
+                  {activeStates.length > 0 && metroList.length > 0 && !metroQ && (
+                    <div style={{ padding: '8px 14px', fontSize: 11, color: 'var(--fg-mute)', borderTop: '1px solid var(--border-sub)' }}>
+                      Showing metros in selected states. Clear search to see all.
                     </div>
-                  )
-                })}
-                {activeStates.length > 0 && metroList.length > 0 && !metroQ && (
-                  <div style={{ padding: '8px 14px', fontSize: 11, color: 'var(--fg-mute)', borderTop: '1px solid var(--border-sub)' }}>
-                    Showing metros in selected states. Clear search to see all.
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

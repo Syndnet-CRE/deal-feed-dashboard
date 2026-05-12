@@ -107,7 +107,7 @@ function nativeToPayload(form) {
     asset_class: null,
     asset_use_codes: form.subtypes?.length ? form.subtypes : null,
     geo_states: form.geo.states.length ? form.geo.states : null,
-    geo_counties: form.geo.counties.length ? form.geo.counties : null,
+    geo_counties: form.geo.counties.length ? form.geo.counties.map(c => c.includes(':') ? c.split(':')[1] : c) : null,
     geo_cities: form.geo.metros?.length ? form.geo.metros : null,
     geo_zips: form.geo.zips.length ? form.geo.zips : null,
     sf_min: toNum(form.phys.sf_min), sf_max: toNum(form.phys.sf_max),
