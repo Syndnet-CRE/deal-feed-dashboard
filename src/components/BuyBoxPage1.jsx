@@ -1,6 +1,39 @@
 import { useState } from 'react'
+import {
+  Home, Building, Building2, Layers, Coins,
+  ShoppingBag, ShoppingCart, Store, Utensils, Car, Wrench, Stethoscope, Tag,
+  Briefcase, Factory, Warehouse, Package, Archive, Truck,
+  Map, Sprout, Wheat, Fence, TreePine,
+  Hotel, BedDouble, BedSingle, Umbrella,
+  Fuel, ParkingSquare, Hospital, Heart, MapPin, Landmark, School, Dumbbell, Building as ChurchIcon,
+} from 'lucide-react'
 import { Ic } from './buybox-icons'
 import { ASSET_CLASSES as TAXONOMY_CLASSES } from '../lib/buyBoxTaxonomy'
+
+const SUBTYPE_ICONS = {
+  // SFR
+  100: Home, 102: Building, 104: Building2, 373: Home,
+  // Multifamily
+  366: Home, 383: Building, 386: Building2, 369: Building2,
+  378: Layers, 375: Coins,
+  // Retail
+  135: ShoppingBag, 393: Store, 126: Store, 361: Store, 148: ShoppingCart,
+  124: ShoppingBag, 169: Utensils, 146: Utensils, 171: Car, 172: Wrench,
+  127: Stethoscope, 186: Car, 161: Tag,
+  // Office
+  178: Building2, 160: Briefcase, 139: Stethoscope, 193: Building,
+  194: Layers, 183: Layers, 181: Home, 359: Building2,
+  // Industrial
+  212: Factory, 238: Warehouse, 220: Wrench, 222: Package, 229: Archive,
+  231: Truck, 210: Package, 280: Factory, 395: Building2,
+  // Land
+  389: Map, 120: Sprout, 392: Wheat, 117: Fence, 105: Wheat, 109: Sprout, 118: TreePine,
+  // Hospitality
+  260: Hotel, 265: BedDouble, 270: BedSingle, 275: Umbrella, 293: Home,
+  // Special Purpose
+  167: Fuel, 339: ParkingSquare, 296: Hospital, 155: Heart,
+  360: Home, 380: MapPin, 150: Landmark, 175: School, 267: Dumbbell, 348: ChurchIcon, 133: ChurchIcon,
+}
 
 const ASSET_DISPLAY = {
   sfr:             { icon: 'sfr',         title: 'Single-family',       sub: 'Detached, condo, co-op',         count: 4_280_400 },
@@ -189,12 +222,14 @@ export function BuyBoxPage1({ form, setForm }) {
             {selectedClass.subtypes.map(st => {
               const active = subtypes.includes(st.code)
               const dim = !active && subtypes.length >= 3
+              const Icon = SUBTYPE_ICONS[st.code]
               return (
                 <button
                   key={st.code}
                   className={`subtype-chip${active ? ' active' : ''}${dim ? ' dim' : ''}`}
                   onClick={() => toggleSubtype(st.code)}
                 >
+                  {Icon && <Icon width="12" height="12" className="subtype-chip-icon" />}
                   {active && <span className="subtype-chip-check"><Ic.check width="10" height="10" /></span>}
                   {st.label}
                 </button>

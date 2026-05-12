@@ -428,7 +428,7 @@
 .buy-box-wizard .subtype-section {
   border-left: 3px solid var(--green);
   padding-left: 20px;
-  margin-top: 0;
+  margin-top: 20px;
 }
 .buy-box-wizard .subtype-section-title {
   display: flex; align-items: center; gap: 6px;
@@ -461,6 +461,12 @@
 }
 .buy-box-wizard .subtype-chip-check {
   display: inline-flex; align-items: center; color: var(--green);
+}
+.buy-box-wizard .subtype-chip-icon {
+  opacity: 0.55; flex-shrink: 0;
+}
+.buy-box-wizard .subtype-chip.active .subtype-chip-icon {
+  opacity: 0.8; color: var(--green);
 }
 .buy-box-wizard .subtype-hint {
   font-size: 12px; color: var(--fg-mute); margin-top: 10px; line-height: 1.5;
