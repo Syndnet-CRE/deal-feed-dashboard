@@ -8,6 +8,7 @@ import { BuyBoxPage5 } from './BuyBoxPage5';
 import { BuyBoxPage6 } from './BuyBoxPage6';
 import { BuyBoxRightRail } from './BuyBoxRightRail';
 import { Ic } from './buybox-icons';
+import BuyBoxActivatedDialog from './BuyBoxActivatedDialog';
 import '../styles/buy-box-wizard.css';
 import '../styles/buy-box-wizard-pages.css';
 
@@ -279,21 +280,22 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
     <div className="buy-box-wizard">
       <div className="backdrop" />
       {submitted && (
-        <div className="confirm">
-          <div className="confirm-card">
-            <div className="confirm-check">
-              <Ic.check width="24" height="24" />
-            </div>
-            <div className="confirm-title">You're hunting.</div>
-            <div className="confirm-sub">
-              <strong>{activatedForm?.name || 'Your buy box'}</strong> is live.
-              First batch lands at <strong>06:00 AM tomorrow</strong>.
-            </div>
-            <button className="btn btn-primary" style={{ margin: '0 auto' }} onClick={onSuccess}>
-              Back to dashboard
-            </button>
-          </div>
-        </div>
+        <BuyBoxActivatedDialog
+          box={{
+            label: activatedForm?.name || 'Your buy box',
+            run_schedule: { days: [] },
+            delivery_max_per_run: activatedForm?.delivery?.max,
+          }}
+          matchCount={typeof activatedForm?.matchCount === 'number' ? activatedForm.matchCount : null}
+          cadenceOverride={activatedForm?.delivery?.cadence}
+          onBuildAnother={() => {
+            setSubmitted(false);
+            setActivatedForm(null);
+            setPage(1);
+            setForm({ ...NATIVE_FORM });
+          }}
+          onClose={onSuccess}
+        />
       )}
       <div className="app">
         <header className="topbar">
