@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react'
+import { useState, useEffect, useRef, Fragment } from 'react'
 import {
   Home, Building, Building2, Layers, Coins,
   ShoppingBag, ShoppingCart, Store, Utensils, Car, Wrench, Stethoscope, Tag,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { Ic } from './buybox-icons'
 import { ASSET_CLASSES as TAXONOMY_CLASSES, US_STATES, MAJOR_METROS } from '../lib/buyBoxTaxonomy'
+import { api } from '../lib/api'
 
 const SUBTYPE_ICONS = {
   100: Home, 102: Building, 104: Building2, 373: Home,
@@ -153,6 +154,23 @@ export function BuyBoxPage1({ form, setForm }) {
   const geo = form.geo || { states: [], counties: [], metros: [], zips: [] }
   const counties = geo.counties || []
   const metros = geo.metros || []
+
+  const [countyData, setCountyData] = useState({})
+  const [countiesLoading, setCountiesLoading] = useState(false)
+  const fetchedStatesRef = useRef(new Set())
+
+  useEffect(() => {
+    const toFetch = geo.states.filter(s => !fetchedStatesRef.current.has(s))
+    if (!toFetch.length) return
+    setCountiesLoading(true)
+    api.get(`/api/dealfeed/geo/counties?states=${toFetch.join(',')}`)
+      .then(data => {
+        toFetch.forEach(s => fetchedStatesRef.current.add(s))
+        setCountyData(prev => ({ ...prev, ...data.counties }))
+      })
+      .catch(() => {})
+      .finally(() => setCountiesLoading(false))
+  }, [geo.states])
 
   const selectedClass = sel.length === 1 ? DISPLAY_CLASSES.find(c => c.id === sel[0]) : null
 
@@ -367,9 +385,11 @@ export function BuyBoxPage1({ form, setForm }) {
                 <div className="combo-list">
                   {activeStates.length === 0 ? (
                     <div className="combo-empty">Select one or more states to see counties.</div>
+                  ) : countiesLoading ? (
+                    <div className="combo-empty">Loading counties…</div>
                   ) : (
                     activeStates.map(s => {
-                      const allCounties = STATE_COUNTIES[s.code] || []
+                      const allCounties = countyData[s.code] || STATE_COUNTIES[s.code] || []
                       const filtered = countyQ
                         ? allCounties.filter(c => c.toLowerCase().includes(countyQ.toLowerCase()))
                         : allCounties
