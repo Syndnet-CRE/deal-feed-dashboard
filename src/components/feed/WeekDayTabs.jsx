@@ -16,18 +16,11 @@ function sameDay(a, b) {
   );
 }
 
-function weekOfMonth(date) {
-  const first = new Date(date.getFullYear(), date.getMonth(), 1);
-  return Math.ceil((date.getDate() + first.getDay()) / 7);
-}
-
-function getWeekDays() {
+function getRollingWeek() {
   const today = startOfDay(new Date());
-  const sunday = new Date(today);
-  sunday.setDate(today.getDate() - today.getDay());
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(sunday);
-    d.setDate(sunday.getDate() + i);
+    const d = new Date(today);
+    d.setDate(today.getDate() - (6 - i));
     return d;
   });
 }
@@ -38,10 +31,17 @@ function dayKey(date) {
 
 export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
   const today = useMemo(() => startOfDay(new Date()), []);
-  const weekDays = useMemo(() => getWeekDays(), []);
+  const weekDays = useMemo(() => getRollingWeek(), []);
 
-  const monthLabel = today.toLocaleDateString('en-US', { month: 'long' });
-  const weekNum = weekOfMonth(today);
+  const rangeLabel = useMemo(() => {
+    const start = weekDays[0];
+    const end = weekDays[6];
+    const sm = start.toLocaleDateString('en-US', { month: 'short' });
+    const em = end.toLocaleDateString('en-US', { month: 'short' });
+    return sm === em
+      ? `${sm} ${start.getDate()} – ${end.getDate()}`
+      : `${sm} ${start.getDate()} – ${em} ${end.getDate()}`;
+  }, [weekDays]);
 
   const countsByDay = useMemo(() => {
     const map = {};
@@ -64,9 +64,7 @@ export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
   return (
     <div className="week-day-tabs">
       <div className="week-day-tabs-label">
-        <span className="week-day-tabs-month">{monthLabel}</span>
-        <span className="week-day-tabs-sep">·</span>
-        <span className="week-day-tabs-week">Week {weekNum}</span>
+        <span className="week-day-tabs-month">{rangeLabel}</span>
       </div>
       <div className="week-day-tabs-list">
         {weekDays.map((date, i) => {
@@ -88,7 +86,7 @@ export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
               disabled={isFuture}
               title={date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             >
-              <span className="week-day-tab-abbr">{DAY_ABBR[i]}</span>
+              <span className="week-day-tab-abbr">{DAY_ABBR[date.getDay()]}</span>
               {count > 0 ? (
                 <span className="week-day-tab-count">{count}</span>
               ) : (
