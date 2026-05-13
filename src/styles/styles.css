@@ -1473,6 +1473,8 @@ button { font-family: inherit; }
 [data-theme="light"] .cal-cell.cal-has-deals:hover { background: var(--hairline-soft); }
 [data-theme="light"] .mnf-panel { background: #F5F7FA; }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: #C9CCD6; border-color: var(--app-bg); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #A8ABB5; }
+[data-theme="light"] .bb-frame { background: #EEF0F5; box-shadow: var(--shadow-sm); }
 
 /* ─────────────────────────────────────────────────────────────
    PARCYL green top bar

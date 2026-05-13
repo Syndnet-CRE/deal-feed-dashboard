@@ -33,7 +33,7 @@
   display: flex;
   align-items: center;
   height: var(--top-header-h);
-  background: #0D0D0D;
+  background: var(--bg-page);
   border-bottom: 1px solid var(--border-1);
   padding: 0 var(--s-5);
   gap: var(--s-4);
@@ -109,10 +109,29 @@
   min-width: 220px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: var(--s-3);
   padding-left: var(--s-4);
   border-left: 1px solid rgba(91, 204, 72, 0.12);
   flex-shrink: 0;
+}
+
+.top-header-theme-btn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-1);
+  background: transparent;
+  color: var(--fg-3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.top-header-theme-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--fg-1);
 }
 
 .top-header-right .pipeline-cd-panel {
