@@ -147,21 +147,15 @@
   padding: 0;
 }
 
-/* ── Fill bar glow ───────────────────────────────────────────── */
-@keyframes timelineGlow {
-  0%, 100% { box-shadow: 0 0 4px rgba(29, 175, 41, 0.4); }
-  50%       { box-shadow: 0 0 10px rgba(29, 175, 41, 0.8), 0 0 20px rgba(29, 175, 41, 0.3); }
+/* ── PipelineTrack (3A) keyframes ────────────────────────────── */
+@keyframes pt-tick-rise {
+  0%, 100% { transform: scaleY(0.35); }
+  50%       { transform: scaleY(1); }
 }
 
-.pipeline-fill {
-  background: repeating-linear-gradient(
-    90deg,
-    #5BCC48 0px,
-    #5BCC48 5px,
-    transparent 5px,
-    transparent 8px
-  );
-  animation: timelineGlow 2s ease-in-out infinite;
+@keyframes pt-ring-pulse {
+  0%, 100% { transform: scale(1);   opacity: 0.35; }
+  50%       { transform: scale(1.4); opacity: 0; }
 }
 
 /* ── Active node icon glow (pulses behind the icon, never on it) */
