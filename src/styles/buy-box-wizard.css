@@ -193,3 +193,28 @@
 .buy-box-wizard .muted { color: var(--fg-mute); }
 .buy-box-wizard .green { color: var(--green); }
 .buy-box-wizard .divider { height: 1px; background: var(--border-sub); margin: 28px 0; }
+
+/* ── Light theme overrides ─────────────────────────────────── */
+[data-theme="light"] .buy-box-wizard {
+  --bg: #FAFBFD;
+  --surface: #FFFFFF;
+  --surface-2: #F5F7FA;
+  --surface-sub: rgba(0,0,0,0.02);
+  --surface-hi: rgba(0,0,0,0.04);
+  --fg: #0D0D0D;
+  --fg-2: #40424D;
+  --fg-mute: #6E7180;
+  --border: rgba(0,0,0,0.10);
+  --border-sub: rgba(0,0,0,0.06);
+  --border-hi: rgba(0,0,0,0.18);
+  --dot: rgba(0,0,0,0.055);
+}
+[data-theme="light"] .buy-box-wizard .topbar {
+  background: rgba(250,251,253,0.88);
+}
+[data-theme="light"] .buy-box-wizard .backdrop::after {
+  background: none;
+}
+[data-theme="light"] .buy-box-wizard .chip-x:hover {
+  background: rgba(0,0,0,0.06);
+}

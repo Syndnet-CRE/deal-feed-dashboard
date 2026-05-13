@@ -177,6 +177,11 @@
   background: transparent;
 }
 
+/* ── Light theme override ────────────────────────────────── */
+[data-theme="light"] .bba {
+  background: rgba(250,251,253,0.96);
+}
+
 /* ── Reduced motion ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .bba,

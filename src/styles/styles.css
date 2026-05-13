@@ -1475,6 +1475,7 @@ button { font-family: inherit; }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: #C9CCD6; border-color: var(--app-bg); }
 [data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #A8ABB5; }
 [data-theme="light"] .bb-frame { background: #EEF0F5; box-shadow: var(--shadow-sm); }
+[data-theme="light"] .rail-card { background: var(--bg-card); }
 
 /* ─────────────────────────────────────────────────────────────
    PARCYL green top bar
