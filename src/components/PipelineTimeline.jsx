@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Timer } from 'lucide-react';
 import { I } from './Icons.jsx';
 
@@ -39,6 +39,20 @@ function getMarkerPct(nowSecs) {
   return Math.max(0, Math.min(18, (sinceSix / 64800) * 18));
 }
 
+function useTheme() {
+  const [theme, setTheme] = useState(
+    () => document.documentElement.getAttribute('data-theme') || 'dark'
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+    });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, []);
+  return theme;
+}
+
 const NODE_LABELS  = ['Submit', 'Agents', 'Briefs', 'Delivered'];
 const NODE_PCTS    = [18, 50, 75, 100];
 const PHASE_CONTEXT = [
@@ -54,47 +68,6 @@ const NODE_ICONS     = [
   <I.Mail size={18} />,
 ];
 
-const s = {
-  cdLabelRow: {
-    display: 'flex', alignItems: 'center', gap: 5,
-  },
-  cdLabel: {
-    fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
-    color: '#FFFFFF', fontFamily: 'Manrope, system-ui, sans-serif',
-  },
-  cdClock: {
-    display: 'flex', alignItems: 'baseline', gap: 4,
-    fontFamily: 'Manrope, system-ui, sans-serif',
-    fontWeight: 800, color: '#FFFFFF', letterSpacing: '0.01em',
-    fontVariantNumeric: 'tabular-nums', lineHeight: 0.95,
-  },
-  cdFoot: {
-    fontSize: 10, color: '#9DA2B3', fontWeight: 600,
-    textTransform: 'uppercase', letterSpacing: '0.07em',
-    fontFamily: 'Manrope, system-ui, sans-serif',
-  },
-  phasePill: {
-    display: 'inline-flex', alignItems: 'center', gap: 6,
-    background: 'rgba(29,175,41,0.10)', border: '1px solid rgba(29,175,41,0.25)',
-    borderRadius: 20, padding: '3px 10px',
-  },
-  phaseDot: {
-    width: 6, height: 6, borderRadius: '50%', background: '#1DAF29',
-    flexShrink: 0, display: 'inline-block', animation: 'dotPulse 2s ease-in-out infinite',
-  },
-  phaseName: {
-    fontSize: 11, fontWeight: 600, color: '#1DAF29',
-    fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap',
-  },
-  trackBg:  { position: 'absolute', left: 0, right: 0, top: '50%', marginTop: -2, height: 4, background: '#40424D', borderRadius: 2 },
-  // background and animation moved to .pipeline-fill CSS class
-  fill:     { position: 'absolute', left: 0, top: '50%', marginTop: -2, height: 4, width: '0%', borderRadius: 2, transition: 'width 0.25s linear', overflow: 'hidden' },
-  particle: { position: 'absolute', top: '50%', transform: 'translateY(-50%)', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.9)', animation: 'particleFlow 2s linear infinite', boxShadow: '0 0 5px rgba(255,255,255,0.7)' },
-  iconWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#40424D' },
-  ring:     { position: 'absolute', inset: -5, borderRadius: '50%', border: '2px solid rgba(29,175,41,0.4)', pointerEvents: 'none', animation: 'ringPulse 2s ease-in-out infinite' },
-  nodeLabel:{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#9DA2B3', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', lineHeight: 1 },
-};
-
 // countdown size tokens
 const CD = {
   xl:     { num: 44, sep: 28 },
@@ -103,6 +76,12 @@ const CD = {
 };
 
 export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = false, showPhase = true } = {}) {
+  const theme        = useTheme();
+  const isLight      = theme === 'light';
+  const isLightRef   = useRef(isLight);
+
+  useEffect(() => { isLightRef.current = isLight; }, [isLight]);
+
   const phaseRef     = useRef(null);
   const fillRef      = useRef(null);
   const markerRef    = useRef(null);
@@ -116,8 +95,62 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
   const cdSRef       = useRef(null);
   const prevNodeIdx  = useRef(null);
 
+  // ── Theme-aware style tokens ────────────────────────────────
+  const s = {
+    cdLabelRow: {
+      display: 'flex', alignItems: 'center', gap: 5,
+    },
+    cdLabel: {
+      fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em',
+      color: isLight ? '#0D0D0D' : '#FFFFFF', fontFamily: 'Manrope, system-ui, sans-serif',
+    },
+    cdClock: {
+      display: 'flex', alignItems: 'baseline', gap: 4,
+      fontFamily: 'Manrope, system-ui, sans-serif',
+      fontWeight: 800, color: isLight ? '#0D0D0D' : '#FFFFFF', letterSpacing: '0.01em',
+      fontVariantNumeric: 'tabular-nums', lineHeight: 0.95,
+    },
+    cdFoot: {
+      fontSize: 10, color: isLight ? '#40424D' : '#9DA2B3', fontWeight: 600,
+      textTransform: 'uppercase', letterSpacing: '0.07em',
+      fontFamily: 'Manrope, system-ui, sans-serif',
+    },
+    phasePill: {
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: 'rgba(29,175,41,0.10)', border: '1px solid rgba(29,175,41,0.25)',
+      borderRadius: 20, padding: '3px 10px',
+    },
+    phaseDot: {
+      width: 6, height: 6, borderRadius: '50%', background: '#1DAF29',
+      flexShrink: 0, display: 'inline-block', animation: 'dotPulse 2s ease-in-out infinite',
+    },
+    phaseName: {
+      fontSize: 11, fontWeight: 600, color: '#1DAF29',
+      fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap',
+    },
+    trackBg: {
+      position: 'absolute', left: 0, right: 0, top: '50%', marginTop: -2, height: 4,
+      background: isLight ? '#D0D3DC' : '#40424D', borderRadius: 2,
+    },
+    fill: {
+      position: 'absolute', left: 0, top: '50%', marginTop: -2, height: 4,
+      width: '0%', borderRadius: 2, transition: 'width 0.25s linear', overflow: 'hidden',
+    },
+    particle: {
+      position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+      width: 6, height: 6, borderRadius: '50%',
+      background: 'rgba(255,255,255,0.9)',
+      animation: 'particleFlow 2s linear infinite',
+      boxShadow: '0 0 5px rgba(255,255,255,0.7)',
+    },
+    iconWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLight ? '#6E7180' : '#40424D' },
+    ring: { position: 'absolute', inset: -5, borderRadius: '50%', border: '2px solid rgba(29,175,41,0.4)', pointerEvents: 'none', animation: 'ringPulse 2s ease-in-out infinite' },
+    nodeLabel: { fontSize: 9, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: isLight ? '#40424D' : '#9DA2B3', whiteSpace: 'nowrap', fontFamily: 'Manrope, system-ui, sans-serif', lineHeight: 1 },
+  };
+
   useEffect(() => {
     function tick() {
+      const light = isLightRef.current;
       const nowSecs = getCTSeconds();
       const { nodeIdx, phase, nextH } = getStage(nowSecs);
       const pct = getMarkerPct(nowSecs);
@@ -140,11 +173,11 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
         if (!el) return;
         const done   = i < nodeIdx;
         const active = i === nodeIdx;
-        el.style.background  = done ? '#1DAF29' : '#1E1E24';
-        el.style.borderColor = (done || active) ? '#1DAF29' : '#40424D';
+        el.style.background  = done ? '#1DAF29' : (light ? '#FFFFFF' : '#1E1E24');
+        el.style.borderColor = (done || active) ? '#1DAF29' : (light ? '#C8CAD6' : '#40424D');
         if (iconRefs.current[i]) {
           iconRefs.current[i].style.display = done ? 'none' : 'flex';
-          iconRefs.current[i].style.color   = active ? '#1DAF29' : '#40424D';
+          iconRefs.current[i].style.color   = active ? '#1DAF29' : (light ? '#6E7180' : '#40424D');
           if (active) iconRefs.current[i].classList.add('pipeline-icon-active');
           else iconRefs.current[i].classList.remove('pipeline-icon-active');
         }
@@ -181,6 +214,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
   const { nodeIdx: initialNodeIdx } = getStage(getCTSeconds());
   const numSz = CD[size]?.num ?? CD.xl.num;
   const sepSz = CD[size]?.sep ?? CD.xl.sep;
+  const sepColor = isLight ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.45)';
 
   const renderCountdown = () => (
     <div className="pipeline-cd-panel">
@@ -199,9 +233,9 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
           <div style={s.cdClock} className="pipeline-cd-clock">
             <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdHRef}>00</span>
-            <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.45)', margin: '0 1px', position: 'relative', top: -2 }}>:</span>
+            <span style={{ fontSize: sepSz, color: sepColor, margin: '0 1px', position: 'relative', top: -2 }}>:</span>
             <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95 }} ref={cdMRef}>00</span>
-            <span style={{ fontSize: sepSz, color: 'rgba(255,255,255,0.45)', margin: '0 1px', position: 'relative', top: -2 }}>:</span>
+            <span style={{ fontSize: sepSz, color: sepColor, margin: '0 1px', position: 'relative', top: -2 }}>:</span>
             <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95, color: '#1DAF29' }} ref={cdSRef}>00</span>
           </div>
           <div style={s.cdFoot}>2:00 AM CT</div>
@@ -216,8 +250,10 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
       : { position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
     const nodeBoxStyle = {
-      width: 26, height: 26, borderRadius: '50%', border: '2px solid #40424D',
-      background: '#1E1E24', position: 'relative', zIndex: 3, flexShrink: 0,
+      width: 26, height: 26, borderRadius: '50%',
+      border: `2px solid ${isLight ? '#C8CAD6' : '#40424D'}`,
+      background: isLight ? '#FFFFFF' : '#1E1E24',
+      position: 'relative', zIndex: 3, flexShrink: 0,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
     };
 
@@ -270,7 +306,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
                   <div ref={el => { iconRefs.current[i] = el; }} style={s.iconWrap}>
                     {NODE_ICONS[i]}
                   </div>
-                  <div ref={el => { checkRefs.current[i] = el; }} style={{ ...s.iconWrap, display: 'none', color: '#ffffff' }}>
+                  <div ref={el => { checkRefs.current[i] = el; }} style={{ ...s.iconWrap, display: 'none', color: isLight ? '#0D0D0D' : '#ffffff' }}>
                     <I.Check size={14} />
                   </div>
                 </div>
@@ -281,7 +317,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
           <div
             ref={contextRef}
             style={{
-              fontSize: 9, color: '#5C6070', fontWeight: 500,
+              fontSize: 9, color: isLight ? '#40424D' : '#5C6070', fontWeight: 500,
               letterSpacing: '0.04em', textAlign: 'center', marginTop: 6,
               fontFamily: 'Manrope, system-ui, sans-serif', whiteSpace: 'nowrap',
             }}

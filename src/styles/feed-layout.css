@@ -2257,3 +2257,9 @@
   .left-panel { display: none; }
   .feed-center-col { min-width: 0; }
 }
+
+/* ── Light theme overrides ──────────────────────────────────── */
+[data-theme="light"] .week-day-tabs {
+  background: var(--bg-card);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
