@@ -45,35 +45,19 @@
 
 /* ── Header zones ──────────────────────────────────────────── */
 .top-header-left {
-  width: var(--left-panel-w);
-  min-width: var(--left-panel-w);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
-  padding-right: var(--s-4);
-  border-right: 1px solid rgba(91, 204, 72, 0.12);
+  align-items: flex-start;
+  padding-right: var(--s-3);
   flex-shrink: 0;
 }
 
-.top-header-wordmark {
-  display: flex;
-  align-items: center;
-  gap: var(--s-2);
-  font-family: var(--font-sans);
-  font-weight: var(--w-extrabold);
-  font-size: 15px;
-  color: var(--fg-1);
-  white-space: nowrap;
-  letter-spacing: -0.01em;
-}
-
-.top-header-logo-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--nightdrop-green-700);
-  flex-shrink: 0;
+.top-header-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .top-header-left .pipeline-phase-only {

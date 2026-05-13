@@ -1,13 +1,11 @@
 import { PipelineTimeline } from './PipelineTimeline';
+import nightdropLogo from '../assets/nightdrop-logo.png';
 
 export default function TopHeader() {
   return (
     <header className="top-header">
       <div className="top-header-left">
-        <div className="top-header-wordmark">
-          <span className="top-header-logo-dot" />
-          Nightdrop.ai
-        </div>
+        <img src={nightdropLogo} alt="Nightdrop.ai" className="top-header-logo" />
       </div>
 
       <div className="top-header-center">
