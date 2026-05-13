@@ -103,7 +103,7 @@ this story can be tested.
 
 ## Story 5 — Verify AVM values appear in deal feed UI
 Estimate: 30 min
-Repo: scoutgpt-api + deal-feed-dashboard
+Repo: scoutgpt-api + nightdrop-dashboard
 
 Tasks:
 - Query Neon: confirm estimated_value is non-null for at least some properties

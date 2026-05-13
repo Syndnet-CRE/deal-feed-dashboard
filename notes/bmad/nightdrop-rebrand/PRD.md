@@ -5,7 +5,7 @@ Status: DRAFT
 
 ## Executive Summary
 
-Deal Feed Dashboard and deal-feed-landing are rebranding to **Nightdrop**. This PRD scopes all frontend and styling changes across both repos. Backend routes (`/api/dealfeed/*`) remain unchanged. The primary risks are (a) the localStorage token migration that must not log out existing users, and (b) the CSS variable rename cascade. Everything else is low-risk string replacement.
+Nightdrop Dashboard and deal-feed-landing are rebranding to **Nightdrop**. This PRD scopes all frontend and styling changes across both repos. Backend routes (`/api/dealfeed/*`) remain unchanged. The primary risks are (a) the localStorage token migration that must not log out existing users, and (b) the CSS variable rename cascade. Everything else is low-risk string replacement.
 
 ## Problem Statement
 
@@ -84,7 +84,7 @@ Fix netlify.toml build command (add `rm -rf .next`), add env var validation in l
 1. `grep -r "parcyl-ink\|parcyl-green\|parcyl-bar\|ParcylBar\|Deal Feed" src/` returns zero applicable hits
 2. Existing user with `df_token` in localStorage remains authenticated after deployment
 3. `npm run build` exits 0 in both repos
-4. `npm test` exits 0 in deal-feed-dashboard
+4. `npm test` exits 0 in nightdrop-dashboard
 5. Fresh page load shows zero console errors
 6. Browser tab title reads "Nightdrop"
 7. App bar shows "Nightdrop"

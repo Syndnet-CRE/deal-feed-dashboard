@@ -78,7 +78,7 @@ Agents: tdd-guide before coding; code-reviewer + security-reviewer after
 
 ## Story 4 — Frontend: InviteClaimView and route
 Estimate: 1.5 hours
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 
 Tasks:
 - Create `src/views/InviteClaimView.jsx`:

@@ -170,7 +170,7 @@ state, then `navigate('/')`.
 - `routes/dealfeed/invites.js` — new file (~110 lines)
 - `routes/dealfeed/index.js` — add 2 lines to mount invites router
 
-### deal-feed-dashboard
+### nightdrop-dashboard
 - `src/views/InviteClaimView.jsx` — new file (~130 lines)
 - `src/App.jsx` — add 2 lines: import + Route
 

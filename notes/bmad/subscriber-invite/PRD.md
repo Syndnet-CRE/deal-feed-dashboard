@@ -95,7 +95,7 @@ Routes:
 - `GET /api/dealfeed/auth/invite/:token` — validate + return `{ email }`
 - `POST /api/dealfeed/auth/invite/:token/claim` — create subscriber, return JWT
 
-### Frontend (deal-feed-dashboard)
+### Frontend (nightdrop-dashboard)
 
 New file: `src/views/InviteClaimView.jsx`
 New route in `src/App.jsx`: `/invite/:token` (unauthenticated, outside AppShell)

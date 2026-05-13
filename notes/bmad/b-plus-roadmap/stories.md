@@ -1,4 +1,4 @@
-# Stories: Deal Feed Dashboard — B+ Upgrade
+# Stories: Nightdrop Dashboard — B+ Upgrade
 Date: 2026-05-04
 Author: Claude (BMAD SM phase)
 Status: AWAITING BRADY CONFIRMATION before implementation begins

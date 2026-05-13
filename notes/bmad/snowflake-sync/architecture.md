@@ -156,7 +156,7 @@ If missing from that query, add it — no view changes needed.
 ### Render
 - New Cron Job (manual config in dashboard)
 
-### deal-feed-dashboard
+### nightdrop-dashboard
 - No changes required
 
 ---

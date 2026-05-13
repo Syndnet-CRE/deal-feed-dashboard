@@ -1,6 +1,6 @@
 HANDOFF
 Date: 2026-05-13
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Session objective: Timeline redesign verification + token/context optimization post-mortem
 Status: COMPLETE
 
@@ -40,10 +40,10 @@ What was NOT done:
 ---
 
 Next session:
-Brady has frontend updates for the deal-feed-dashboard. He will describe them at session start.
+Brady has frontend updates for the nightdrop-dashboard. He will describe them at session start.
 
 Start command:
-cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
+cd ~/nightdrop-dashboard && claude --dangerously-skip-permissions
 
 Blockers for Brady:
 - None. Settings changes take effect on next Claude session start (not this one).

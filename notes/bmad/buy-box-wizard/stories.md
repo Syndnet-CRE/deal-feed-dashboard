@@ -24,7 +24,7 @@ Acceptance: SELECT notes, value_min, out_of_state_only FROM df_buy_boxes returns
 ---
 
 ## Story 2 — Frontend CSS additions
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 30 min
 
 Tasks:
@@ -40,7 +40,7 @@ Acceptance: Classes exist; no hardcoded hex colors; both themes render correctly
 ---
 
 ## Story 3 — Wizard shell + Step 1: Name & Description
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 45 min
 
 Tasks:
@@ -55,7 +55,7 @@ Acceptance: Open wizard, type label, progress bar shows step 1 active, Next enab
 ---
 
 ## Story 4 — Step 2: Market Geography
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 1.5 hr
 
 Tasks:
@@ -72,7 +72,7 @@ Acceptance: Each mode renders distinct input; chips appear and can be removed; N
 ---
 
 ## Story 5 — Step 3: Asset Classes
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 30 min
 
 Tasks:
@@ -86,7 +86,7 @@ Acceptance: Cards toggle; at least one required to proceed.
 ---
 
 ## Story 6 — Step 4: Property Criteria
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 45 min
 
 Tasks:
@@ -101,7 +101,7 @@ Acceptance: Numeric fields accept numbers; value fields format on blur; min/max 
 ---
 
 ## Story 7 — Step 5: Ownership Profile
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 30 min
 
 Tasks:
@@ -115,7 +115,7 @@ Acceptance: Cards and toggles update form state correctly.
 ---
 
 ## Story 8 — Step 6: Distress Signals
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 30 min
 
 Tasks:
@@ -129,7 +129,7 @@ Acceptance: Signal cards toggle; distress_only toggle updates form.
 ---
 
 ## Story 9 — Step 7: Review + Activation
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 Est: 1 hr
 
 Tasks:

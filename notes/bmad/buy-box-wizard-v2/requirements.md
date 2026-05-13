@@ -2,7 +2,7 @@
 
 Date: 2026-05-11
 Feature: buy-box-wizard-v2
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 
 ## Purpose and Criticality
 

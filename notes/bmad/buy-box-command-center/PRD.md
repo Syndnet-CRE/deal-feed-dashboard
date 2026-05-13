@@ -784,7 +784,7 @@ One cleanup: `handleResume` currently has `catch (_) {}` — change to a proper 
 ## Session Start Command (for autonomous build)
 
 ```
-cd ~/deal-feed-dashboard && claude --dangerously-skip-permissions
+cd ~/nightdrop-dashboard && claude --dangerously-skip-permissions
 ```
 
 Resume prompt:

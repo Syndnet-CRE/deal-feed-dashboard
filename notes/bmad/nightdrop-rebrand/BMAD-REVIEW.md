@@ -100,7 +100,7 @@ Why: stale `.next/` chunk IDs cause "Cannot find module" errors on Netlify.
 ## Non-Functional Requirements
 
 - NFR-01: Both repos build cleanly after all changes
-- NFR-02: `npm test` passes in deal-feed-dashboard
+- NFR-02: `npm test` passes in nightdrop-dashboard
 - NFR-03: No console errors on fresh load
 - NFR-04: No duplicate CSS property definitions
 - NFR-05: Each story independently committable and revertible
@@ -153,7 +153,7 @@ Why: stale `.next/` chunk IDs cause "Cannot find module" errors on Netlify.
 1. `grep -r "parcyl-ink\|parcyl-green\|parcyl-bar\|ParcylBar\|Deal Feed" src/` returns 0 applicable hits
 2. Existing user with `df_token` set remains authenticated after deployment
 3. `npm run build` exits 0 in both repos
-4. `npm test` exits 0 in deal-feed-dashboard
+4. `npm test` exits 0 in nightdrop-dashboard
 5. Browser tab title reads "Nightdrop"
 6. App bar shows "Nightdrop"
 7. Login page shows "Nightdrop" and `hello@nightdrop.io`
@@ -262,7 +262,7 @@ Stories are ordered by dependency. Each is independently committable and reverti
 ---
 
 ## Story 1 — CSS Token Definitions
-**Repo:** deal-feed-dashboard | **File:** `src/styles/tokens.css` | **Effort:** 15 min | **Depends on:** nothing
+**Repo:** nightdrop-dashboard | **File:** `src/styles/tokens.css` | **Effort:** 15 min | **Depends on:** nothing
 
 Rename `--parcyl-ink` → `--nightdrop-ink`, `--parcyl-green-900/700/500/300` → `--nightdrop-green-900/700/500/300`. Update `--green`, `--green-deep`, `--green-bright` aliases. Update header comment. Keep all hex values identical.
 
@@ -275,7 +275,7 @@ Commit: `refactor: rename --parcyl-* CSS tokens to --nightdrop-* in tokens.css`
 ---
 
 ## Story 2 — CSS Token References
-**Repo:** deal-feed-dashboard | **Files:** `src/styles/styles.css`, `src/styles/deal-detail.css` | **Effort:** 20 min | **Depends on:** Story 1
+**Repo:** nightdrop-dashboard | **Files:** `src/styles/styles.css`, `src/styles/deal-detail.css` | **Effort:** 20 min | **Depends on:** Story 1
 
 - `styles.css` lines 1481, 1493, 1501, 2345, 2629: `var(--parcyl-ink)` → `var(--nightdrop-ink)`
 - `deal-detail.css` lines 13, 41, 259, 260, 327, 405, 533, 1017: `var(--parcyl-green-*)` → `var(--nightdrop-green-*)`
@@ -287,7 +287,7 @@ Commit: `refactor: update var(--parcyl-*) references to var(--nightdrop-*)`
 ---
 
 ## Story 3 — CSS Class Rename
-**Repo:** deal-feed-dashboard | **Files:** `src/styles/styles.css`, `src/components/ParcylBar.jsx` | **Effort:** 10 min | **Depends on:** Story 2
+**Repo:** nightdrop-dashboard | **Files:** `src/styles/styles.css`, `src/components/ParcylBar.jsx` | **Effort:** 10 min | **Depends on:** Story 2
 
 - `styles.css`: rename `.parcyl-bar` selector → `.nightdrop-bar`
 - `ParcylBar.jsx` line 87: `className="parcyl-bar"` → `className="nightdrop-bar"`
@@ -301,7 +301,7 @@ Commit: `refactor: rename .parcyl-bar CSS class to .nightdrop-bar`
 ---
 
 ## Story 4 — Component File Rename (ATOMIC COMMIT)
-**Repo:** deal-feed-dashboard | **Files:** `src/components/ParcylBar.jsx` → `NightdropBar.jsx`, `src/App.jsx` | **Effort:** 15 min | **Depends on:** Story 3
+**Repo:** nightdrop-dashboard | **Files:** `src/components/ParcylBar.jsx` → `NightdropBar.jsx`, `src/App.jsx` | **Effort:** 15 min | **Depends on:** Story 3
 
 1. Copy ParcylBar.jsx → NightdropBar.jsx
 2. Update default export name `ParcylBar` → `NightdropBar`
@@ -318,7 +318,7 @@ Commit: `refactor: rename ParcylBar component to NightdropBar`
 ---
 
 ## Story 5 — Navigation Bar Brand Text
-**Repo:** deal-feed-dashboard | **File:** `src/components/NightdropBar.jsx` | **Effort:** 10 min | **Depends on:** Story 4
+**Repo:** nightdrop-dashboard | **File:** `src/components/NightdropBar.jsx` | **Effort:** 10 min | **Depends on:** Story 4
 
 Replace "Deal Feed" text (lines 88-90 approx) with "Nightdrop".
 
@@ -333,7 +333,7 @@ Commit: `feat: update nav bar brand text to Nightdrop`
 ---
 
 ## Story 6 — Login Page Brand Text and Contact Email
-**Repo:** deal-feed-dashboard | **File:** `src/views/LoginView.jsx` | **Effort:** 10 min | **Depends on:** nothing (independent)
+**Repo:** nightdrop-dashboard | **File:** `src/views/LoginView.jsx` | **Effort:** 10 min | **Depends on:** nothing (independent)
 
 - Line 32: "Deal Feed" → "Nightdrop"
 - Line 75: `hello@parcyl.ai` → `hello@nightdrop.io`
@@ -345,7 +345,7 @@ Commit: `feat: update LoginView brand text and contact email to Nightdrop`
 ---
 
 ## Story 7 — Deal Detail Attribution Text
-**Repo:** deal-feed-dashboard | **File:** `src/components/DealDetail.jsx` | **Effort:** 20 min | **Depends on:** nothing (independent)
+**Repo:** nightdrop-dashboard | **File:** `src/components/DealDetail.jsx` | **Effort:** 20 min | **Depends on:** nothing (independent)
 
 At lines 424, 457, 465, 487, 521, 534, 558, 594, 602, 625, 629: replace "Source: Parcyl" → "Source: Nightdrop" (11 occurrences).
 
@@ -356,7 +356,7 @@ Commit: `feat: update deal detail attribution text to Nightdrop`
 ---
 
 ## Story 8 — localStorage Token Migration (CRITICAL)
-**Repo:** deal-feed-dashboard | **File:** `src/main.jsx` | **Effort:** 30 min | **Depends on:** Stories 1-7 ideally complete first
+**Repo:** nightdrop-dashboard | **File:** `src/main.jsx` | **Effort:** 30 min | **Depends on:** Stories 1-7 ideally complete first
 
 Add before `createRoot(...)`:
 ```js
@@ -381,7 +381,7 @@ Commit: `feat: add localStorage token migration df_token → nd_token before Rea
 ---
 
 ## Story 9 — Token Key Rename in Code
-**Repo:** deal-feed-dashboard | **Files:** `src/hooks/useAuth.jsx`, `src/lib/api.js` | **Effort:** 15 min | **Depends on:** Story 8
+**Repo:** nightdrop-dashboard | **Files:** `src/hooks/useAuth.jsx`, `src/lib/api.js` | **Effort:** 15 min | **Depends on:** Story 8
 
 - `useAuth.jsx` line 11: `localStorage.getItem('df_token')` → `localStorage.getItem('nd_token')`
 - `api.js` lines 4, 8, 12: all `df_token` → `nd_token`
@@ -397,7 +397,7 @@ Commit: `refactor: rename localStorage token key df_token → nd_token`
 ---
 
 ## Story 10 — Theme localStorage Key Rename
-**Repo:** deal-feed-dashboard | **File:** `src/App.jsx` | **Effort:** 10 min | **Depends on:** nothing
+**Repo:** nightdrop-dashboard | **File:** `src/App.jsx` | **Effort:** 10 min | **Depends on:** nothing
 
 `parcyl-theme` → `nightdrop-theme` (lines 23, 112, 121 approx). Theme resets once — acceptable.
 
@@ -408,7 +408,7 @@ Commit: `refactor: rename parcyl-theme localStorage key to nightdrop-theme`
 ---
 
 ## Story 11 — Map State localStorage Key Renames
-**Repo:** deal-feed-dashboard | **File:** `src/views/MapView.jsx` | **Effort:** 10 min | **Depends on:** nothing
+**Repo:** nightdrop-dashboard | **File:** `src/views/MapView.jsx` | **Effort:** 10 min | **Depends on:** nothing
 
 Lines 21-24 approx:
 - `parcyl-map-style` → `nightdrop-map-style`
@@ -425,12 +425,12 @@ Commit: `refactor: rename map and panel localStorage keys to nightdrop-* prefix`
 ---
 
 ## Story 12 — HTML Title and Package Metadata
-**Repo:** deal-feed-dashboard | **Files:** `index.html`, `package.json` | **Effort:** 5 min | **Depends on:** nothing
+**Repo:** nightdrop-dashboard | **Files:** `index.html`, `package.json` | **Effort:** 5 min | **Depends on:** nothing
 
 - `index.html` line 7: `<title>Nightdrop</title>`
 - `package.json` line 2: `"name": "nightdrop-dashboard"`
 
-Validate: `grep "deal-feed-dashboard" index.html` returns 0. Build exits 0.
+Validate: `grep "nightdrop-dashboard" index.html` returns 0. Build exits 0.
 
 Commit: `chore: update HTML title and package name to Nightdrop`
 
@@ -480,7 +480,7 @@ Commit: `feat: add HTTP security headers to next.config.ts`
 ## Final Verification Checklist
 
 ```bash
-cd /Users/birwin/deal-feed-dashboard
+cd /Users/birwin/nightdrop-dashboard
 
 # All must return 0 lines:
 grep -r "parcyl-ink\|parcyl-green" src/styles/

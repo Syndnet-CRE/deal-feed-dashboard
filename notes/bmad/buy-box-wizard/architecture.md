@@ -193,8 +193,8 @@ All colors from existing CSS variables. No new tokens.
 | `migrations/029_buybox_schema_gaps.sql` | scoutgpt-api | NEW |
 | `routes/dealfeed/onboarding.js` | scoutgpt-api | EDIT |
 | `routes/dealfeed/buyboxes.js` | scoutgpt-api | EDIT |
-| `src/components/NewBoxWizard.jsx` | deal-feed-dashboard | FULL REWRITE |
-| `src/styles/styles.css` | deal-feed-dashboard | EDIT (~80 lines added) |
+| `src/components/NewBoxWizard.jsx` | nightdrop-dashboard | FULL REWRITE |
+| `src/styles/styles.css` | nightdrop-dashboard | EDIT (~80 lines added) |
 
 ---
 

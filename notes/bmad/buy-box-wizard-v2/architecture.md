@@ -2,7 +2,7 @@
 
 Date: 2026-05-11
 Feature: buy-box-wizard-v2
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 
 ## Component Structure
 
@@ -352,7 +352,7 @@ The handoff app.jsx contains a `<TweaksPanel />` component (debug/tweaks UI for 
 1. Deploy migration 043 to scoutgpt-app (must apply before frontend ships).
 2. Deploy routes/onboarding.js and routes/buyboxes.js changes (same deploy).
 3. Verify migration applied (SELECT column_name FROM information_schema.columns WHERE table_name='df_buy_boxes' AND column_name IN (...13 fields...)).
-4. Deploy frontend to deal-feed-dashboard (Netlify auto-deploys on push to main).
+4. Deploy frontend to nightdrop-dashboard (Netlify auto-deploys on push to main).
 
 ## Error Handling and Recovery
 

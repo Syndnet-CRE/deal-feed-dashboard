@@ -1,4 +1,4 @@
-# PRD: Deal Feed Dashboard — B+ Upgrade
+# PRD: Nightdrop Dashboard — B+ Upgrade
 Date: 2026-05-04
 Author: Claude (BMAD PM phase)
 Status: APPROVED — ready for architecture
@@ -7,7 +7,7 @@ Status: APPROVED — ready for architecture
 
 ## Problem Statement
 
-The Deal Feed Dashboard has the right bones: deal discovery, buy box scoring, GIS-verified parcel data. What it lacks is the action layer. A CRE investor who finds a deal they like cannot call the owner, track their outreach, update the deal status, or trust that what they're seeing is real data. The product currently grades as a C overall. This PRD drives it to a B+ before market launch.
+The Nightdrop Dashboard has the right bones: deal discovery, buy box scoring, GIS-verified parcel data. What it lacks is the action layer. A CRE investor who finds a deal they like cannot call the owner, track their outreach, update the deal status, or trust that what they're seeing is real data. The product currently grades as a C overall. This PRD drives it to a B+ before market launch.
 
 ---
 

@@ -107,7 +107,7 @@ New env vars: `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_PASSWORD`,
 No DB migration needed if `estimated_value` columns already exist in
 `property_valuations`. Migration required only if columns are missing.
 
-### Frontend (deal-feed-dashboard)
+### Frontend (nightdrop-dashboard)
 
 No new routes or views. Verify PropertyDetail.jsx renders `estimated_value`
 from the existing `brief_json` structure. If so, no frontend work needed.

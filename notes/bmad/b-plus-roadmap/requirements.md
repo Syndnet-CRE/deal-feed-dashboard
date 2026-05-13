@@ -1,5 +1,5 @@
 # Requirements: B+ Product Roadmap
-Feature: Deal Feed Dashboard — Full Product Upgrade to B+ Quality
+Feature: Nightdrop Dashboard — Full Product Upgrade to B+ Quality
 Date: 2026-05-03
 Author: Brady Irwin (postmortem) + Claude (roadmap)
 Status: APPROVED — ready for PRD

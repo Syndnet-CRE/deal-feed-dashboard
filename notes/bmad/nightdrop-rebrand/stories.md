@@ -8,7 +8,7 @@ Stories are ordered by implementation dependency. Each story is independently co
 ---
 
 ## Story 1 — CSS Token Definitions (tokens.css)
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/styles/tokens.css`
 **Effort:** 15 min
 **Depends on:** nothing
@@ -35,7 +35,7 @@ npm run build  # must exit 0
 ---
 
 ## Story 2 — CSS Token References (styles.css + deal-detail.css)
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/styles/styles.css`, `src/styles/deal-detail.css`
 **Effort:** 20 min
 **Depends on:** Story 1 (tokens must be defined before references are updated)
@@ -58,7 +58,7 @@ npm run build  # must exit 0
 ---
 
 ## Story 3 — CSS Class Rename (.parcyl-bar)
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/styles/styles.css` (line 1 — class definition), `src/components/ParcylBar.jsx` (line 87 — className usage)
 **Effort:** 10 min
 **Depends on:** Story 2
@@ -79,7 +79,7 @@ npm run build  # must exit 0
 ---
 
 ## Story 4 — Component File and Export Rename (ParcylBar → NightdropBar)
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/components/ParcylBar.jsx` (rename to NightdropBar.jsx), `src/App.jsx` (update import)
 **Effort:** 15 min
 **Depends on:** Story 3
@@ -104,7 +104,7 @@ npm run build  # must exit 0
 ---
 
 ## Story 5 — Navigation Bar Brand Text
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/components/NightdropBar.jsx` (formerly ParcylBar.jsx)
 **Effort:** 10 min
 **Depends on:** Story 4
@@ -127,7 +127,7 @@ grep "brady@parcyl.ai" src/components/NightdropBar.jsx  # must return exactly 1 
 ---
 
 ## Story 6 — Login Page Brand Text and Contact Email
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/views/LoginView.jsx`
 **Effort:** 10 min
 **Depends on:** nothing (independent of Stories 1-5)
@@ -145,7 +145,7 @@ grep "Deal Feed\|parcyl.ai" src/views/LoginView.jsx  # must return 0 lines
 ---
 
 ## Story 7 — Deal Detail Attribution Text
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/components/DealDetail.jsx`
 **Effort:** 20 min
 **Depends on:** nothing (independent)
@@ -163,7 +163,7 @@ npm run build  # must exit 0
 ---
 
 ## Story 8 — localStorage Token Migration (CRITICAL)
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/main.jsx`
 **Effort:** 30 min (including manual testing)
 **Depends on:** Stories 1-7 should be complete first, but this story can technically run independently
@@ -214,7 +214,7 @@ createRoot(document.getElementById('root')).render(...)
 ---
 
 ## Story 9 — Token Key Rename in useAuth and api.js
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/hooks/useAuth.jsx`, `src/lib/api.js`
 **Effort:** 15 min
 **Depends on:** Story 8 (migration must ship before the key rename)
@@ -240,7 +240,7 @@ npm test  # must exit 0
 ---
 
 ## Story 10 — Theme localStorage Key Rename
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/App.jsx`
 **Effort:** 10 min
 **Depends on:** nothing (non-critical localStorage; resets user theme preference — acceptable)
@@ -258,7 +258,7 @@ npm run build  # must exit 0
 ---
 
 ## Story 11 — Map State localStorage Key Renames
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `src/views/MapView.jsx`
 **Effort:** 10 min
 **Depends on:** nothing (non-critical; resets map preferences — acceptable)
@@ -279,18 +279,18 @@ npm run build  # must exit 0
 ---
 
 ## Story 12 — HTML Title and Package Metadata
-**Repo:** deal-feed-dashboard
+**Repo:** nightdrop-dashboard
 **Files:** `index.html`, `package.json`
 **Effort:** 5 min
 **Depends on:** nothing
 
 **Work:**
-- `index.html` line 7: `<title>deal-feed-dashboard</title>` → `<title>Nightdrop</title>`
-- `package.json` line 2: `"name": "deal-feed-dashboard"` → `"name": "nightdrop-dashboard"`
+- `index.html` line 7: `<title>nightdrop-dashboard</title>` → `<title>Nightdrop</title>`
+- `package.json` line 2: `"name": "nightdrop-dashboard"` → `"name": "nightdrop-dashboard"`
 
 **Validation:**
 ```bash
-grep "deal-feed-dashboard" index.html   # must return 0 lines
+grep "nightdrop-dashboard" index.html   # must return 0 lines
 grep '"name"' package.json              # must return "nightdrop-dashboard"
 npm run build  # must exit 0
 ```
@@ -370,7 +370,7 @@ npm run build  # must exit 0
 
 **Dashboard grep assertions:**
 ```bash
-cd /Users/birwin/deal-feed-dashboard
+cd /Users/birwin/nightdrop-dashboard
 
 # These must ALL return 0 lines:
 grep -r "parcyl-ink\|parcyl-green" src/styles/
@@ -379,7 +379,7 @@ grep -r "ParcylBar" src/
 grep -r "df_token" src/
 grep -r "parcyl-theme" src/
 grep -r "parcyl-map\|dealfeed\.map\|parcyl-deals" src/
-grep -r "deal-feed-dashboard" index.html
+grep -r "nightdrop-dashboard" index.html
 grep "Source: Parcyl" src/components/DealDetail.jsx
 grep "Deal Feed" src/components/NightdropBar.jsx
 grep "hello@parcyl.ai" src/

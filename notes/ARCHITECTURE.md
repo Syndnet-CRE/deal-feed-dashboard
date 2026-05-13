@@ -27,7 +27,7 @@ Reads:    property tables (read-only, as a dataset) Reads:    its own data only
 
 | Surface | Where it lives now |
 |---|---|
-| Nightdrop frontend | `~/deal-feed-dashboard` → Netlify (`nightdropai.netlify.app`) |
+| Nightdrop frontend | `~/nightdrop-dashboard` → Netlify (`nightdropai.netlify.app`) |
 | Nightdrop backend code | `~/parcyl/scoutgpt-api/routes/dealfeed/*` plus `scripts/run_deal_feed.js`, `scripts/backfill_brief_narratives.js`, `migrations/04*_*.sql` |
 | Nightdrop runtime | Render service `scoutgpt-app` (shared with Parcyl) |
 | Nightdrop DB | `df_*` tables on `DATABASE_WRITE_URL` (Neon, ep-weathered-poetry) |
@@ -86,7 +86,7 @@ The data layer is already cleanly separated. The code layer is mixed in `scoutgp
 ## Repo and folder cleanup (also deferred)
 
 ```
-~/deal-feed-dashboard/      ← unchanged, stays where it is
+~/nightdrop-dashboard/      ← unchanged, stays where it is
 ~/nightdrop-api/            ← new during pre-launch sprint
 ~/scoutgpt-api/             ← move out of ~/parcyl/ during sprint, becomes Parcyl backend only
 ~/_archive/                 ← move dead repos here:
@@ -103,7 +103,7 @@ Optional umbrella for working ergonomics:
 
 ```
 ~/nightdrop/
-   frontend -> ~/deal-feed-dashboard
+   frontend -> ~/nightdrop-dashboard
    backend  -> ~/nightdrop-api
    notes/
    README.md
@@ -146,4 +146,4 @@ That's it.
 - [ ] Login → feed → agent message → save deal → admin views all green from production frontend against new backend
 - [ ] Dead repos archived
 - [ ] HANDOFF.md updated with new topology
-- [ ] CLAUDE.md in both `deal-feed-dashboard` and `nightdrop-api` updated; old `scoutgpt-api` CLAUDE.md scrubbed of dealfeed references
+- [ ] CLAUDE.md in both `nightdrop-dashboard` and `nightdrop-api` updated; old `scoutgpt-api` CLAUDE.md scrubbed of dealfeed references

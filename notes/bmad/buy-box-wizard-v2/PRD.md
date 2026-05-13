@@ -2,7 +2,7 @@
 
 Date: 2026-05-11
 Feature: buy-box-wizard-v2
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 
 ## Problem Statement
 
@@ -26,7 +26,7 @@ This feature requires porting the handoff design exactly and wiring it into the 
 
 ## V1 Scope
 
-**Frontend (deal-feed-dashboard):**
+**Frontend (nightdrop-dashboard):**
 - Port handoff design (6 pages + right rail) to BuyBoxWizard.jsx with 6 subcomponent pages.
 - Rewrite wizardHelpers.js: EMPTY_FORM shape, canProceedStep logic, buildPayload, toFormState.
 - Wire create (POST /api/dealfeed/onboarding) and edit (PATCH /api/dealfeed/buy-boxes/:id) API calls.

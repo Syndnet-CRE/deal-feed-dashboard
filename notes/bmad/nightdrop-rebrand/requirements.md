@@ -4,7 +4,7 @@ Author: BMAD Analyst
 
 ## Business Objective
 
-The product was formerly branded as "Deal Feed" / "Deal Runner" / "Parcyl". It is now called **Nightdrop**. All visible brand references in the two frontend repos (deal-feed-dashboard and deal-feed-landing) must be updated to reflect the Nightdrop identity before any marketing or external sharing. The backend API routes are NOT being renamed this session — only the frontend and styling layer.
+The product was formerly branded as "Deal Feed" / "Deal Runner" / "Parcyl". It is now called **Nightdrop**. All visible brand references in the two frontend repos (nightdrop-dashboard and deal-feed-landing) must be updated to reflect the Nightdrop identity before any marketing or external sharing. The backend API routes are NOT being renamed this session — only the frontend and styling layer.
 
 ## Scope
 
@@ -107,12 +107,12 @@ In `src/views/MapView.jsx` lines 21-24: rename:
 **Acceptance:** `grep "parcyl-map\|dealfeed\.map" src/` returns zero results.
 
 ### R-10 — HTML Title
-In `index.html` line 7: update `<title>` from "deal-feed-dashboard" to "Nightdrop".
+In `index.html` line 7: update `<title>` from "nightdrop-dashboard" to "Nightdrop".
 
 **Acceptance:** Browser tab shows "Nightdrop".
 
 ### R-11 — Package Metadata
-In `package.json` line 2: update `"name"` from `"deal-feed-dashboard"` to `"nightdrop-dashboard"`.
+In `package.json` line 2: update `"name"` from `"nightdrop-dashboard"` to `"nightdrop-dashboard"`.
 
 **Acceptance:** `cat package.json | grep '"name"'` returns `"nightdrop-dashboard"`.
 
@@ -136,7 +136,7 @@ In `next.config.ts`: add HTTP security headers (`X-Frame-Options`, `X-Content-Ty
 ## Non-Functional Requirements
 
 - **NFR-01 Build:** Both repos must build cleanly (`npm run build` exits 0) after all changes.
-- **NFR-02 Tests:** `npm test` must pass in deal-feed-dashboard after all changes. No test files reference old brand names.
+- **NFR-02 Tests:** `npm test` must pass in nightdrop-dashboard after all changes. No test files reference old brand names.
 - **NFR-03 No Runtime Errors:** No console errors on fresh load or after token migration.
 - **NFR-04 Performance:** CSS variable renames must not introduce duplicate property definitions.
 - **NFR-05 Reversibility:** Each story must be independently committable and revertible.

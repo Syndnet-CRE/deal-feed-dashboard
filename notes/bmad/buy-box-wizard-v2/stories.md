@@ -2,7 +2,7 @@
 
 Date: 2026-05-11
 Feature: buy-box-wizard-v2
-Repo: deal-feed-dashboard
+Repo: nightdrop-dashboard
 
 All stories are estimated at 2 hours or less. Complex stories are split. Each story is not complete until tests pass.
 
@@ -566,7 +566,7 @@ Both commands must succeed with 0 exit code and 100% coverage.
 
 1. Start dev environment:
    ```bash
-   cd ~/deal-feed-dashboard && npm run dev
+   cd ~/nightdrop-dashboard && npm run dev
    ```
    (Keep running in background terminal.)
 

@@ -6,7 +6,7 @@ Author: BMAD Architect
 
 Two frontend repos must be rebranded. They are deployed independently and share no code.
 
-**deal-feed-dashboard** — React 19 SPA, Vite, plain CSS, Netlify
+**nightdrop-dashboard** — React 19 SPA, Vite, plain CSS, Netlify
 **deal-feed-landing** — Next.js, TypeScript, Netlify
 
 Backend (`scoutgpt-api`, Render) is **frozen** for this task. No route changes.
@@ -189,13 +189,13 @@ No database migrations, no irreversible external state. Every change is `git rev
 
 ### Build verification (after each phase)
 ```
-cd deal-feed-dashboard && npm run build  # must exit 0
+cd nightdrop-dashboard && npm run build  # must exit 0
 cd deal-feed-landing/landing_page_audit && npm run build  # must exit 0
 ```
 
 ### Unit tests (after Phase 6)
 ```
-cd deal-feed-dashboard && npm test  # must exit 0
+cd nightdrop-dashboard && npm test  # must exit 0
 ```
 Existing tests in `src/lib/format.test.js` and `src/lib/wizardHelpers.test.js` test pure utility functions, not brand strings. They should pass unchanged.
 

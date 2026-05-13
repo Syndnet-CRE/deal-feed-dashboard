@@ -6,8 +6,8 @@ Author: Analyst phase
 Brady's spec (verbal, 2026-05-03) + codebase audit of:
 - ~/parcyl/scoutgpt-api/routes/dealfeed/auth.js (signup/login/me)
 - ~/parcyl/scoutgpt-api/migrations/018_dealfeed.sql (df_subscribers schema)
-- ~/deal-feed-dashboard/src/views/LoginView.jsx
-- ~/deal-feed-dashboard/src/lib/api.js (api layer)
+- ~/nightdrop-dashboard/src/views/LoginView.jsx
+- ~/nightdrop-dashboard/src/lib/api.js (api layer)
 
 ---
 

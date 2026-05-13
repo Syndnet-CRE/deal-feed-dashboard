@@ -264,7 +264,7 @@ async function openWizard(page) {
   await page.waitForTimeout(300);
 }
 
-test.describe('Deal Feed Dashboard Smoke Test', () => {
+test.describe('Nightdrop Dashboard Smoke Test', () => {
   test('homepage loads without console errors', async ({ page }) => {
     const consoleErrors = [];
 

@@ -1,4 +1,4 @@
-# Architecture: Deal Feed Dashboard — B+ Upgrade
+# Architecture: Nightdrop Dashboard — B+ Upgrade
 Date: 2026-05-04
 Author: Claude (BMAD Architect phase)
 Status: APPROVED — ready for stories
