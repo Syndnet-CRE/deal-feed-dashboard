@@ -2108,11 +2108,11 @@
   line-height: 1.5;
   color: var(--fg-1);
 }
-.deal-chat-msg-text p { margin: 0 0 0.5em; }
+.deal-chat-msg-text p { margin: 0 0 0.5em; font-size: inherit; }
 .deal-chat-msg-text p:last-child { margin-bottom: 0; }
 .deal-chat-msg-text strong { font-weight: 600; }
 .deal-chat-msg-text ul, .deal-chat-msg-text ol { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
-.deal-chat-msg-text li { margin-bottom: 0.15em; }
+.deal-chat-msg-text li { margin-bottom: 0.15em; font-size: inherit; }
 .deal-chat-msg-text h1,
 .deal-chat-msg-text h2,
 .deal-chat-msg-text h3,
