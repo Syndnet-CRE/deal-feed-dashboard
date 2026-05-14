@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getStage, getMarkerPct, nextHLabel, pad } from './PipelineTimeline.jsx';
+import { getStage, getMarkerPct, nextHLabel, pad, getSimulatedBoxCount, getSimulatedBoxTotal } from './PipelineTimeline.jsx';
 
 // Helper: convert HH:MM to seconds since midnight
 function hm(h, m = 0) { return h * 3600 + m * 60; }
@@ -129,5 +129,92 @@ describe('pad', () => {
 
   it('floors floats', () => {
     expect(pad(5.9)).toBe('05');
+  });
+});
+
+// ── getSimulatedBoxCount ─────────────────────────────────────────────────────
+
+describe('getSimulatedBoxCount', () => {
+  it('returns 0 at 6am — no quarters elapsed yet', () => {
+    expect(getSimulatedBoxCount(hm(6))).toBe(0);
+  });
+
+  it('returns null during active run (midnight–6am)', () => {
+    [hm(0), hm(2), hm(4), hm(5, 59)].forEach(s => {
+      expect(getSimulatedBoxCount(s)).toBeNull();
+    });
+  });
+
+  it('returns a non-negative number 15 min into dead zone', () => {
+    const v = getSimulatedBoxCount(hm(6, 15));
+    expect(typeof v).toBe('number');
+    expect(v).toBeGreaterThanOrEqual(0);
+  });
+
+  it('is non-decreasing over the dead zone', () => {
+    let prev = 0;
+    for (let q = 0; q < 72; q++) {
+      const v = getSimulatedBoxCount(hm(6) + q * 900);
+      if (v !== null) {
+        expect(v).toBeGreaterThanOrEqual(prev);
+        prev = v;
+      }
+    }
+  });
+
+  it('each 15-min increment is 0–7', () => {
+    for (let q = 1; q <= 10; q++) {
+      const prev = getSimulatedBoxCount(hm(6) + (q - 1) * 900);
+      const curr = getSimulatedBoxCount(hm(6) + q * 900);
+      if (prev !== null && curr !== null) {
+        const diff = curr - prev;
+        expect(diff).toBeGreaterThanOrEqual(0);
+        expect(diff).toBeLessThanOrEqual(7);
+      }
+    }
+  });
+});
+
+// ── getSimulatedBoxTotal ─────────────────────────────────────────────────────
+
+describe('getSimulatedBoxTotal', () => {
+  it('returns 45 at 6am — base platform count', () => {
+    expect(getSimulatedBoxTotal(hm(6))).toBe(45);
+  });
+
+  it('returns null during active run (midnight–6am)', () => {
+    [hm(0), hm(2), hm(4), hm(5, 59)].forEach(s => {
+      expect(getSimulatedBoxTotal(s)).toBeNull();
+    });
+  });
+
+  it('is always >= 45 throughout the dead zone', () => {
+    for (let q = 0; q < 72; q++) {
+      const v = getSimulatedBoxTotal(hm(6) + q * 900);
+      if (v !== null) expect(v).toBeGreaterThanOrEqual(45);
+    }
+  });
+
+  it('is non-decreasing over the dead zone', () => {
+    let prev = 45;
+    for (let q = 0; q < 72; q++) {
+      const v = getSimulatedBoxTotal(hm(6) + q * 900);
+      if (v !== null) {
+        expect(v).toBeGreaterThanOrEqual(prev);
+        prev = v;
+      }
+    }
+  });
+
+  it('each 15-min increment adds 0 or 1', () => {
+    for (let q = 1; q <= 10; q++) {
+      const prev = getSimulatedBoxTotal(hm(6) + (q - 1) * 900);
+      const curr = getSimulatedBoxTotal(hm(6) + q * 900);
+      if (prev !== null && curr !== null) {
+        const diff = curr - prev;
+        expect(diff).toBeGreaterThanOrEqual(0);
+        expect(diff).toBeLessThanOrEqual(1);
+      }
+    }
   });
 });

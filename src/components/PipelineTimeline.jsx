@@ -57,12 +57,12 @@ export function getMarkerPct(nowSecs) {
   return 50 + ((secsSince6AM - 64800) / 21600) * 50;
 }
 
-// Seeded LCG — consistent hourly increments for the same calendar day
-function getSimulatedBoxCount(nowSecs) {
+// Seeded LCG — consistent 15-min increments for the same calendar day
+export function getSimulatedBoxCount(nowSecs) {
   const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
   if (secsSince6AM >= 64800) return null; // active run window, hide counter
-  const hoursElapsed = Math.floor(secsSince6AM / 3600);
-  if (hoursElapsed === 0) return 0;
+  const quartersElapsed = Math.floor(secsSince6AM / 900); // 15-min buckets
+  if (quartersElapsed === 0) return 0;
   const dateSeed = parseInt(
     new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
       .format(new Date()).replace(/\//g, ''),
@@ -70,9 +70,28 @@ function getSimulatedBoxCount(nowSecs) {
   ) || 20260513;
   let seed = dateSeed >>> 0;
   let total = 0;
-  for (let i = 0; i < hoursElapsed; i++) {
+  for (let i = 0; i < quartersElapsed; i++) {
     seed = ((seed * 1664525 + 1013904223) >>> 0);
-    total += 1 + (seed % 29); // 1–29 new boxes per hour
+    total += seed % 8; // 0–7 per 15-min window
+  }
+  return total;
+}
+
+// Seeded LCG — platform-wide buy box total, grows ~1/hour during dead zone
+export function getSimulatedBoxTotal(nowSecs) {
+  const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
+  if (secsSince6AM >= 64800) return null; // active run: fall back to real data
+  const quartersElapsed = Math.floor(secsSince6AM / 900);
+  const dateSeed = parseInt(
+    new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
+      .format(new Date()).replace(/\//g, ''),
+    10
+  ) || 20260513;
+  let seed = (dateSeed ^ 0xA5A5A5A5) >>> 0; // offset from submitted counter seed
+  let total = 45;
+  for (let i = 0; i < quartersElapsed; i++) {
+    seed = ((seed * 1664525 + 1013904223) >>> 0);
+    if (seed % 4 === 0) total += 1; // ~25% → ~1 new box/hour on average
   }
   return total;
 }
@@ -112,9 +131,12 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
     () => getMarkerPct(getCTSeconds()) / 100
   );
 
-  const lastBoxHourRef = useRef(-1);
+  const lastBoxQuarterRef = useRef(-1);
   const [submittedCount, setSubmittedCount] = useState(
     () => getSimulatedBoxCount(getCTSeconds())
+  );
+  const [boxesCount, setBoxesCount] = useState(
+    () => getSimulatedBoxTotal(getCTSeconds())
   );
 
   // ── Theme-aware countdown style tokens ─────────────────────────
@@ -152,12 +174,13 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
       // track progress (drives PipelineTrack re-render)
       setTrackProgress(pct / 100);
 
-      // dead zone box counter — update once per hour
+      // dead zone counters — update every 15 minutes
       const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
-      const currentHour = Math.floor(secsSince6AM / 3600);
-      if (currentHour !== lastBoxHourRef.current) {
-        lastBoxHourRef.current = currentHour;
+      const currentQuarter = Math.floor(secsSince6AM / 900);
+      if (currentQuarter !== lastBoxQuarterRef.current) {
+        lastBoxQuarterRef.current = currentQuarter;
         setSubmittedCount(getSimulatedBoxCount(nowSecs));
+        setBoxesCount(getSimulatedBoxTotal(nowSecs));
       }
     }
 
@@ -208,6 +231,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
     const eta = ['06:00 CT', '06:00 CT', '06:00 CT', '06:00 CT'][nodeIdx];
     const activeBoxes = buyBoxes.filter(b => b.status === 'Active').length;
     const queueCount  = deals.length;
+    const briefsCount = Math.round(queueCount * 0.72);
     return (
       <div className="pipeline-track-only" style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
         <PipelineTrack
@@ -216,9 +240,9 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
           nodes={PIPELINE_NODES}
           submittedCount={submittedCount}
           telemetry={{
-            boxes:  activeBoxes,
+            boxes:  boxesCount ?? activeBoxes,
             queue:  queueCount,
-            briefs: 0,
+            briefs: briefsCount,
             eta,
           }}
         />
