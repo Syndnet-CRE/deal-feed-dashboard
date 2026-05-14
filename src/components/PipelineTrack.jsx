@@ -86,22 +86,26 @@ function StatBlock({ k, v, accent, palette, align = 'left' }) {
 }
 
 // ── EQ ticker — the EQ-style bars under the rocket ─────────────────────────
-function EQTicker({ progress, palette, trackRef }) {
+function EQTicker({ progress, palette }) {
+  const ref = React.useRef(null);
   const [tickCount, setTickCount] = React.useState(180);
   React.useEffect(() => {
     function measure() {
-      if (!trackRef.current) return;
-      setTickCount(Math.max(30, Math.floor(trackRef.current.offsetWidth / 6)));
+      if (!ref.current) return;
+      const w = ref.current.offsetWidth;
+      // N ticks × 2px + (N-1) gaps × 3px = 5N-3. Solve: N = (w+3)/5
+      setTickCount(Math.max(30, Math.floor((w + 3) / 5)));
     }
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, [trackRef]);
+  }, []);
   return (
-    <div style={{
+    <div ref={ref} style={{
       position: 'absolute', left: 0, right: 0, top: '50%',
       height: 12, marginTop: -6,
       display: 'flex', alignItems: 'center', gap: 3,
+      overflow: 'hidden',
     }}>
       {Array.from({ length: tickCount }).map((_, i) => {
         const pct = i / (tickCount - 1);
@@ -224,7 +228,6 @@ export default function PipelineTrack({
   activeIndexOverride,
 }) {
   const palette = { ...DEFAULT_PALETTE, ...(paletteOverride || {}) };
-  const trackRef = React.useRef(null);
   const ai = (typeof activeIndexOverride === 'number')
     ? activeIndexOverride
     : activeIndex(progress, nodes);
@@ -240,7 +243,7 @@ export default function PipelineTrack({
   };
 
   return (
-    <div className="pt-track" ref={trackRef} style={{
+    <div className="pt-track" style={{
       position: 'relative',
       width: '100%',
       height: 48,
@@ -277,7 +280,7 @@ export default function PipelineTrack({
         <div style={{ position: 'absolute', left: 0, right: 0, top: 22, bottom: 0 }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1, height: 26 }}>
-              <EQTicker progress={progress} palette={palette} trackRef={trackRef}/>
+              <EQTicker progress={progress} palette={palette}/>
               {nodes.map((n, i) => {
                 const state = i < ai ? 'done' : i === ai ? 'active' : 'pending';
                 return <DiamondGate key={n.id} node={n} state={state} palette={palette}/>;
