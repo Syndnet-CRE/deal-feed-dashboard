@@ -1708,6 +1708,174 @@
   visibility: hidden;
 }
 
+/* ── Notification badge states ───────────────────────────────── */
+.week-day-tab-count.unread {
+  background: rgba(229, 72, 77, 0.18);
+  color: var(--danger);
+}
+
+.week-day-tab-count.seen {
+  background: rgba(29, 175, 41, 0.18);
+  color: var(--nightdrop-green-700);
+}
+
+/* ── Date range label — clickable calendar trigger ───────────── */
+.week-day-tabs-month {
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--r-xs);
+  padding: 1px 3px;
+  margin: -1px -3px;
+  transition: color var(--dur-fast), background var(--dur-fast);
+}
+
+.week-day-tabs-month:hover {
+  color: var(--fg-2);
+  background: var(--bg-subtle);
+}
+
+.week-day-tabs-label {
+  position: relative;
+}
+
+/* ── Mini calendar ───────────────────────────────────────────── */
+.mini-cal {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 50;
+  background: #111113;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  padding: 12px;
+  width: 224px;
+  font-family: var(--font-sans);
+}
+
+.mini-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mini-cal-month-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--fg-2);
+}
+
+.mini-cal-nav {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--fg-3);
+  font-size: 18px;
+  padding: 0 6px;
+  border-radius: var(--r-xs);
+  line-height: 1;
+  transition: color var(--dur-fast), background var(--dur-fast);
+  font-family: var(--font-sans);
+}
+
+.mini-cal-nav:hover:not(:disabled) {
+  color: var(--fg-1);
+  background: var(--bg-subtle);
+}
+
+.mini-cal-nav:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.mini-cal-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 4px;
+}
+
+.mini-cal-dow {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-4);
+  text-align: center;
+  padding: 2px 0;
+}
+
+.mini-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.mini-cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 3px 1px;
+  border-radius: var(--r-xs);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  min-height: 28px;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.mini-cal-day.empty {
+  cursor: default;
+  pointer-events: none;
+}
+
+.mini-cal-day:hover:not(:disabled):not(.empty):not(.future) {
+  background: var(--bg-subtle);
+}
+
+.mini-cal-day.future {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.mini-cal-day.today .mini-cal-day-num {
+  color: var(--nightdrop-green-500);
+  font-weight: 800;
+}
+
+.mini-cal-day.selected {
+  background: rgba(29, 175, 41, 0.12);
+  border-color: rgba(29, 175, 41, 0.3);
+}
+
+.mini-cal-day-num {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--fg-4);
+  line-height: 1;
+}
+
+.mini-cal-day.has-deals .mini-cal-day-num {
+  color: var(--fg-1);
+}
+
+.mini-cal-day-count {
+  font-size: 7px;
+  font-weight: 700;
+  background: rgba(229, 72, 77, 0.20);
+  color: var(--danger);
+  border-radius: var(--r-pill);
+  padding: 0 3px;
+  line-height: 1.6;
+  min-width: 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Utility ─────────────────────────────────────────────────── */
 .muted { color: var(--fg-4); }
 .sm { font-size: 12px; }

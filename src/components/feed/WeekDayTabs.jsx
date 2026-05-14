@@ -1,4 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import MiniCalendar from './MiniCalendar';
 
 const DAY_ABBR = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
@@ -29,9 +31,39 @@ function dayKey(date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
 }
 
+function useDaySeenState(subId) {
+  const prefix = `dealfeed.day-seen.${subId}:`;
+
+  const [seenDays, setSeenDays] = useState(() => {
+    if (!subId) return new Set();
+    return new Set(
+      Object.keys(localStorage)
+        .filter(k => k.startsWith(prefix))
+        .map(k => k.slice(prefix.length))
+    );
+  });
+
+  const markDaySeen = useCallback((key) => {
+    if (!subId) return;
+    const lsKey = `${prefix}${key}`;
+    if (localStorage.getItem(lsKey) === 'true') return;
+    localStorage.setItem(lsKey, 'true');
+    setSeenDays(prev => new Set([...prev, key]));
+  }, [subId, prefix]);
+
+  return { seenDays, markDaySeen };
+}
+
 export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
+  const { subscriber } = useAuth() || {};
+  const subId = subscriber?.id ?? '';
+  const { seenDays, markDaySeen } = useDaySeenState(subId);
+
   const today = useMemo(() => startOfDay(new Date()), []);
   const weekDays = useMemo(() => getRollingWeek(), []);
+
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const labelRef = useRef(null);
 
   const rangeLabel = useMemo(() => {
     const start = weekDays[0];
@@ -54,6 +86,8 @@ export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
   }, [deals]);
 
   function handleClick(date) {
+    const k = dayKey(date);
+    markDaySeen(k);
     if (selectedDay && sameDay(selectedDay, date)) {
       onSelectDay(null);
     } else {
@@ -63,15 +97,40 @@ export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
 
   return (
     <div className="week-day-tabs">
-      <div className="week-day-tabs-label">
-        <span className="week-day-tabs-month">{rangeLabel}</span>
+      <div className="week-day-tabs-label" ref={labelRef}>
+        <span
+          className="week-day-tabs-month"
+          onClick={() => setCalendarOpen(v => !v)}
+          title="Open calendar"
+        >
+          {rangeLabel}
+        </span>
+        {calendarOpen && (
+          <MiniCalendar
+            countsByDay={countsByDay}
+            selectedDay={selectedDay}
+            onSelectDay={(date) => {
+              if (date) markDaySeen(dayKey(date));
+              onSelectDay(date);
+            }}
+            onClose={() => setCalendarOpen(false)}
+            anchorRef={labelRef}
+          />
+        )}
       </div>
+
       <div className="week-day-tabs-list">
         {weekDays.map((date, i) => {
           const isToday = sameDay(date, today);
           const isSelected = selectedDay ? sameDay(date, selectedDay) : false;
           const isFuture = date > today && !isToday;
-          const count = countsByDay[dayKey(date)] || 0;
+          const k = dayKey(date);
+          const count = countsByDay[k] || 0;
+          const seen = seenDays.has(k);
+
+          const badgeClass = count > 0
+            ? seen ? 'week-day-tab-count seen' : 'week-day-tab-count unread'
+            : null;
 
           return (
             <button
@@ -88,7 +147,7 @@ export default function WeekDayTabs({ deals, selectedDay, onSelectDay }) {
             >
               <span className="week-day-tab-abbr">{DAY_ABBR[date.getDay()]}</span>
               {count > 0 ? (
-                <span className="week-day-tab-count">{count}</span>
+                <span className={badgeClass}>{count}</span>
               ) : (
                 <span className="week-day-tab-empty" />
               )}
