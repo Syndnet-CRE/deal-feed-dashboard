@@ -287,7 +287,9 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
         <BuyBoxActivatedDialog
           box={{
             label: activatedForm?.name || 'Your buy box',
-            run_schedule: { days: [] },
+            run_schedule: activatedForm?.delivery?.cadence === 'weekly'
+              ? { days: ['mon'] }
+              : { days: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] },
             delivery_max_per_run: activatedForm?.delivery?.max,
           }}
           matchCount={typeof activatedForm?.matchCount === 'number' ? activatedForm.matchCount : null}
