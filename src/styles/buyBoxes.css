@@ -7,7 +7,7 @@
 
 /* ── Page shell ─────────────────────────────────────────── */
 .bb-shell {
-  padding: 24px 28px 80px;
+  padding: 12px 28px 80px;
   background-image:
     radial-gradient(circle at 1px 1px, var(--dot-grid-color) 1px, transparent 0);
   background-size: 24px 24px;
