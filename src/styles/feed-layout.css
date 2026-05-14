@@ -182,7 +182,7 @@
 .left-panel {
   width: var(--left-panel-w);
   min-width: var(--left-panel-w);
-  background: var(--bg-page);
+  background: var(--bg-card);
   border-right: 1px solid var(--border-1);
   display: flex;
   flex-direction: column;
@@ -1496,7 +1496,7 @@
 .right-rail-floating > * { pointer-events: auto; }
 
 .rail-card {
-  background: #0D0D0D;
+  background: var(--bg-card);
   border: 1px solid var(--border-1);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-md);
