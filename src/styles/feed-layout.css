@@ -160,6 +160,13 @@
   100% { opacity: 0;   transform: scale(3);   }
 }
 
+/* ── Dead zone submitted-count pulse (fires each hour) ─────── */
+@keyframes pt-count-pulse {
+  0%   { transform: scale(1);    color: inherit; }
+  40%  { transform: scale(1.45); color: #C2FF9C; }
+  100% { transform: scale(1);    color: inherit; }
+}
+
 .pipeline-node.pipeline-node-burst::after {
   content: '';
   position: absolute;

@@ -39,10 +39,10 @@
 import React from 'react';
 
 const DEFAULT_NODES = [
-  { id: 'submit',    label: 'Submit',    pos: 0 },
-  { id: 'agents',    label: 'Agents',    pos: 1 / 3 },
-  { id: 'briefs',    label: 'Briefs',    pos: 2 / 3 },
-  { id: 'delivered', label: 'Delivered', pos: 1 },
+  { id: 'boxes',     label: 'Boxes',     pos: 0.50 },
+  { id: 'queue',     label: 'Queue',     pos: 0.50 + (2 / 6) * 0.50 },
+  { id: 'briefs',    label: 'Briefs',    pos: 0.50 + (4 / 6) * 0.50 },
+  { id: 'delivered', label: 'Delivered', pos: 1.00 },
 ];
 
 const DEFAULT_PALETTE = {
@@ -80,6 +80,7 @@ function StatBlock({ k, v, accent, palette, align = 'left' }) {
         letterSpacing: '0.02em',
         color: accent ? palette.light : '#C9CCD6',
         fontVariantNumeric: 'tabular-nums',
+        whiteSpace: 'nowrap',
       }}>{v}</div>
     </div>
   );
@@ -226,6 +227,7 @@ export default function PipelineTrack({
   nodes = DEFAULT_NODES,
   palette: paletteOverride,
   activeIndexOverride,
+  submittedCount,
 }) {
   const palette = { ...DEFAULT_PALETTE, ...(paletteOverride || {}) };
   const ai = (typeof activeIndexOverride === 'number')
@@ -252,24 +254,47 @@ export default function PipelineTrack({
       boxSizing: 'border-box',
     }}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {/* Telemetry strip — one stat per gate, aligned to gate positions */}
+        {/* Telemetry strip — stats aligned to gate positions, derived from nodes */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 18 }}>
-          {/* BOXES — Submit gate (0%) */}
-          <div style={{ position: 'absolute', left: 0, top: 0 }}>
-            <StatBlock {...display.boxes}  palette={palette} align="left"/>
-          </div>
-          {/* QUEUE — Agents gate (33.33%) */}
-          <div style={{ position: 'absolute', left: `${100 / 3}%`, top: 0, transform: 'translateX(-50%)' }}>
-            <StatBlock {...display.queue}  palette={palette} align="center"/>
-          </div>
-          {/* BRIEFS — Briefs gate (66.67%) */}
-          <div style={{ position: 'absolute', left: `${200 / 3}%`, top: 0, transform: 'translateX(-50%)' }}>
-            <StatBlock {...display.briefs} palette={palette} align="center"/>
-          </div>
-          {/* ETA — Delivered gate (100%) */}
-          <div style={{ position: 'absolute', left: '100%', top: 0, transform: 'translateX(-100%)' }}>
-            <StatBlock {...display.eta}    palette={palette} accent align="right"/>
-          </div>
+          {(() => {
+            const statMap = { boxes: display.boxes, queue: display.queue, briefs: display.briefs, delivered: display.eta };
+            return nodes.map((n, i) => {
+              const isLast = i === nodes.length - 1;
+              const xform  = isLast ? 'translateX(-100%)' : 'translateX(-50%)';
+              const align  = isLast ? 'right' : 'center';
+              const data   = statMap[n.id] || { k: n.label.toUpperCase(), v: '—' };
+              return (
+                <div key={n.id} style={{ position: 'absolute', left: `${n.pos * 100}%`, top: 0, transform: xform }}>
+                  <StatBlock {...data} palette={palette} accent={isLast} align={align}/>
+                </div>
+              );
+            });
+          })()}
+          {/* Dead zone buy-box submission counter — single line: "221 SUBMITTED" */}
+          {submittedCount != null && submittedCount > 0 && (
+            <div style={{
+              position: 'absolute',
+              left: `${nodes[0].pos * 50}%`,
+              top: 0,
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 4,
+              fontFamily: 'Manrope, system-ui, sans-serif',
+            }}>
+              <div key={submittedCount} style={{
+                fontSize: 9, fontWeight: 700, letterSpacing: '0.02em',
+                color: palette.light,
+                fontVariantNumeric: 'tabular-nums',
+                animation: 'pt-count-pulse 0.6s cubic-bezier(0.2, 0, 0, 1)',
+              }}>
+                {submittedCount}
+              </div>
+              <div style={{ fontSize: 7, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#5C6070' }}>
+                SUBMITTED
+              </div>
+            </div>
+          )}
         </div>
         {/* Hairline divider */}
         <div style={{

@@ -23,23 +23,51 @@ function secsUntilCTHour(targetH) {
 
 function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
 
+// Visual 50/50 split: dead zone (18h) = left half, active pipeline (6h) = right half.
+// Clock timing is preserved — rocket reaches each gate at the correct CT time.
+const PIPELINE_NODES = [
+  { id: 'boxes',     label: 'Boxes',     pos: 0.50 },
+  { id: 'queue',     label: 'Queue',     pos: 0.50 + (2 / 6) * 0.50 },  // 0.6667
+  { id: 'briefs',    label: 'Briefs',    pos: 0.50 + (4 / 6) * 0.50 },  // 0.8333
+  { id: 'delivered', label: 'Delivered', pos: 1.00 },
+];
+
 function getStage(nowSecs) {
   const h = Math.floor(nowSecs / 3600);
-  if (h < 2)  return { nodeIdx: 1, phase: 'Agents Running',     nextH: 2 };
-  if (h < 4)  return { nodeIdx: 2, phase: 'Briefs Generating',  nextH: 4 };
-  if (h < 6)  return { nodeIdx: 3, phase: 'Deals Delivering',   nextH: 0 };
-  return        { nodeIdx: 0, phase: 'Accepting Submissions', nextH: 2 };
+  if (h < 2)  return { nodeIdx: 1, nextH: 2 }; // Queue processing
+  if (h < 4)  return { nodeIdx: 2, nextH: 4 }; // Briefs generating
+  if (h < 6)  return { nodeIdx: 3, nextH: 6 }; // Deals delivering
+  return        { nodeIdx: 0, nextH: 2 };        // Dead zone: Boxes gate glows next-up
 }
 
+// Rocket position: 50/50 visual split.
+// Dead zone (6am→midnight, 18h) maps to 0→50%. Active run (midnight→6am, 6h) maps to 50→100%.
 function getMarkerPct(nowSecs) {
-  const THIRD = 100 / 3;
-  const h = Math.floor(nowSecs / 3600);
-  // Active zone: midnight → 6am, rocket travels 0% → 100% over 6 hours
-  if (h < 2) return (nowSecs / 7200) * THIRD;
-  if (h < 4) return THIRD + ((nowSecs - 7200) / 7200) * THIRD;
-  if (h < 6) return 2 * THIRD + ((nowSecs - 14400) / 7200) * THIRD;
-  // Dead zone: 6am → midnight, rocket crawls 0% → 10% over 18 hours (very slow)
-  return ((nowSecs - 21600) / 64800) * 10;
+  const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
+  if (secsSince6AM < 64800) {
+    return (secsSince6AM / 64800) * 50;
+  }
+  return 50 + ((secsSince6AM - 64800) / 21600) * 50;
+}
+
+// Seeded LCG — consistent hourly increments for the same calendar day
+function getSimulatedBoxCount(nowSecs) {
+  const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
+  if (secsSince6AM >= 64800) return null; // active run window, hide counter
+  const hoursElapsed = Math.floor(secsSince6AM / 3600);
+  if (hoursElapsed === 0) return 0;
+  const dateSeed = parseInt(
+    new Intl.DateTimeFormat('en-US', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
+      .format(new Date()).replace(/\//g, ''),
+    10
+  ) || 20260513;
+  let seed = dateSeed >>> 0;
+  let total = 0;
+  for (let i = 0; i < hoursElapsed; i++) {
+    seed = ((seed * 1664525 + 1013904223) >>> 0);
+    total += 1 + (seed % 29); // 1–29 new boxes per hour
+  }
+  return total;
 }
 
 function useTheme() {
@@ -76,6 +104,11 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
     () => getMarkerPct(getCTSeconds()) / 100
   );
 
+  const lastBoxHourRef = useRef(-1);
+  const [submittedCount, setSubmittedCount] = useState(
+    () => getSimulatedBoxCount(getCTSeconds())
+  );
+
   // ── Theme-aware countdown style tokens ─────────────────────────
   const s = {
     cdLabel: {
@@ -109,6 +142,14 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
 
       // track progress (drives PipelineTrack re-render)
       setTrackProgress(pct / 100);
+
+      // dead zone box counter — update once per hour
+      const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
+      const currentHour = Math.floor(secsSince6AM / 3600);
+      if (currentHour !== lastBoxHourRef.current) {
+        lastBoxHourRef.current = currentHour;
+        setSubmittedCount(getSimulatedBoxCount(nowSecs));
+      }
     }
 
     tick();
@@ -155,7 +196,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
 
   if (mode === 'track') {
     const { nodeIdx } = getStage(getCTSeconds());
-    const eta = ['02:00 CT', '02:00 CT', '04:00 CT', '06:00 CT'][nodeIdx] || '02:00 CT';
+    const eta = ['06:00 CT', '06:00 CT', '06:00 CT', '06:00 CT'][nodeIdx];
     const activeBoxes = buyBoxes.filter(b => b.status === 'Active').length;
     const queueCount  = deals.length;
     return (
@@ -163,6 +204,8 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
         <PipelineTrack
           progress={trackProgress}
           activeIndexOverride={nodeIdx}
+          nodes={PIPELINE_NODES}
+          submittedCount={submittedCount}
           telemetry={{
             boxes:  activeBoxes,
             queue:  queueCount,
