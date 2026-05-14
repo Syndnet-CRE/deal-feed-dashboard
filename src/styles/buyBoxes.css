@@ -89,7 +89,7 @@
 
 /* ── Board frame + columns ───────────────────────────────── */
 .bb-frame {
-  background: #101116;
+  background: var(--bg-page, #0D0D0D);
   border: 1px solid var(--border, #2a2a2e);
   border-radius: 12px;
   padding: 24px;
