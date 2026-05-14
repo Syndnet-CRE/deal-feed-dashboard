@@ -299,9 +299,9 @@
   color: var(--fg-dim, #6b6b6b);
 }
 .bb-week__d.is-on {
-  background: var(--accent-tint, rgba(29,185,84,0.14));
-  border-color: rgba(29,185,84,0.4);
-  color: var(--accent, #1db954);
+  background: var(--accent, #1db954);
+  border-color: var(--accent, #1db954);
+  color: #fff;
 }
 .bb-card[data-status="gap"]    .bb-week__d.is-on,
 .bb-card[data-status="paused"] .bb-week__d.is-on {
