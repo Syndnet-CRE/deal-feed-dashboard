@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
 import { useToast } from '../contexts/ToastContext';
+import { BuyerSearchComingSoonModal } from '../components/BuyerSearchComingSoonModal';
 import '../styles/buyBoxes.css';
 
 // ────────────────────────────────────────────────────────────
@@ -357,6 +358,7 @@ function Column({ col, items, onEdit, onEditGeo, onPause, onResume, onDragStart,
 export function BuyBoxesView({ onCreate, onEdit, onEditGeo, onPause }) {
   const { buyBoxes, patchBuyBox } = useDeals();
   const addToast = useToast();  // Fix H
+  const [showBuyerSearch, setShowBuyerSearch] = useState(false);
 
   const grouped = useMemo(() => {
     const out = Object.fromEntries(COLUMNS.map((c) => [c.id, []]));
@@ -408,7 +410,7 @@ export function BuyBoxesView({ onCreate, onEdit, onEditGeo, onPause }) {
             </div>
           </div>
           <div className="bb-pagehead__actions">
-            <button type="button" className="bb-btn" onClick={onCreate}>
+            <button type="button" className="bb-btn" onClick={() => setShowBuyerSearch(true)}>
               <Search size={13} strokeWidth={1.6} /> New buyer search
             </button>
             <button type="button" className="bb-btn bb-btn--primary" onClick={onCreate}>
@@ -437,5 +439,9 @@ export function BuyBoxesView({ onCreate, onEdit, onEditGeo, onPause }) {
         </div>
       </div>
     </div>
+
+    {showBuyerSearch && (
+      <BuyerSearchComingSoonModal onClose={() => setShowBuyerSearch(false)} />
+    )}
   );
 }
