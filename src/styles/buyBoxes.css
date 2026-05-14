@@ -95,6 +95,10 @@
     0 1px 0 rgba(255,255,255,0.02) inset,
     0 12px 32px -16px rgba(0,0,0,0.6);
 }
+[data-theme="light"] .bb-frame {
+  border-color: var(--border-1, #D3D6E0);
+  box-shadow: var(--shadow-md, 0 8px 24px rgba(13,13,13,0.08), 0 2px 6px rgba(13,13,13,0.04));
+}
 .bb-board {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -177,9 +181,14 @@
   flex-direction: column;
   gap: 12px;
   cursor: grab;
-  transition: background 120ms ease, border-color 120ms ease;
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(13,13,13,0.05));
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
-.bb-card:hover { background: var(--surface-hi, #22222a); border-color: var(--border-strong, #3a3a40); }
+.bb-card:hover {
+  background: var(--surface-hi, #22222a);
+  border-color: var(--accent, #1DAF29);
+  box-shadow: 0 0 0 1px rgba(29,175,41,0.2), 0 4px 16px rgba(29,175,41,0.08);
+}
 .bb-card:active { cursor: grabbing; }
 .bb-card[data-status="gap"]    { border-color: rgba(178,100,100,0.45); }
 .bb-card[data-status="paused"] { opacity: 0.85; }
