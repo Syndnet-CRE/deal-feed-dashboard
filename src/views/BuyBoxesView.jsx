@@ -396,6 +396,7 @@ export function BuyBoxesView({ onCreate, onEdit, onEditGeo, onPause }) {
   };
 
   return (
+    <>
     <div className="page kanban-page">
       <div className="bb-shell">
         {/* Page head */}
@@ -443,5 +444,6 @@ export function BuyBoxesView({ onCreate, onEdit, onEditGeo, onPause }) {
     {showBuyerSearch && (
       <BuyerSearchComingSoonModal onClose={() => setShowBuyerSearch(false)} />
     )}
+    </>
   );
 }

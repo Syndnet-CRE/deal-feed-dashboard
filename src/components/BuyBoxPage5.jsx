@@ -17,11 +17,7 @@ export function BuyBoxPage5({ form, setForm }) {
 
   const active = THRESHOLDS.find(t => t.id === threshold) || THRESHOLDS[1]
 
-  const cadenceMult = delivery.cadence === 'daily' ? 7 : delivery.cadence === 'realtime' ? 14 : 1
   const passedPool = Math.max(8, Math.round(matchCount * (active.pct === 70 ? 0.045 : active.pct === 80 ? 0.022 : 0.008)))
-  const dealLo = Math.max(1, Math.round(active.deals[0] * cadenceMult / 7))
-  const dealHi = Math.max(dealLo + 1, Math.round(active.deals[1] * cadenceMult / 7))
-  const cadenceLabel = delivery.cadence === 'daily' ? 'daily run' : delivery.cadence === 'realtime' ? 'week' : 'weekly run'
 
   return (
     <div className="page-fade">
@@ -67,7 +63,7 @@ export function BuyBoxPage5({ form, setForm }) {
           <span>
             At <strong className="mono">{active.pct}%{active.id === 'precision' ? '+' : ''}</strong> threshold,
             your current criteria match approximately <strong className="mono">{passedPool.toLocaleString('en-US')}</strong> properties.
-            Expect <strong className="mono">{dealLo}–{dealHi}</strong> deals per {cadenceLabel}.
+            You'll receive <strong className="mono">up to 5</strong> deals per delivery.
           </span>
         </div>
       </section>

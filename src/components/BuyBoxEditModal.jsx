@@ -352,14 +352,6 @@ export function BuyBoxEditModal({ box, onClose, onSaved, geoOnly = false }) {
                 >{label}</button>
               ))}
             </div>
-            <div className="bbem-max-row">
-              <span className="bbem-max-label">Max deals per run</span>
-              <input
-                type="number" className="bbem-max-input" min="1" max="100"
-                value={form.delivery.max_per_run ?? 10}
-                onChange={e => setForm(f => ({ ...f, delivery: { ...f.delivery, max_per_run: Number(e.target.value) } }))}
-              />
-            </div>
           </div>
 
           </>)}

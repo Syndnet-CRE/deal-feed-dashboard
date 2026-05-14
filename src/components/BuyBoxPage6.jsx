@@ -79,26 +79,6 @@ export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, ac
           ))}
         </div>
 
-        <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'var(--surface-sub)', border: '1px solid var(--border-sub)', borderRadius: 'var(--r-input)' }}>
-          <div style={{ fontSize: 13, color: 'var(--fg)' }}>Maximum properties per delivery</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              className="icon-btn"
-              onClick={() => setForm({ ...form, delivery: { ...delivery, max: Math.max(5, delivery.max - 5) } })}
-              style={{ background: 'none', border: 'none', color: 'var(--fg-mute)', cursor: 'pointer', fontSize: 18, padding: '4px 8px' }}
-            >
-              −
-            </button>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--green)', minWidth: 30, textAlign: 'center', fontWeight: 600 }}>{delivery.max}</span>
-            <button
-              className="icon-btn"
-              onClick={() => setForm({ ...form, delivery: { ...delivery, max: Math.min(200, delivery.max + 5) } })}
-              style={{ background: 'none', border: 'none', color: 'var(--fg-mute)', cursor: 'pointer', fontSize: 18, padding: '4px 8px' }}
-            >
-              +
-            </button>
-          </div>
-        </div>
       </div>
 
       <div className="activate-ribbon">

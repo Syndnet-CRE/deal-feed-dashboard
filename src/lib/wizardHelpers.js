@@ -49,7 +49,7 @@ export const EMPTY_FORM = {
   name: null,
   delivery: {
     cadence: 'daily',
-    max_per_run: 10,
+    max_per_run: 5,
   },
 };
 
@@ -185,7 +185,7 @@ export function buildPayload(form) {
     run_schedule: {
       days: days,
     },
-    delivery_max_per_run: form.delivery.max_per_run,
+    delivery_max_per_run: 5,
   };
 
   return payload;
@@ -259,7 +259,7 @@ export function toFormState(buyBox) {
     name: buyBox.label ?? null,
     delivery: {
       cadence: cadence,
-      max_per_run: buyBox.delivery_max_per_run ?? 10,
+      max_per_run: buyBox.delivery_max_per_run ?? 5,
     },
   };
 }

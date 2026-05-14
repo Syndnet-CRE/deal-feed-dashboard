@@ -32,7 +32,7 @@ const NATIVE_FORM = {
   logic: 'OR',
   risk: { climate: 10, flood: false, wildfire: 10, wildfireOpen: false, heat: 10, heatOpen: false },
   threshold: 'balanced',
-  delivery: { cadence: 'daily', max: 25 },
+  delivery: { cadence: 'daily', max: 5 },
   name: '',
   matchCount: 0,
 };
@@ -93,7 +93,7 @@ function toNativeForm(b) {
     threshold: reversedThreshold,
     delivery: {
       cadence: b.run_schedule?.days?.length === 1 ? 'weekly' : 'daily',
-      max: b.delivery_max_per_run || 25,
+      max: b.delivery_max_per_run || 5,
     },
     name: b.label || '',
     matchCount: 0,
@@ -131,7 +131,7 @@ function nativeToPayload(form) {
     heat_risk_max: form.risk.heat < 10 ? form.risk.heat * 10 : null,
     match_threshold: THRESHOLD_MAP[form.threshold] ?? 0.80,
     run_schedule: form.delivery.cadence === 'weekly' ? { days: ['mon'] } : { days: ['mon','tue','wed','thu','fri','sat','sun'] },
-    delivery_max_per_run: form.delivery.max || 25,
+    delivery_max_per_run: 5,
   };
 }
 
