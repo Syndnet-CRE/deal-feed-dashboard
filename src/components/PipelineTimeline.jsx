@@ -32,14 +32,14 @@ function getStage(nowSecs) {
 }
 
 function getMarkerPct(nowSecs) {
-  // Gates are evenly spaced: Submit=0%, Agents=33.33%, Briefs=66.67%, Delivered=100%
-  // Pipeline windows: midnight→2am, 2am→4am, 4am→6am. Idle outside those hours → 0%.
   const THIRD = 100 / 3;
   const h = Math.floor(nowSecs / 3600);
+  // Active zone: midnight → 6am, rocket travels 0% → 100% over 6 hours
   if (h < 2) return (nowSecs / 7200) * THIRD;
-  if (h < 4) return THIRD + ((nowSecs - 7200)  / 7200) * THIRD;
+  if (h < 4) return THIRD + ((nowSecs - 7200) / 7200) * THIRD;
   if (h < 6) return 2 * THIRD + ((nowSecs - 14400) / 7200) * THIRD;
-  return 0;
+  // Dead zone: 6am → midnight, rocket crawls 0% → 10% over 18 hours (very slow)
+  return ((nowSecs - 21600) / 64800) * 10;
 }
 
 function useTheme() {
@@ -102,7 +102,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
       const pct = getMarkerPct(nowSecs);
 
       // countdown clock (DOM refs — avoids re-render)
-      const total = secsUntilCTHour(nextH || 2);
+      const total = secsUntilCTHour(nextH ?? 2);
       if (cdHRef.current) cdHRef.current.textContent = pad(Math.floor(total / 3600));
       if (cdMRef.current) cdMRef.current.textContent = pad(Math.floor((total % 3600) / 60));
       if (cdSRef.current) cdSRef.current.textContent = pad(total % 60);
@@ -164,10 +164,9 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
           progress={trackProgress}
           activeIndexOverride={nodeIdx}
           telemetry={{
-            boxes:    activeBoxes,
-            queue:    queueCount,
-            capacity: Math.round(trackProgress * 100),
-            briefs:   0,
+            boxes:  activeBoxes,
+            queue:  queueCount,
+            briefs: 0,
             eta,
           }}
         />

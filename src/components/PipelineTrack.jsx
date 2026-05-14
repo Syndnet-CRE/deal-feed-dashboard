@@ -52,10 +52,11 @@ const DEFAULT_PALETTE = {
 };
 
 function activeIndex(progress, nodes) {
+  let ai = 0;
   for (let i = 0; i < nodes.length; i++) {
-    if (progress <= nodes[i].pos) return i;
+    if (progress >= nodes[i].pos) ai = i;
   }
-  return nodes.length - 1;
+  return ai;
 }
 
 // ── Telemetry stat ──────────────────────────────────────────────────────────
@@ -232,11 +233,10 @@ export default function PipelineTrack({
   const t = telemetry || {};
   const pad = (n) => String(n).padStart(2, '0');
   const display = {
-    boxes:    { k: 'BOXES',    v: pad(t.boxes ?? 0) },
-    queue:    { k: 'QUEUE',    v: pad(t.queue ?? 0) },
-    capacity: { k: 'CAPACITY', v: `${Math.round(t.capacity ?? 0)}%` },
-    briefs:   { k: 'BRIEFS',   v: pad(t.briefs ?? 0) },
-    eta:      { k: 'ETA',      v: t.eta || '—' },
+    boxes:  { k: 'BOXES',  v: pad(t.boxes ?? 0) },
+    queue:  { k: 'QUEUE',  v: pad(t.queue ?? 0) },
+    briefs: { k: 'BRIEFS', v: pad(t.briefs ?? 0) },
+    eta:    { k: 'ETA',    v: t.eta || '—' },
   };
 
   return (
@@ -249,27 +249,23 @@ export default function PipelineTrack({
       boxSizing: 'border-box',
     }}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {/* Telemetry strip — each stat centered over its gate position */}
+        {/* Telemetry strip — one stat per gate, aligned to gate positions */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 18 }}>
-          {/* BOXES — left-aligned at Submit gate (0%) */}
+          {/* BOXES — Submit gate (0%) */}
           <div style={{ position: 'absolute', left: 0, top: 0 }}>
-            <StatBlock {...display.boxes}    palette={palette} align="left"/>
+            <StatBlock {...display.boxes}  palette={palette} align="left"/>
           </div>
-          {/* QUEUE — centered at Agents gate (33.33%) */}
+          {/* QUEUE — Agents gate (33.33%) */}
           <div style={{ position: 'absolute', left: `${100 / 3}%`, top: 0, transform: 'translateX(-50%)' }}>
-            <StatBlock {...display.queue}    palette={palette} align="center"/>
+            <StatBlock {...display.queue}  palette={palette} align="center"/>
           </div>
-          {/* CAPACITY — centered at midpoint between Agents and Briefs (50%) */}
-          <div style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)' }}>
-            <StatBlock {...display.capacity} palette={palette} accent align="center"/>
-          </div>
-          {/* BRIEFS — centered at Briefs gate (66.67%) */}
+          {/* BRIEFS — Briefs gate (66.67%) */}
           <div style={{ position: 'absolute', left: `${200 / 3}%`, top: 0, transform: 'translateX(-50%)' }}>
-            <StatBlock {...display.briefs}   palette={palette} align="center"/>
+            <StatBlock {...display.briefs} palette={palette} align="center"/>
           </div>
-          {/* ETA — right-aligned at Delivered gate (100%) */}
+          {/* ETA — Delivered gate (100%) */}
           <div style={{ position: 'absolute', left: '100%', top: 0, transform: 'translateX(-100%)' }}>
-            <StatBlock {...display.eta}      palette={palette} accent align="right"/>
+            <StatBlock {...display.eta}    palette={palette} accent align="right"/>
           </div>
         </div>
         {/* Hairline divider */}
