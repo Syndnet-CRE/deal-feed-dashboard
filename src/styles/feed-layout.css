@@ -2129,10 +2129,29 @@
 }
 
 .deal-chat-msg.user .deal-chat-msg-text {
-  background: rgba(29, 175, 41, 0.1);
+  position: relative;
+  background: rgba(29, 175, 41, 0.06);
   border-color: rgba(29, 175, 41, 0.2);
   color: var(--fg-1);
   border-bottom-right-radius: 3px;
+}
+.deal-chat-msg.user .deal-chat-msg-text::before {
+  content: '';
+  position: absolute;
+  right: -9px;
+  top: 8px;
+  border: 9px solid transparent;
+  border-left-color: rgba(29, 175, 41, 0.2);
+  border-right-width: 0;
+}
+.deal-chat-msg.user .deal-chat-msg-text::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 9px;
+  border: 8px solid transparent;
+  border-left-color: rgba(29, 175, 41, 0.06);
+  border-right-width: 0;
 }
 
 .deal-chat-msg-ts {
