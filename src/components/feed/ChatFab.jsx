@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { api } from '../../lib/api';
 
 function fmtTs(ts) {
@@ -132,7 +133,7 @@ export default function ChatFab({ activeDealId }) {
                       <span className="chat-fab-thread-avatar">N</span>
                     )}
                     <div className="chat-fab-thread-msg-body">
-                      <div className="chat-fab-thread-msg-text">{msg.content}</div>
+                      <div className="chat-fab-thread-msg-text"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
                       <div className="chat-fab-thread-msg-ts">{fmtTs(msg.created_at)}</div>
                     </div>
                   </div>

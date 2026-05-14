@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { api } from '../../lib/api';
 
 function fmtTs(ts) {
@@ -98,7 +99,7 @@ export default function DealChatThread({ dealId, dealAddress, autoFocus }) {
               <div className="deal-chat-msg-bubble">
                 {msg.role === 'agent' && <span className="deal-chat-msg-avatar">N</span>}
                 <div className="deal-chat-msg-body">
-                  <div className="deal-chat-msg-text">{msg.content}</div>
+                  <div className="deal-chat-msg-text"><ReactMarkdown>{msg.content}</ReactMarkdown></div>
                   <div className="deal-chat-msg-ts">{fmtTs(msg.created_at)}</div>
                 </div>
               </div>

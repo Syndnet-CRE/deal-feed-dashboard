@@ -1256,9 +1256,13 @@
   border-radius: var(--r-md);
   color: var(--fg-1);
   background: var(--bg-subtle);
-  white-space: pre-wrap;
   word-break: break-word;
 }
+.chat-fab-thread-msg-text p { margin: 0 0 0.5em; }
+.chat-fab-thread-msg-text p:last-child { margin-bottom: 0; }
+.chat-fab-thread-msg-text strong { font-weight: 600; }
+.chat-fab-thread-msg-text ul, .chat-fab-thread-msg-text ol { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
+.chat-fab-thread-msg-text li { margin-bottom: 0.15em; }
 .chat-fab-thread-msg.user .chat-fab-thread-msg-text {
   background: var(--nightdrop-green-700);
   color: #fff;
@@ -2082,6 +2086,11 @@
   line-height: 1.5;
   color: var(--fg-1);
 }
+.deal-chat-msg-text p { margin: 0 0 0.5em; }
+.deal-chat-msg-text p:last-child { margin-bottom: 0; }
+.deal-chat-msg-text strong { font-weight: 600; }
+.deal-chat-msg-text ul, .deal-chat-msg-text ol { margin: 0.25em 0 0.5em 1.25em; padding: 0; }
+.deal-chat-msg-text li { margin-bottom: 0.15em; }
 
 .deal-chat-msg.user .deal-chat-msg-text {
   background: var(--nightdrop-green-700);
