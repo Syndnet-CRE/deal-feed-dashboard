@@ -51,6 +51,7 @@
   align-items: flex-start;
   padding-right: var(--s-3);
   flex-shrink: 0;
+  min-width: 220px;
 }
 
 .top-header-logo {
