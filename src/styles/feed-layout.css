@@ -855,7 +855,7 @@
 .feed-deal-reaction-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--border-1);
+  border: none;
   border-radius: var(--r-sm);
   background: transparent;
   color: var(--fg-4);
@@ -863,11 +863,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color var(--dur-fast), background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
+  transition: color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
 }
 .feed-deal-reaction-btn:hover { color: var(--fg-1); background: var(--bg-subtle); }
-.feed-deal-reaction-btn.active-hot { color: var(--nightdrop-green-700); border-color: var(--nightdrop-green-700); }
-.feed-deal-reaction-btn.active-cold { color: var(--danger); border-color: var(--danger); }
+.feed-deal-reaction-btn.active-hot { color: var(--nightdrop-green-700); }
+.feed-deal-reaction-btn.active-cold { color: var(--danger); }
 
 .feed-deal-box-pill {
   font-size: 11px;
@@ -2000,13 +2000,14 @@
 }
 
 /* ── Per-Deal Chat Thread ──────────────────────────────────── */
-.feed-deal-reaction-btn.active-chat {
-  color: var(--info);
-  border-color: var(--info);
-}
-.feed-deal-reaction-btn.active-saved {
-  color: var(--warning);
-  border-color: var(--warning);
+.feed-deal-reaction-btn.active-chat { color: var(--info); }
+.feed-deal-reaction-btn.active-saved { color: var(--warning); }
+
+.feed-deal-reaction-btn.active-hot svg,
+.feed-deal-reaction-btn.active-cold svg,
+.feed-deal-reaction-btn.active-chat svg,
+.feed-deal-reaction-btn.active-saved svg {
+  fill: currentColor;
 }
 
 .deal-chat-thread {
@@ -2333,7 +2334,7 @@
 .left-rail-pulse-card {
   flex: 1;
   min-height: 0;
-  padding: var(--s-4);
+  padding: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2344,9 +2345,18 @@
   border-radius: 0;
   padding: 0;
   height: 100%;
+  max-height: none;
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+.left-rail-pulse-card .mnf-feed {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.left-rail-pulse-card .mnf-feed::-webkit-scrollbar {
+  display: none;
+  width: 0;
 }
 
 .left-rail-section-label {
