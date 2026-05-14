@@ -276,7 +276,7 @@
 }
 
 [data-theme="dark"] .dd-body {
-  background: #0D0D0D;
+  background: var(--bg-card);
 }
 
 /* Summary — full width 2-col grid */
@@ -601,9 +601,7 @@
   background: var(--bg-page, #f5f5f5);
 }
 [data-theme="dark"] .dd-page-glass {
-  background-color: #0D0D0D;
-  background-image: radial-gradient(circle, #2a2a2a 1px, transparent 1px);
-  background-size: 24px 24px;
+  background: transparent;
 }
 
 /* Light-mode glass — applies to both standalone page and modal-over-map */
