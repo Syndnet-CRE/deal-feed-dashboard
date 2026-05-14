@@ -32,12 +32,14 @@ function getStage(nowSecs) {
 }
 
 function getMarkerPct(nowSecs) {
+  // Gates are evenly spaced: Submit=0%, Agents=33.33%, Briefs=66.67%, Delivered=100%
+  // Pipeline windows: midnight→2am, 2am→4am, 4am→6am. Idle outside those hours → 0%.
+  const THIRD = 100 / 3;
   const h = Math.floor(nowSecs / 3600);
-  if (h < 2) return 18 + (nowSecs / 7200) * 32;
-  if (h < 4) return 50 + ((nowSecs - 7200) / 7200) * 25;
-  if (h < 6) return 75 + ((nowSecs - 14400) / 7200) * 25;
-  const sinceSix = nowSecs - 21600;
-  return Math.max(0, Math.min(18, (sinceSix / 64800) * 18));
+  if (h < 2) return (nowSecs / 7200) * THIRD;
+  if (h < 4) return THIRD + ((nowSecs - 7200)  / 7200) * THIRD;
+  if (h < 6) return 2 * THIRD + ((nowSecs - 14400) / 7200) * THIRD;
+  return 0;
 }
 
 function useTheme() {
@@ -160,6 +162,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
       <div className="pipeline-track-only" style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
         <PipelineTrack
           progress={trackProgress}
+          activeIndexOverride={nodeIdx}
           telemetry={{
             boxes:    activeBoxes,
             queue:    queueCount,

@@ -39,10 +39,10 @@
 import React from 'react';
 
 const DEFAULT_NODES = [
-  { id: 'submit',    label: 'Submit',    pos: 0.18 },
-  { id: 'agents',    label: 'Agents',    pos: 0.50 },
-  { id: 'briefs',    label: 'Briefs',    pos: 0.75 },
-  { id: 'delivered', label: 'Delivered', pos: 1.00 },
+  { id: 'submit',    label: 'Submit',    pos: 0 },
+  { id: 'agents',    label: 'Agents',    pos: 1 / 3 },
+  { id: 'briefs',    label: 'Briefs',    pos: 2 / 3 },
+  { id: 'delivered', label: 'Delivered', pos: 1 },
 ];
 
 const DEFAULT_PALETTE = {
@@ -52,11 +52,10 @@ const DEFAULT_PALETTE = {
 };
 
 function activeIndex(progress, nodes) {
-  if (progress < nodes[0].pos) return 0;
-  for (let i = 0; i < nodes.length - 1; i++) {
-    if (progress >= nodes[i].pos && progress < nodes[i+1].pos) return i + 1;
+  for (let i = 0; i < nodes.length; i++) {
+    if (progress <= nodes[i].pos) return i;
   }
-  return nodes.length;
+  return nodes.length - 1;
 }
 
 // ── Telemetry stat ──────────────────────────────────────────────────────────
@@ -252,18 +251,23 @@ export default function PipelineTrack({
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         {/* Telemetry strip — each stat centered over its gate position */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 18 }}>
+          {/* BOXES — left-aligned at Submit gate (0%) */}
           <div style={{ position: 'absolute', left: 0, top: 0 }}>
             <StatBlock {...display.boxes}    palette={palette} align="left"/>
           </div>
-          <div style={{ position: 'absolute', left: '18%', top: 0, transform: 'translateX(-50%)' }}>
+          {/* QUEUE — centered at Agents gate (33.33%) */}
+          <div style={{ position: 'absolute', left: `${100 / 3}%`, top: 0, transform: 'translateX(-50%)' }}>
             <StatBlock {...display.queue}    palette={palette} align="center"/>
           </div>
+          {/* CAPACITY — centered at midpoint between Agents and Briefs (50%) */}
           <div style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)' }}>
             <StatBlock {...display.capacity} palette={palette} accent align="center"/>
           </div>
-          <div style={{ position: 'absolute', left: '75%', top: 0, transform: 'translateX(-50%)' }}>
+          {/* BRIEFS — centered at Briefs gate (66.67%) */}
+          <div style={{ position: 'absolute', left: `${200 / 3}%`, top: 0, transform: 'translateX(-50%)' }}>
             <StatBlock {...display.briefs}   palette={palette} align="center"/>
           </div>
+          {/* ETA — right-aligned at Delivered gate (100%) */}
           <div style={{ position: 'absolute', left: '100%', top: 0, transform: 'translateX(-100%)' }}>
             <StatBlock {...display.eta}      palette={palette} accent align="right"/>
           </div>
