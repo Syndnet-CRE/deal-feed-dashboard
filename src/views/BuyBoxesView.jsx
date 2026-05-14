@@ -89,11 +89,12 @@ function formatLastRun(value) {
   if (!value) return null;
   try {
     const d = new Date(value);
+    if (!isFinite(d.getTime())) return null;
     return d.toLocaleString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
       hour: '2-digit', minute: '2-digit',
     }).replace(',', ' —');
-  } catch { return value; }
+  } catch { return null; }
 }
 
 // ────────────────────────────────────────────────────────────
@@ -217,7 +218,7 @@ function BuyBoxCard({ box, column, onEdit, onEditGeo, onPause, onResume, onDragS
   const geo = formatGeo(box);
   const asset = formatAsset(box);
   const schedule = scheduleArray(box);
-  const lastRun = formatLastRun(box.lastRun ?? box.last_run_at);
+  const lastRun = formatLastRun(box.last_run_at);
   const delivered = box.deals ?? 0;
   const thisWeek = box.deliveredThisWeek ?? 0;
   const spark = box.deliveredSpark ?? null;
