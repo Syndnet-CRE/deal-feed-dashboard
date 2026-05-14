@@ -21,7 +21,14 @@ function secsUntilCTHour(targetH) {
   return delta > 0 ? delta : delta + 86400;
 }
 
-function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
+export function pad(n) { return String(Math.max(0, Math.floor(n))).padStart(2, '0'); }
+
+export function nextHLabel(h) {
+  if (h === 0) return '12:00 AM CT';
+  if (h === 2) return '2:00 AM CT';
+  if (h === 4) return '4:00 AM CT';
+  return '6:00 AM CT';
+}
 
 // Visual 50/50 split: dead zone (18h) = left half, active pipeline (6h) = right half.
 // Clock timing is preserved — rocket reaches each gate at the correct CT time.
@@ -32,17 +39,17 @@ const PIPELINE_NODES = [
   { id: 'delivered', label: 'Delivered', pos: 1.00 },
 ];
 
-function getStage(nowSecs) {
+export function getStage(nowSecs) {
   const h = Math.floor(nowSecs / 3600);
   if (h < 2)  return { nodeIdx: 1, nextH: 2 }; // Queue processing
   if (h < 4)  return { nodeIdx: 2, nextH: 4 }; // Briefs generating
   if (h < 6)  return { nodeIdx: 3, nextH: 6 }; // Deals delivering
-  return        { nodeIdx: 0, nextH: 2 };        // Dead zone: Boxes gate glows next-up
+  return        { nodeIdx: 0, nextH: 0 };        // Dead zone: Boxes gate glows, countdown to midnight
 }
 
 // Rocket position: 50/50 visual split.
 // Dead zone (6am→midnight, 18h) maps to 0→50%. Active run (midnight→6am, 6h) maps to 50→100%.
-function getMarkerPct(nowSecs) {
+export function getMarkerPct(nowSecs) {
   const secsSince6AM = (nowSecs - 21600 + 86400) % 86400;
   if (secsSince6AM < 64800) {
     return (secsSince6AM / 64800) * 50;
@@ -99,6 +106,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
   const cdHRef     = useRef(null);
   const cdMRef     = useRef(null);
   const cdSRef     = useRef(null);
+  const cdFootRef  = useRef(null);
 
   const [trackProgress, setTrackProgress] = useState(
     () => getMarkerPct(getCTSeconds()) / 100
@@ -135,10 +143,11 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
       const pct = getMarkerPct(nowSecs);
 
       // countdown clock (DOM refs — avoids re-render)
-      const total = secsUntilCTHour(nextH ?? 2);
-      if (cdHRef.current) cdHRef.current.textContent = pad(Math.floor(total / 3600));
-      if (cdMRef.current) cdMRef.current.textContent = pad(Math.floor((total % 3600) / 60));
-      if (cdSRef.current) cdSRef.current.textContent = pad(total % 60);
+      const total = secsUntilCTHour(nextH ?? 0);
+      if (cdHRef.current)   cdHRef.current.textContent   = pad(Math.floor(total / 3600));
+      if (cdMRef.current)   cdMRef.current.textContent   = pad(Math.floor((total % 3600) / 60));
+      if (cdSRef.current)   cdSRef.current.textContent   = pad(total % 60);
+      if (cdFootRef.current) cdFootRef.current.textContent = nextHLabel(nextH);
 
       // track progress (drives PipelineTrack re-render)
       setTrackProgress(pct / 100);
@@ -182,7 +191,7 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
             <span style={{ fontSize: sepSz, color: sepColor, margin: '0 1px', position: 'relative', top: -2 }}>:</span>
             <span className="pipeline-cd-num" style={{ fontSize: numSz, lineHeight: 0.95, color: '#1DAF29' }} ref={cdSRef}>00</span>
           </div>
-          <div style={s.cdFoot}>2:00 AM CT</div>
+          <div style={s.cdFoot} ref={cdFootRef}>{nextHLabel(getStage(getCTSeconds()).nextH)}</div>
         </div>
       </div>
     </div>
