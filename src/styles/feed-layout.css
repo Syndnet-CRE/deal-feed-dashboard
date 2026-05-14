@@ -2049,8 +2049,9 @@
   gap: var(--s-2);
   overflow-y: auto;
   max-height: 300px;
-  padding-right: 4px;
+  scrollbar-width: none;
 }
+.deal-chat-messages::-webkit-scrollbar { display: none; }
 
 .deal-chat-loading,
 .deal-chat-empty {
@@ -2120,10 +2121,17 @@
 .deal-chat-msg-text h5,
 .deal-chat-msg-text h6 { font-size: 13px; font-weight: 600; margin: 0 0 0.4em; }
 
+.deal-chat-msg.agent .deal-chat-msg-text {
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0 0 0 2px;
+}
+
 .deal-chat-msg.user .deal-chat-msg-text {
-  background: var(--nightdrop-green-700);
-  border-color: var(--nightdrop-green-700);
-  color: #fff;
+  background: rgba(29, 175, 41, 0.1);
+  border-color: rgba(29, 175, 41, 0.2);
+  color: var(--fg-1);
 }
 
 .deal-chat-msg-ts {
