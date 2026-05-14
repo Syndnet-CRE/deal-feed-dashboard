@@ -2132,6 +2132,7 @@
   background: rgba(29, 175, 41, 0.1);
   border-color: rgba(29, 175, 41, 0.2);
   color: var(--fg-1);
+  border-bottom-right-radius: 3px;
 }
 
 .deal-chat-msg-ts {
