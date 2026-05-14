@@ -1,59 +1,64 @@
 HANDOFF
-Date: 2026-05-13
+Date: 2026-05-14
 Repo: nightdrop-dashboard
-Session objective: Pipeline timeline 24h layout + submitted counter + visual balance
-Status: COMPLETE — local only, NOT committed
+Session objective: Pipeline telemetry live ticks + week-tab notification badges + mini calendar
+Status: COMPLETE (Phase 1 frontend) — pushed to main
 
 ---
 
-What was done (all local, dev server at localhost:5184):
+## Commits this session
 
-**`src/components/PipelineTimeline.jsx`:**
-- `getMarkerPct()`: replaced with 50/50 visual split formula. Dead zone (6am→midnight, 18h) = 0→50%. Active run (midnight→6am, 6h) = 50→100%. Clock timing preserved exactly.
-- `PIPELINE_NODES`: Boxes@0.50, Queue@0.667, Briefs@0.833, Delivered@1.0
-- `getStage()`: updated nodeIdx — dead zone=0 (Boxes glows), midnight-2am=1, 2am-4am=2, 4am-6am=3
-- `getSimulatedBoxCount()`: seeded LCG by CT date, 1-29 new boxes/hour cumulative during dead zone
-- Added `submittedCount` state + `lastBoxHourRef` — updates once per hour in tick()
-- ETA array changed to `['06:00 CT', ...]` (was '02:00 CT')
-- Passes `nodes={PIPELINE_NODES}` and `submittedCount` to PipelineTrack
+**433fa16** — feat(pipeline): 15-min SUBMITTED/BOXES ticks, BRIEFS derived from queue
+- getSimulatedBoxCount: hourly → 15-min buckets (0–7 per interval, seed-driven)
+- getSimulatedBoxTotal: new function, base 45, ~1 new box/hour during dead zone
+- BRIEFS: Math.round(queueCount * 0.72) instead of hardcoded 0
+- lastBoxHourRef → lastBoxQuarterRef; both counters update together every 15 min
+- Exported both functions; 10 new unit tests — all 195 passing
 
-**`src/components/PipelineTrack.jsx`:**
-- `DEFAULT_NODES`: updated to match new visual positions
-- Stat strip: dynamic — derives positions from nodes array (was hardcoded 0/33/67/100%)
-- Added `submittedCount` prop — renders "221 SUBMITTED" as single horizontal line at dead zone midpoint (25% x)
-- `whiteSpace: 'nowrap'` on StatBlock value div — fixes "06:00 CT" wrapping to two lines
-- EQTicker fill fix from earlier session also live
-
-**`src/styles/feed-layout.css`:**
-- Added `@keyframes pt-count-pulse` — fires on submittedCount update
+**07de8a8** — feat(week-tabs): red/green notification badges + mini calendar popover
+- WeekDayTabs: `useDaySeenState` hook — per-subscriber localStorage (`dealfeed.day-seen.{subId}:{dayKey}`)
+- Badge unread (red): day has deals + not yet clicked
+- Badge seen (green): day has deals + user clicked that tab
+- Date range label (e.g. "May 7 – 13") is a clickable calendar toggle
+- MiniCalendar.jsx (new): month grid, prev/next nav, deal count dots per day, click-to-filter, click-outside-closes
+- feed-layout.css: `.week-day-tab-count.unread`, `.seen`, full `.mini-cal-*` styles
 
 ---
 
-Current visual state (verified in browser at ~11pm CT):
-- Rocket at ~47%, approaching BOXES gate at 50% (dead center)
-- BOXES glowing as next-up, QUEUE/BRIEFS/DELIVERED evenly spaced in right half
-- "221 SUBMITTED" single line in left half
-- ETA shows "ETA" / "06:00 CT" — two lines, no wrap
-- EQ bar reaches full width to DELIVERED
+## Current state
+- Pipeline: SUBMITTED ticks every 15 min, BOXES starts at 45 and ticks ~1/hour, BRIEFS = 72% of queue
+- WeekDayTabs: deal days show red badge until clicked, green after
+- Mini calendar: clicking date range label opens month popover; navigate months, click day to filter feed
+- All 195 tests passing
+- Deployed: https://nightdropai.netlify.app
 
 ---
 
-What was NOT done:
-- Nothing committed to main — all local only
-- BRIEFS stat still hardcoded to 0 (needs backend field)
-- Countdown footer "2:00 AM CT" still hardcoded (functional)
-- No automated tests written for timeline logic
+## What was NOT done — Phase 2 (requires backend + frontend work)
+
+**Historical deal fetching** — Mini calendar can navigate to any month but historical
+dates (beyond the ~100 most recent deals) will show an empty feed. To fix:
+
+**Backend** (`nightdrop-api/routes/dealfeed/deals.js`):
+- Add `from_date` and `to_date` query params to `GET /api/dealfeed/deals`
+- When present: add `AND ds.sent_at >= $N AND ds.sent_at < $M` to WHERE clause
+- Set effective limit to 1000 when date params are provided (single-day fetches are bounded)
+
+**Frontend**:
+- `DealsContext.jsx`: add `fetchByDate(date)` function — calls GET /api/dealfeed/deals?from_date=&to_date=
+- `DashboardView.jsx`: when selectedDay is set and no local deals match that day,
+  call fetchByDate and show results; clear on deselect
 
 ---
 
-Next session:
-Commit all pipeline work, then Brady describes next task.
+## Next session
+Implement Phase 2: backend date-range params + frontend fetchByDate.
+Start with nightdrop-api, then wire DealsContext and DashboardView.
 
 Start command:
 cd ~/nightdrop-dashboard && claude --dangerously-skip-permissions
 
-Dev server: npm run dev (currently on port 5184)
+Dev server: npm run dev
 
 Blockers for Brady:
-- None — pipeline timeline is visually complete and working locally
-- Decide: commit to main (auto-deploys to Netlify) or stay on branch?
+- None. Describe next task or confirm to proceed with Phase 2.
