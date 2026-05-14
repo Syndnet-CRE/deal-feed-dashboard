@@ -277,12 +277,6 @@ export default function PipelineTrack({
         <div style={{ position: 'absolute', left: 0, right: 0, top: 22, bottom: 0 }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1, height: 26 }}>
-              {/* Dashed track rail — visible through EQ ticker gaps */}
-              <div style={{
-                position: 'absolute', left: 0, right: 0,
-                top: '50%', height: 1, marginTop: -0.5,
-                backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 4px, transparent 4px, transparent 8px)',
-              }}/>
               <EQTicker progress={progress} palette={palette} trackRef={trackRef}/>
               {nodes.map((n, i) => {
                 const state = i < ai ? 'done' : i === ai ? 'active' : 'pending';
