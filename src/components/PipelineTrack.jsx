@@ -61,10 +61,11 @@ function activeIndex(progress, nodes) {
 
 // ── Telemetry stat ──────────────────────────────────────────────────────────
 function StatBlock({ k, v, accent, palette, align = 'left' }) {
+  const alignItems = align === 'right' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';
   return (
     <div style={{
       display: 'flex', flexDirection: 'column',
-      alignItems: align === 'right' ? 'flex-end' : 'flex-start',
+      alignItems,
       lineHeight: 1,
       fontFamily: 'Manrope, system-ui, sans-serif',
       gap: 1,
@@ -249,16 +250,23 @@ export default function PipelineTrack({
       boxSizing: 'border-box',
     }}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {/* Telemetry strip */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, top: 0,
-          display: 'flex', justifyContent: 'space-between',
-        }}>
-          <StatBlock {...display.boxes}    palette={palette}/>
-          <StatBlock {...display.queue}    palette={palette}/>
-          <StatBlock {...display.capacity} palette={palette} accent/>
-          <StatBlock {...display.briefs}   palette={palette}/>
-          <StatBlock {...display.eta}      palette={palette} accent align="right"/>
+        {/* Telemetry strip — each stat centered over its gate position */}
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 18 }}>
+          <div style={{ position: 'absolute', left: 0, top: 0 }}>
+            <StatBlock {...display.boxes}    palette={palette} align="left"/>
+          </div>
+          <div style={{ position: 'absolute', left: '18%', top: 0, transform: 'translateX(-50%)' }}>
+            <StatBlock {...display.queue}    palette={palette} align="center"/>
+          </div>
+          <div style={{ position: 'absolute', left: '50%', top: 0, transform: 'translateX(-50%)' }}>
+            <StatBlock {...display.capacity} palette={palette} accent align="center"/>
+          </div>
+          <div style={{ position: 'absolute', left: '75%', top: 0, transform: 'translateX(-50%)' }}>
+            <StatBlock {...display.briefs}   palette={palette} align="center"/>
+          </div>
+          <div style={{ position: 'absolute', left: '100%', top: 0, transform: 'translateX(-100%)' }}>
+            <StatBlock {...display.eta}      palette={palette} accent align="right"/>
+          </div>
         </div>
         {/* Hairline divider */}
         <div style={{
@@ -269,6 +277,12 @@ export default function PipelineTrack({
         <div style={{ position: 'absolute', left: 0, right: 0, top: 22, bottom: 0 }}>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
             <div style={{ position: 'relative', flex: 1, height: 26 }}>
+              {/* Dashed track rail — visible through EQ ticker gaps */}
+              <div style={{
+                position: 'absolute', left: 0, right: 0,
+                top: '50%', height: 1, marginTop: -0.5,
+                backgroundImage: 'repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 4px, transparent 4px, transparent 8px)',
+              }}/>
               <EQTicker progress={progress} palette={palette} trackRef={trackRef}/>
               {nodes.map((n, i) => {
                 const state = i < ai ? 'done' : i === ai ? 'active' : 'pending';

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Timer } from 'lucide-react';
 import PipelineTrack from './PipelineTrack.jsx';
+import { useDeals } from '../contexts/DealsContext';
 
 const TZ = 'America/Chicago';
 
@@ -63,6 +64,7 @@ const CD = {
 export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = false, showPhase = true } = {}) {
   const theme      = useTheme();
   const isLight    = theme === 'light';
+  const { deals = [], buyBoxes = [] } = useDeals() || {};
 
   const cdHRef     = useRef(null);
   const cdMRef     = useRef(null);
@@ -152,13 +154,15 @@ export function PipelineTimeline({ mode = 'full', size = 'xl', showLabels = fals
   if (mode === 'track') {
     const { nodeIdx } = getStage(getCTSeconds());
     const eta = ['02:00 CT', '02:00 CT', '04:00 CT', '06:00 CT'][nodeIdx] || '02:00 CT';
+    const activeBoxes = buyBoxes.filter(b => b.status === 'Active').length;
+    const queueCount  = deals.length;
     return (
       <div className="pipeline-track-only" style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}>
         <PipelineTrack
           progress={trackProgress}
           telemetry={{
-            boxes:    1,
-            queue:    21,
+            boxes:    activeBoxes,
+            queue:    queueCount,
             capacity: Math.round(trackProgress * 100),
             briefs:   0,
             eta,
