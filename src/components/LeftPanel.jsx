@@ -193,13 +193,6 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
 
         <div className="left-panel-bottom">
           <button
-            className={`left-panel-nav-item ${view === 'settings' ? 'active' : ''}`}
-            onClick={() => setView('settings')}
-          >
-            <Settings size={18} />
-            <span className="left-panel-nav-label">Settings</span>
-          </button>
-          <button
             className={`left-panel-nav-item ${view === 'accounts' ? 'active' : ''}`}
             onClick={() => setView('accounts')}
           >
@@ -207,9 +200,17 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
             <span className="left-panel-nav-label">Account</span>
           </button>
           <button
+            className={`left-panel-nav-item ${view === 'settings' ? 'active' : ''}`}
+            onClick={() => setView('settings')}
+          >
+            <Settings size={18} />
+            <span className="left-panel-nav-label">Settings</span>
+          </button>
+          <button
             className="left-panel-nav-item left-panel-theme-toggle"
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            style={{ display: 'none' }}
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             <span className="left-panel-nav-label">
