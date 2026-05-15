@@ -182,7 +182,7 @@
 .left-panel {
   width: var(--left-panel-w);
   min-width: var(--left-panel-w);
-  background: var(--bg-card);
+  background: var(--bg-page);
   border-right: 1px solid var(--border-1);
   box-shadow: 2px 0 16px rgba(13,13,13,0.06);
   display: flex;

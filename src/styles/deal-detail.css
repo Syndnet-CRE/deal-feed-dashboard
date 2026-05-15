@@ -269,7 +269,7 @@
   gap: var(--s-6);
   max-width: 1400px;
   margin: var(--s-5) auto;
-  width: 100%;
+  width: min(calc(100% - 40px), 1400px);
   background: var(--bg-card);
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
@@ -690,8 +690,8 @@
 }
 
 .dd-discovery-narrative {
-  font-size: var(--t-p1);
-  color: var(--fg-1);
+  font-size: var(--t-p2);
+  color: var(--fg-2);
   line-height: var(--lh-loose);
   flex: 1;
   margin: 0;
