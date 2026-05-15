@@ -199,7 +199,10 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
             <Settings size={18} />
             <span className="left-panel-nav-label">Settings</span>
           </button>
-          <button className="left-panel-nav-item">
+          <button
+            className={`left-panel-nav-item ${view === 'accounts' ? 'active' : ''}`}
+            onClick={() => setView('accounts')}
+          >
             <UserCircle size={18} />
             <span className="left-panel-nav-label">Account</span>
           </button>

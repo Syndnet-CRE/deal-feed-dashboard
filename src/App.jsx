@@ -17,6 +17,7 @@ import { MapView } from './views/MapView';
 import { SettingsView } from './views/SettingsView';
 import { InviteView } from './views/InviteView';
 import { AdminView } from './views/AdminView';
+import { AccountsView } from './views/AccountsView';
 import { LoginView } from './views/LoginView';
 import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
@@ -262,6 +263,7 @@ function AppShell() {
                         />
                       )}
                       {view === 'settings' && <SettingsView onConfirmDanger={setConfirmDanger}/>}
+                      {view === 'accounts' && <AccountsView/>}
                       {view === 'invites'  && <InviteView/>}
                       {view === 'admin'    && <AdminView/>}
                     </>
