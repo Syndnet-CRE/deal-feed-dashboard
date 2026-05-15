@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Mail, Plus, RotateCcw, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
@@ -44,21 +44,29 @@ function Badge({ map, value }) {
 }
 
 function InvitePanel({ onSent, onClose }) {
-  const [email, setEmail] = useState('');
-  const [name, setName]   = useState('');
-  const [busy, setBusy]   = useState(false);
-  const [msg, setMsg]     = useState(null);
+  const [email, setEmail]         = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName]   = useState('');
+  const [busy, setBusy]           = useState(false);
+  const [msg, setMsg]             = useState(null);
 
   async function send() {
     const clean = email.toLowerCase().trim();
     if (!clean || !clean.includes('@')) { setMsg({ ok: false, text: 'Valid email required' }); return; }
     setBusy(true);
     setMsg(null);
+    const fullName = [firstName.trim(), lastName.trim()].filter(Boolean).join(' ') || null;
     try {
-      await api.post('/api/dealfeed/admin/subscribers/invite', { email: clean, full_name: name.trim() || null });
+      await api.post('/api/dealfeed/admin/subscribers/invite', {
+        email:      clean,
+        first_name: firstName.trim() || null,
+        last_name:  lastName.trim()  || null,
+        full_name:  fullName,
+      });
       setMsg({ ok: true, text: `Invite sent to ${clean}` });
       setEmail('');
-      setName('');
+      setFirstName('');
+      setLastName('');
       onSent();
     } catch (err) {
       setMsg({ ok: false, text: err?.message || 'Failed to send invite' });
@@ -81,12 +89,22 @@ function InvitePanel({ onSent, onClose }) {
         />
       </div>
       <div className="acc-field">
-        <label>Name (optional)</label>
+        <label>First Name</label>
         <input
           type="text"
-          placeholder="First Last"
-          value={name}
-          onChange={e => setName(e.target.value)}
+          placeholder="First"
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && send()}
+        />
+      </div>
+      <div className="acc-field">
+        <label>Last Name</label>
+        <input
+          type="text"
+          placeholder="Last"
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && send()}
         />
       </div>
@@ -99,13 +117,26 @@ function InvitePanel({ onSent, onClose }) {
   );
 }
 
-function ActionsCell({ sub, state, onAction, busy }) {
+function ActionsCell({ sub, state, onAction, busy, confirmId, onCancelConfirm }) {
+  const isConfirming = confirmId === sub.id;
+
   if (state === 'accepted' || state === 'direct') {
     return (
       <div className="acc-actions">
-        <button className="acc-action-btn revoke" disabled={busy} onClick={() => onAction('revoke', sub)}>
-          Revoke
-        </button>
+        {isConfirming ? (
+          <>
+            <button className="acc-action-btn revoke-confirm" disabled={busy} onClick={() => onAction('revoke', sub)}>
+              Confirm?
+            </button>
+            <button className="acc-action-btn cancel-confirm" onClick={onCancelConfirm}>
+              Cancel
+            </button>
+          </>
+        ) : (
+          <button className="acc-action-btn revoke" disabled={busy} onClick={() => onAction('revoke', sub)}>
+            Revoke
+          </button>
+        )}
       </div>
     );
   }
@@ -130,6 +161,7 @@ function ActionsCell({ sub, state, onAction, busy }) {
 const FILTERS = [
   { id: 'all',     label: 'All' },
   { id: 'active',  label: 'Active' },
+  { id: 'trial',   label: 'Trial' },
   { id: 'pending', label: 'Pending' },
   { id: 'expired', label: 'Expired' },
 ];
@@ -142,6 +174,9 @@ export function AccountsView() {
   const [query, setQuery]             = useState('');
   const [showInvite, setShowInvite]   = useState(false);
   const [busyIds, setBusyIds]         = useState(new Set());
+  const [confirmId, setConfirmId]     = useState(null);
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -158,10 +193,13 @@ export function AccountsView() {
   useEffect(() => { load(); }, [load]);
 
   async function handleAction(action, sub) {
+    if (action === 'revoke') {
+      if (confirmId !== sub.id) { setConfirmId(sub.id); return; }
+      setConfirmId(null);
+    }
     setBusyIds(s => new Set([...s, sub.id]));
     try {
       if (action === 'revoke') {
-        if (!window.confirm(`Revoke access for ${sub.full_name || sub.email}?`)) return;
         await api.delete(`/api/dealfeed/admin/subscribers/${sub.id}`);
         addToast(`Access revoked for ${sub.email}`, 'success');
       } else {
@@ -172,7 +210,9 @@ export function AccountsView() {
     } catch {
       addToast('Action failed', 'error');
     } finally {
-      setBusyIds(s => { const n = new Set(s); n.delete(sub.id); return n; });
+      if (mountedRef.current) {
+        setBusyIds(s => { const n = new Set(s); n.delete(sub.id); return n; });
+      }
     }
   }
 
@@ -180,15 +220,17 @@ export function AccountsView() {
 
   const counts = {
     all:     withState.length,
-    active:  withState.filter(s => s._state === 'accepted' || s._state === 'direct').length,
+    active:  withState.filter(s => (s._state === 'accepted' || s._state === 'direct') && s.status !== 'trial').length,
+    trial:   withState.filter(s => s.status === 'trial').length,
     pending: withState.filter(s => s._state === 'not_sent' || s._state === 'sent').length,
     expired: withState.filter(s => s._state === 'expired').length,
   };
 
   const filtered = withState.filter(s => {
-    if (filter === 'active'  && s._state !== 'accepted' && s._state !== 'direct') return false;
-    if (filter === 'pending' && s._state !== 'not_sent' && s._state !== 'sent')   return false;
-    if (filter === 'expired' && s._state !== 'expired')                            return false;
+    if (filter === 'active'  && !((s._state === 'accepted' || s._state === 'direct') && s.status !== 'trial')) return false;
+    if (filter === 'trial'   && s.status !== 'trial')                                                          return false;
+    if (filter === 'pending' && s._state !== 'not_sent' && s._state !== 'sent')                               return false;
+    if (filter === 'expired' && s._state !== 'expired')                                                        return false;
     if (query.trim()) {
       const q = query.toLowerCase();
       return (s.full_name || '').toLowerCase().includes(q) ||
@@ -212,15 +254,19 @@ export function AccountsView() {
         <button className="acc-invite-btn" onClick={() => setShowInvite(v => !v)}>
           <Plus size={13} /> Invite
         </button>
-      </div>
-
-      <div className="acc-stats">
-        {FILTERS.map(f => (
-          <div key={f.id} className={`acc-stat${filter === f.id ? ' active' : ''}`} onClick={() => setFilter(f.id)}>
-            <span className="acc-stat-num">{counts[f.id]}</span>
-            <span className="acc-stat-lbl">{f.label}</span>
-          </div>
-        ))}
+        <div className="acc-header-divider" />
+        <div className="acc-header-filters">
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              className={`acc-filter-tab${filter === f.id ? ' active' : ''}`}
+              onClick={() => setFilter(f.id)}
+            >
+              <span className="acc-filter-count">{counts[f.id]}</span>
+              <span className="acc-filter-label">{f.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {showInvite && <InvitePanel onSent={load} onClose={() => setShowInvite(false)} />}
@@ -257,12 +303,12 @@ export function AccountsView() {
                   <td><Badge map={STATUS_BADGE} value={sub.status} /></td>
                   <td><Badge map={INVITE_BADGE} value={sub._state} /></td>
                   <td className="acc-muted acc-num">{fmtDate(sub.invited_at) || '—'}</td>
-                  <td className="acc-muted acc-num">{sub._state === 'accepted' ? fmtDate(sub.updated_at) : '—'}</td>
+                  <td className="acc-muted acc-num">{fmtDate(sub.created_at) || '—'}</td>
                   <td className="acc-muted acc-num">{fmtDateTime(sub.last_login_at) || '—'}</td>
                   <td className="acc-muted acc-num">{sub.buy_box_count ?? 0}</td>
                   <td className="acc-muted acc-num">{sub.deal_count ?? 0}</td>
                   <td>
-                    <ActionsCell sub={sub} state={sub._state} onAction={handleAction} busy={busyIds.has(sub.id)} />
+                    <ActionsCell sub={sub} state={sub._state} onAction={handleAction} busy={busyIds.has(sub.id)} confirmId={confirmId} onCancelConfirm={() => setConfirmId(null)} />
                   </td>
                 </tr>
               ))}
