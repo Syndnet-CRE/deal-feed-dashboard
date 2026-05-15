@@ -25,6 +25,8 @@ async function request(path, options = {}) {
 
   if (res.status === 401) {
     clearToken();
+    const returnTo = window.location.pathname + window.location.search;
+    if (returnTo && returnTo !== '/login') sessionStorage.setItem('nd_return_url', returnTo);
     window.location.href = '/login';
     return;
   }

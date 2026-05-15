@@ -39,15 +39,14 @@ function DealDetailPage({ dealId }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [navigate]);
 
-  useEffect(() => {
-    if (loading) return;
-    const found = deals.find(d => String(d.id) === dealId);
-    if (!found) navigate('/', { replace: true });
-  }, [loading, deals, dealId, navigate]);
-
   if (loading) return null;
   const deal = deals.find(d => String(d.id) === dealId);
-  if (!deal) return null;
+  if (!deal) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 12, color: '#9DA2B3', fontSize: 14 }}>
+      <span>Deal not found.</span>
+      <button className="btn sm" onClick={() => navigate(-1)}>Go back</button>
+    </div>
+  );
 
   const dealIndex = deals.findIndex(d => String(d.id) === dealId);
 
