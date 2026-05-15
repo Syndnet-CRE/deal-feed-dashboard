@@ -231,38 +231,63 @@
 .acc-badge.red   { background: var(--pill-red-bg);   color: var(--pill-red-fg);   }
 .acc-badge.gray  { background: var(--pill-gray-bg);  color: var(--pill-gray-fg);  }
 
-/* ── Actions ────────────────────────────────────────────────── */
+/* ── Actions / Row menu ─────────────────────────────────────── */
 
-.acc-actions { display: flex; gap: 6px; }
-
-.acc-action-btn {
+.acc-row-menu-trigger {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
   border-radius: var(--r-xs);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--border-2);
   background: none;
+  color: var(--fg-4);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast), color var(--dur-fast);
+}
+.acc-row-menu-trigger:hover:not(:disabled) {
+  border-color: var(--border-2);
+  background: var(--bg-subtle);
+  color: var(--fg-1);
+}
+.acc-row-menu-trigger:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.acc-row-menu-dropdown {
+  background: var(--bg-card);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-sm);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  z-index: 200;
+  min-width: 168px;
+  padding: 4px 0;
+}
+
+.acc-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  font-size: 13px;
   color: var(--fg-2);
-  transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
-  white-space: nowrap;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur-fast), color var(--dur-fast);
 }
-.acc-action-btn.send { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
-.acc-action-btn.send:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.acc-action-btn.resend:hover { border-color: var(--accent); color: var(--accent); }
-.acc-action-btn.revoke:hover { border-color: var(--pill-red-fg); color: var(--pill-red-fg); }
-.acc-action-btn.revoke-confirm {
-  border-color: var(--pill-red-fg);
-  color: var(--pill-red-fg);
-  background: var(--pill-red-bg);
+.acc-menu-item:hover { background: var(--bg-subtle); color: var(--fg-1); }
+.acc-menu-item.warn  { color: var(--pill-amber-fg); }
+.acc-menu-item.warn:hover  { background: var(--pill-amber-bg); }
+.acc-menu-item.danger { color: var(--pill-red-fg); }
+.acc-menu-item.danger:hover { background: var(--pill-red-bg); }
+
+.acc-menu-divider {
+  height: 1px;
+  background: var(--border-1);
+  margin: 4px 0;
 }
-.acc-action-btn.revoke-confirm:hover { background: var(--pill-red-fg); color: #fff; }
-.acc-action-btn.cancel-confirm { color: var(--fg-4); }
-.acc-action-btn.cancel-confirm:hover { border-color: var(--fg-3); color: var(--fg-2); }
-.acc-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .acc-empty {
   padding: 48px;

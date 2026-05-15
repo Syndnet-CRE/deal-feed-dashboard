@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Mail, Plus, RotateCcw, X } from 'lucide-react';
+import { Mail, MoreHorizontal, Plus, RotateCcw, Trash2, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { useToast } from '../contexts/ToastContext';
 import '../styles/accounts.css';
@@ -117,44 +117,72 @@ function InvitePanel({ onSent, onClose }) {
   );
 }
 
-function ActionsCell({ sub, state, onAction, busy, confirmId, onCancelConfirm }) {
-  const isConfirming = confirmId === sub.id;
+function RowMenu({ sub, state, onAction, busy }) {
+  const [open, setOpen]       = useState(false);
+  const [confirm, setConfirm] = useState(null);
+  const [dropPos, setDropPos] = useState(null);
+  const triggerRef            = useRef(null);
+  const dropRef               = useRef(null);
 
-  if (state === 'accepted' || state === 'direct') {
-    return (
-      <div className="acc-actions">
-        {isConfirming ? (
-          <>
-            <button className="acc-action-btn revoke-confirm" disabled={busy} onClick={() => onAction('revoke', sub)}>
-              Confirm?
-            </button>
-            <button className="acc-action-btn cancel-confirm" onClick={onCancelConfirm}>
-              Cancel
-            </button>
-          </>
-        ) : (
-          <button className="acc-action-btn revoke" disabled={busy} onClick={() => onAction('revoke', sub)}>
-            Revoke
-          </button>
-        )}
-      </div>
-    );
+  function toggle() {
+    if (open) { setOpen(false); setConfirm(null); return; }
+    const rect = triggerRef.current.getBoundingClientRect();
+    setDropPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    setOpen(true);
+    setConfirm(null);
   }
-  if (state === 'not_sent') {
-    return (
-      <div className="acc-actions">
-        <button className="acc-action-btn send" disabled={busy} onClick={() => onAction('send', sub)}>
-          <Mail size={11} /> Send
-        </button>
-      </div>
-    );
+
+  useEffect(() => {
+    if (!open) return;
+    function close(e) {
+      if (triggerRef.current?.contains(e.target) || dropRef.current?.contains(e.target)) return;
+      setOpen(false);
+      setConfirm(null);
+    }
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  function act(action) {
+    if ((action === 'revoke' || action === 'delete') && confirm !== action) {
+      setConfirm(action);
+      return;
+    }
+    setOpen(false);
+    setConfirm(null);
+    onAction(action, sub);
   }
+
   return (
-    <div className="acc-actions">
-      <button className="acc-action-btn resend" disabled={busy} onClick={() => onAction('resend', sub)}>
-        <RotateCcw size={11} /> Resend
+    <>
+      <button ref={triggerRef} className="acc-row-menu-trigger" disabled={busy} onClick={toggle} title="More actions">
+        <MoreHorizontal size={15} />
       </button>
-    </div>
+      {open && dropPos && (
+        <div ref={dropRef} className="acc-row-menu-dropdown" style={{ position: 'fixed', top: dropPos.top, right: dropPos.right }}>
+          {state === 'not_sent' && (
+            <button className="acc-menu-item" onClick={() => act('send')}>
+              <Mail size={12} /> Send Invite
+            </button>
+          )}
+          {(state === 'sent' || state === 'expired') && (
+            <button className="acc-menu-item" onClick={() => act('resend')}>
+              <RotateCcw size={12} /> Resend Invite
+            </button>
+          )}
+          {(state === 'accepted' || state === 'direct') && (
+            <button className="acc-menu-item warn" onClick={() => act('revoke')}>
+              {confirm === 'revoke' ? 'Confirm revoke?' : 'Revoke Access'}
+            </button>
+          )}
+          <div className="acc-menu-divider" />
+          <button className="acc-menu-item danger" onClick={() => act('delete')}>
+            <Trash2 size={12} />
+            {confirm === 'delete' ? 'Confirm delete?' : 'Delete'}
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -174,7 +202,6 @@ export function AccountsView() {
   const [query, setQuery]             = useState('');
   const [showInvite, setShowInvite]   = useState(false);
   const [busyIds, setBusyIds]         = useState(new Set());
-  const [confirmId, setConfirmId]     = useState(null);
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
@@ -193,15 +220,14 @@ export function AccountsView() {
   useEffect(() => { load(); }, [load]);
 
   async function handleAction(action, sub) {
-    if (action === 'revoke') {
-      if (confirmId !== sub.id) { setConfirmId(sub.id); return; }
-      setConfirmId(null);
-    }
     setBusyIds(s => new Set([...s, sub.id]));
     try {
       if (action === 'revoke') {
         await api.delete(`/api/dealfeed/admin/subscribers/${sub.id}`);
         addToast(`Access revoked for ${sub.email}`, 'success');
+      } else if (action === 'delete') {
+        await api.delete(`/api/dealfeed/admin/subscribers/${sub.id}/purge`);
+        addToast(`${sub.email} deleted`, 'success');
       } else {
         await api.post(`/api/dealfeed/admin/subscribers/${sub.id}/resend-invite`, {});
         addToast(`Invite sent to ${sub.email}`, 'success');
@@ -308,7 +334,7 @@ export function AccountsView() {
                   <td className="acc-muted acc-num">{sub.buy_box_count ?? 0}</td>
                   <td className="acc-muted acc-num">{sub.deal_count ?? 0}</td>
                   <td>
-                    <ActionsCell sub={sub} state={sub._state} onAction={handleAction} busy={busyIds.has(sub.id)} confirmId={confirmId} onCancelConfirm={() => setConfirmId(null)} />
+                    <RowMenu sub={sub} state={sub._state} onAction={handleAction} busy={busyIds.has(sub.id)} />
                   </td>
                 </tr>
               ))}
