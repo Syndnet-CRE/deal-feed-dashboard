@@ -1144,3 +1144,123 @@
 
   .dd-sec { break-inside: avoid; }
 }
+
+/* ── AI headline (forward-compatible: only renders when enriched pipeline delivers bj.headline) */
+.dd-headline {
+  font-size: var(--t-p1);
+  font-weight: var(--w-semibold);
+  color: var(--fg-1);
+  line-height: var(--lh-snug);
+  margin: 0;
+}
+
+/* ── Recommended action block ─────────────────────────────────── */
+.dd-next-action {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: var(--s-2) var(--s-4);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  margin-top: var(--s-1);
+}
+
+.dd-next-action-label {
+  font-size: var(--t-micro);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--green-deep);
+}
+
+.dd-next-action-text {
+  font-size: var(--t-cap);
+  color: var(--fg-2);
+  line-height: var(--lh-normal);
+}
+
+[data-theme="dark"] .dd-next-action {
+  background: rgba(29, 175, 41, 0.08);
+}
+
+[data-theme="dark"] .dd-next-action-label {
+  color: var(--nightdrop-green-300);
+}
+
+/* ── Owner Portfolio section ─────────────────────────────────── */
+.dd-portfolio-sec {
+  margin: 0 var(--s-7) var(--s-6);
+}
+
+.dd-portfolio-root {
+  width: 100%;
+}
+
+.dd-portfolio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--s-3);
+}
+
+.dd-portfolio-owner {
+  font-size: var(--t-p2);
+  font-weight: var(--w-semibold);
+  color: var(--fg-1);
+}
+
+.dd-portfolio-count {
+  font-size: var(--t-cap);
+  color: var(--fg-3);
+}
+
+.dd-portfolio-graph {
+  border-radius: var(--r-md);
+  background: var(--bg-subtle);
+  overflow: hidden;
+  margin-bottom: var(--s-3);
+}
+
+.dd-portfolio-legend {
+  display: flex;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+  font-size: var(--t-micro);
+  color: var(--fg-3);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+}
+
+.dd-portfolio-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dd-portfolio-table-wrap {
+  overflow-x: auto;
+}
+
+.dd-portfolio-table {
+  width: 100%;
+}
+
+.dd-portfolio-row:hover {
+  background: var(--bg-subtle);
+}
+
+.dd-portfolio-totals td {
+  background: var(--bg-subtle);
+  border-top: 2px solid var(--border-1);
+  font-size: var(--t-cap);
+}
+
+.dd-portfolio-loading,
+.dd-portfolio-empty {
+  font-size: var(--t-cap);
+  color: var(--fg-4);
+  padding: var(--s-4) 0;
+  font-style: italic;
+  margin: 0;
+}

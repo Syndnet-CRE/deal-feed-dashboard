@@ -71,7 +71,16 @@ function quickFacts(deal) {
   return QUICK_FACTS_CONFIG[ac] || DEFAULT_FACTS;
 }
 
+function signalColor(sig) {
+  const raw = typeof sig === 'string' ? sig : (sig.type || sig.category || sig.label || '');
+  const t = raw.toLowerCase();
+  if (t.includes('tax') || t.includes('lien') || t.includes('delinq') || t.includes('forecl')) return 'red';
+  if (t.includes('vacan') || t.includes('code') || t.includes('rising') || t.includes('absentee')) return 'amber';
+  return 'green';
+}
+
 function ExpandedDetail({ deal }) {
+  const bj = deal.briefJson || deal.brief_json || {};
   const fields = [
     ['Owner', fmt(deal.owner_name || deal.owner)],
     ['Owner Type', fmt(deal.owner_type)],
@@ -86,7 +95,7 @@ function ExpandedDetail({ deal }) {
     ['Tax Delinquent', deal.tax_delinquent ? `Yes — ${fmtMoney(deal.tax_delinquent)}` : 'No'],
   ];
 
-  const signals = deal.signals || [];
+  const signals = bj.signal_tags || deal.signals || [];
 
   return (
     <div className="feed-deal-expand">
@@ -102,9 +111,11 @@ function ExpandedDetail({ deal }) {
         <div className="feed-deal-signals">
           <div className="feed-deal-signals-label">Distress Signals</div>
           <div className="feed-deal-signals-list">
-            {signals.map((s, i) => (
-              <span key={i} className="feed-deal-signal-pill">{typeof s === 'string' ? s : s.label || s.type}</span>
-            ))}
+            {signals.map((s, i) => {
+              const color = signalColor(s);
+              const label = typeof s === 'string' ? s : s.label || s.type || String(s);
+              return <span key={i} className={`feed-deal-signal-pill ${color}`}>{label}</span>;
+            })}
           </div>
         </div>
       )}
@@ -190,6 +201,9 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
 
   const facts = quickFacts(deal);
   const notRelevant = fb === 'not_relevant';
+  const bj = deal.briefJson || deal.brief_json || {};
+  const headline = bj.headline || null;
+  const nextAction = bj.next_action || null;
 
   return (
     <article
@@ -240,8 +254,19 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
           ))}
         </div>
 
+        {headline && (
+          <p className="feed-deal-headline">{headline}</p>
+        )}
+
         {deal.narrative && (
           <p className="feed-deal-narrative">{deal.narrative}</p>
+        )}
+
+        {nextAction && (
+          <div className="feed-deal-next-action">
+            <span className="feed-deal-next-action-label">Next Action</span>
+            <span className="feed-deal-next-action-text">{nextAction}</span>
+          </div>
         )}
 
         {notRelevant && notRelevantUndo ? (

@@ -47,6 +47,7 @@ export function DealsProvider({ children }) {
   const [buyBoxes, setBuyBoxes] = useState([]);
   const [contacts, setContacts] = useState({});
   const [dealNotes, setDealNotes] = useState({});
+  const [portfolios, setPortfolios] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -141,8 +142,18 @@ export function DealsProvider({ children }) {
     return res.note;
   }, []);
 
+  const fetchOwnerPortfolio = useCallback(async (attomId) => {
+    if (!attomId) return;
+    try {
+      const res = await api.get(`/api/dealfeed/owner-portfolio/${attomId}`);
+      setPortfolios(prev => ({ ...prev, [String(attomId)]: res.portfolio || null }));
+    } catch {
+      setPortfolios(prev => ({ ...prev, [String(attomId)]: null }));
+    }
+  }, []);
+
   return (
-    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, dealNotes, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox, deleteBuyBox, fetchDealNotes, createDealNote }}>
+    <DealsCtx.Provider value={{ deals, buyBoxes, contacts, dealNotes, portfolios, loading, error, refetch: fetchAll, postFeedback, saveNote, updateStatus, fetchContacts, logContact, patchBuyBox, deleteBuyBox, fetchDealNotes, createDealNote, fetchOwnerPortfolio }}>
       {children}
     </DealsCtx.Provider>
   );

@@ -1,7 +1,9 @@
-import { Fragment, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Phone } from 'lucide-react';
 import { AerialThumb } from './AerialThumb.jsx';
 import { ContactLogModal } from './ContactLogModal.jsx';
+import { Rows, SecHead, Chip, ConfBadge } from './DealDetail.helpers.jsx';
+import { OwnerPortfolio } from './OwnerPortfolio.jsx';
 import { fmt, fmtMoney, hasVal } from '../lib/format.js';
 import { useDeals } from '../contexts/DealsContext.jsx';
 import { useReadState } from '../contexts/ReadStateContext';
@@ -12,11 +14,13 @@ const TABS = [
   { id: 'property',     label: 'Property Record' },
   { id: 'ownership',    label: 'Ownership' },
   { id: 'financials',   label: 'Financials' },
-  { id: 'capital',      label: 'Capital Stack' },
-  { id: 'transactions', label: 'Transactions' },
+  { id: 'capital',      label: 'Loans & Equity' },
+  { id: 'transactions', label: 'Sales History' },
   { id: 'site',         label: 'Site & Lot' },
   { id: 'zoning',       label: 'Zoning' },
-  { id: 'context',      label: 'Site Context' },
+  { id: 'context',      label: 'Location' },
+  { id: 'foreclosure',  label: 'Foreclosure' },
+  { id: 'climate',      label: 'Climate' },
   { id: 'risk',         label: 'Risk' },
   { id: 'distress',     label: 'Distress' },
   { id: 'dealintel',    label: 'Deal Intel' },
@@ -26,10 +30,6 @@ const STATUS_OPTIONS = ['new', 'due_diligence', 'contacted', 'negotiating', 'off
 const STATUS_LABELS = { new: 'New', due_diligence: 'Due Diligence', contacted: 'Contacted', negotiating: 'Negotiating', offer_made: 'Offer Made', dead: 'Dead' };
 const STATUS_COLORS = { new: 'gray', due_diligence: 'blue', contacted: 'amber', negotiating: 'amber', offer_made: 'green', dead: 'red' };
 
-function nv(v) {
-  if (v === null || v === undefined || v === '' || v === 'null' || v === 'undefined') return null;
-  return v;
-}
 function pct(v) {
   if (!hasVal(v)) return null;
   const n = parseFloat(v);
@@ -39,7 +39,7 @@ function mon(v) {
   if (!hasVal(v)) return null;
   return fmtMoney(v);
 }
-function sf(v) {
+function sfVal(v) {
   if (!hasVal(v)) return null;
   const n = parseFloat(v);
   return isNaN(n) ? null : n.toLocaleString() + ' sf';
@@ -52,41 +52,14 @@ function scoreVariant(score) {
   if (n >= 40) return 'md';
   return 'lo';
 }
-
-function Rows({ data, wide }) {
-  const visible = data.filter(([, v]) => nv(v) !== null && hasVal(v));
-  if (!visible.length) {
-    return <span style={{ color: 'var(--fg-4)', fontSize: 'var(--t-cap)' }}>No data available</span>;
-  }
-  return (
-    <div className={`dd-rows${wide ? ' wide' : ''}`}>
-      {visible.map(([label, val], i) => (
-        <Fragment key={i}>
-          <span className="dd-row-label">{label}</span>
-          <span className="dd-row-val">{val}</span>
-        </Fragment>
-      ))}
-    </div>
-  );
+function climateScore(v) {
+  if (!hasVal(v)) return null;
+  const n = parseFloat(v);
+  if (isNaN(n) || n === -1) return null;
+  return String(Math.round(n)) + '/10';
 }
-
-function SecHead({ title, date }) {
-  return (
-    <div className="dd-sec-head">
-      <span className="dd-sec-title">{title}</span>
-      {date && <span className="dd-sec-updated">Updated {fmt(date)} »</span>}
-    </div>
-  );
-}
-
-function Chip({ color = 'gray', children }) {
-  return <span className={`dd-pill ${color}`}>{children}</span>;
-}
-
-function ConfBadge({ conf }) {
-  if (!conf) return null;
-  const color = conf === 'high' ? 'green' : conf === 'medium' ? 'amber' : 'gray';
-  return <span className={`dd-conf-badge ${color}`}>{conf}</span>;
+function boolFmt(v) {
+  return v != null ? (v ? 'Yes' : 'No') : null;
 }
 
 export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) {
@@ -115,6 +88,9 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
   }, [showStatusDropdown]);
 
   const bj = deal.briefJson || deal.brief_json || {};
+  const cr = bj.climate || {};
+  const fc = bj.foreclosure || {};
+  const attomId = deal.attomId || deal.attom_id;
   const enriched = bj.enriched_at || deal.updated_at;
   const score = deal.distress_score ?? deal.score;
   const variant = scoreVariant(score);
@@ -127,12 +103,13 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
   const statusLabel = STATUS_LABELS[currentStatus] || currentStatus;
   const dealContactList = contacts[deal.id] || [];
   const dealNotesList = dealNotes[deal.id] || [];
-  const signals = bj.distress_signals || deal.signals || [];
+  const signals = bj.signal_tags || bj.distress_signals || deal.signals || [];
 
   function signalColor(sig) {
-    const t = (sig.type || sig.category || '').toLowerCase();
+    const raw = typeof sig === 'string' ? sig : (sig.type || sig.category || sig.label || '');
+    const t = raw.toLowerCase();
     if (t.includes('tax') || t.includes('lien') || t.includes('delinq') || t.includes('forecl')) return 'red';
-    if (t.includes('vacan') || t.includes('code') || t.includes('rising')) return 'amber';
+    if (t.includes('vacan') || t.includes('code') || t.includes('rising') || t.includes('absentee')) return 'amber';
     return 'green';
   }
 
@@ -154,11 +131,8 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
 
   async function handleMarkHot() {
     setHotLoading(true);
-    try {
-      await postFeedback(deal.id, deal.feedback === 'hot' ? null : 'hot');
-    } finally {
-      setHotLoading(false);
-    }
+    try { await postFeedback(deal.id, deal.feedback === 'hot' ? null : 'hot'); }
+    finally { setHotLoading(false); }
   }
 
   async function handleStatusChange(newStatus) {
@@ -168,28 +142,20 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
 
   async function handleLogContact(formData) {
     setContactSubmitting(true);
-    try {
-      await logContact(deal.id, formData);
-      setContactModalOpen(false);
-    } finally {
-      setContactSubmitting(false);
-    }
+    try { await logContact(deal.id, formData); setContactModalOpen(false); }
+    finally { setContactSubmitting(false); }
   }
 
   async function handleAddNote() {
     if (!noteInput.trim()) return;
     setNoteSaving(true);
-    try {
-      await createDealNote(deal.id, noteInput.trim());
-      setNoteInput('');
-    } finally {
-      setNoteSaving(false);
-    }
+    try { await createDealNote(deal.id, noteInput.trim()); setNoteInput(''); }
+    finally { setNoteSaving(false); }
   }
 
   const propertyRows = [
-    ['Parcel ID',      fmt(deal.parcel_id ?? deal.attom_id)],
-    ['APN',            fmt(deal.apn)],
+    ['Parcel ID',      fmt(deal.parcel_id ?? attomId)],
+    ['APN',            fmt(deal.apn ?? bj.apn)],
     ['Address',        fmt(deal.address)],
     ['City / State',   city || null],
     ['Zip',            fmt(deal.zip)],
@@ -197,105 +163,158 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
     ['MSA',            fmt(deal.msa)],
     ['Asset Class',    fmt(deal.asset_class)],
     ['Use Type',       fmt(deal.use_type)],
-    ['Zoning',         fmt(deal.zoning)],
+    ['Zoning Code',    fmt(bj.zoning_code || deal.zoning) === '—' ? null : fmt(bj.zoning_code || deal.zoning)],
     ['Year Built',     fmt(deal.year_built)],
-    ['Yr Renovated',   fmt(bj.year_renovated)],
-    ['Construction',   fmt(bj.construction_type)],
     ['Stories',        fmt(deal.stories)],
     ['Units',          fmt(deal.units)],
-    ['Sq Ft (Bldg)',   sf(deal.building_sf)],
-    ['Lot Sq Ft',      sf(deal.lot_sf ?? bj.lot_sf)],
-    ['Lot Acres',      bj.lot_ac ? bj.lot_ac + ' ac' : null],
-    ['Parking Spaces', fmt(bj.parking_spaces)],
+    ['Sq Ft (Bldg)',   sfVal(deal.building_sf)],
+    ['Lot Sq Ft',      sfVal(deal.lot_sf ?? bj.lot_sf)],
+    ['Lot Acres',      bj.lot_ac ?? deal.acres ? (bj.lot_ac ?? deal.acres) + ' ac' : null],
   ];
 
   const ownershipRows = [
-    ['Owner Name',   fmt(deal.owner_name)],
-    ['Entity Type',  fmt(bj.entity_type)],
-    ['Mailing Addr', fmt(bj.owner_mailing ?? deal.owner_mailing)],
-    ['Owner Since',  fmt(bj.owner_since ?? deal.owner_since)],
-    ['Hold Period',  bj.hold_years ? bj.hold_years + ' yrs' : null],
-    ['Owner Type',   fmt(deal.owner_type)],
-    ['Absentee',     deal.absentee_owner != null ? (deal.absentee_owner ? 'Yes' : 'No') : null],
-    ['Phone',        fmt(bj.dm?.phone)],
-    ['Email',        fmt(bj.dm?.email)],
+    ['Owner Name',    fmt(deal.owner_name)],
+    ['Entity Type',   fmt(bj.entity_type ?? deal.owner_type)],
+    ['Mailing Addr',  fmt(bj.owner_mailing ?? deal.owner_mailing)],
+    ['Owner Since',   fmt(bj.owner_since ?? deal.owner_since)],
+    ['Hold Period',   bj.hold_years ? bj.hold_years + ' yrs' : null],
+    ['Absentee',      boolFmt(deal.absentee_owner)],
+    ['Out of State',  boolFmt(deal.owner_is_out_of_state)],
+    ['Phone',         fmt(bj.dm?.phone)],
+    ['Email',         fmt(bj.dm?.email)],
   ];
 
   const financialsRows = [
-    ['Assessed Value',  mon(deal.assessed_value ?? bj.assessed_value)],
-    ['Land Value',      mon(bj.land_value)],
-    ['Impr. Value',     mon(bj.improvement_value)],
-    ['AVM',             mon(bj.avm)],
-    ['Tax Amount',      mon(bj.tax_amount)],
-    ['NOI Est.',        mon(bj.noi_est)],
-    ['Cap Rate Est.',   pct(bj.cap_rate)],
-    ['GRM',             hasVal(bj.grm) ? fmt(bj.grm) : null],
-    ['Last Sale Price', mon(deal.last_sale_price)],
-    ['Last Sale Date',  fmt(deal.last_sale_date)],
+    ['Assessed Value',    mon(deal.assessed_value ?? bj.assessed_value)],
+    ['Land Value',        mon(bj.land_value ?? bj.assessed_value_land)],
+    ['Impr. Value',       mon(bj.improvement_value ?? bj.assessed_value_improvements)],
+    ['Market Value',      mon(bj.market_value ?? bj.market_value_total)],
+    ['AVM',               mon(bj.avm)],
+    ['Value / Acre',      mon(bj.assessed_value_per_acre)],
+    ['Value / SF',        mon(bj.assessed_value_per_sf)],
+    ['Tax Year',          fmt(bj.tax_year ?? deal.tax_year)],
+    ['Annual Tax',        mon(bj.tax_amount_billed ?? bj.tax_amount ?? deal.tax_amount_billed)],
+    ['Tax Delinquent Yr', hasVal(bj.tax_delinquent_year ?? deal.tax_delinquent_year) ? fmt(bj.tax_delinquent_year ?? deal.tax_delinquent_year) : null],
+    ['Homeowner Exempt',  boolFmt(bj.has_homeowner_exemption ?? deal.has_homeowner_exemption)],
+    ['NOI Est.',          mon(bj.noi_est)],
+    ['Cap Rate Est.',     pct(bj.cap_rate)],
+    ['Last Sale Price',   mon(deal.last_sale_price)],
+    ['Last Sale Date',    fmt(deal.last_sale_date)],
+    ['Rental Value',      mon(bj.estimated_rental_value)],
   ];
 
-  const hasLoan = hasVal(bj.loan_amount) || hasVal(bj.lender);
+  const hasLoan = hasVal(bj.loan_amount) || hasVal(bj.lender) || hasVal(bj.first_loan_amount);
   const loanRows = [
-    ['Lender',      fmt(bj.lender)],
-    ['Loan Amount', mon(bj.loan_amount)],
-    ['Rate',        pct(bj.rate)],
-    ['Term',        bj.term ? bj.term + ' mo' : null],
-    ['Loan Due',    fmt(bj.due)],
+    ['Lender',           fmt(bj.lender ?? bj.first_lender_name)],
+    ['Loan Amount',      mon(bj.loan_amount ?? bj.first_loan_amount)],
+    ['Rate',             pct(bj.rate)],
+    ['Term',             bj.term ? bj.term + ' mo' : null],
+    ['Loan Due',         fmt(bj.due)],
+    ['Loan Age',         bj.loan_age_years ? bj.loan_age_years + ' yrs' : null],
+    ['LTV',              pct(bj.ltv)],
+    ['Available Equity', mon(bj.available_equity)],
+    ['2nd Loan',         mon(bj.second_loan_amount)],
+  ];
+
+  const foreclosureRows = [
+    ['Status',         fmt(fc.foreclosure_status ?? deal.foreclosure_status)],
+    ['Record Type',    fmt(fc.record_type ?? deal.record_type)],
+    ['Recording Date', fmt(fc.foreclosure_recording_date ?? deal.foreclosure_recording_date)],
+    ['Original Loan',  mon(fc.original_loan_amount ?? deal.original_loan_amount)],
+    ['Default Amount', mon(fc.default_amount ?? deal.default_amount)],
+    ['Lender',         fmt(fc.lender_name_standardized ?? deal.lender_name_standardized)],
+    ['Borrower',       fmt(fc.borrower_name ?? deal.borrower_name)],
+    ['Auction Date',   fmt(fc.auction_date ?? deal.auction_date)],
+    ['Opening Bid',    mon(fc.auction_opening_bid ?? deal.auction_opening_bid)],
+  ];
+
+  const climateRows = [
+    ['Heat Risk',     climateScore(cr.heat_risk_score ?? deal.heat_risk_score)],
+    ['Storm Risk',    climateScore(cr.storm_risk_score ?? deal.storm_risk_score)],
+    ['Wildfire Risk', climateScore(cr.wildfire_risk_score ?? deal.wildfire_risk_score)],
+    ['Drought Risk',  climateScore(cr.drought_risk_score ?? deal.drought_risk_score)],
+    ['Flood Risk',    climateScore(cr.flood_risk_score ?? deal.flood_risk_score)],
+    ['Total Risk',    climateScore(cr.total_risk_score ?? deal.total_risk_score)],
+    ['Flood Zone',    fmt(cr.fema_flood_zone ?? deal.fema_flood_zone)],
+    ['In Floodplain', boolFmt(cr.in_floodplain ?? deal.in_floodplain)],
+    ['In Floodway',   boolFmt(cr.in_floodway ?? deal.in_floodway)],
   ];
 
   const siteRows = [
-    ['Lot Sq Ft',      sf(deal.lot_sf ?? bj.lot_sf)],
-    ['Lot Acres',      bj.lot_ac ? bj.lot_ac + ' ac' : null],
-    ['Building Sq Ft', sf(deal.building_sf)],
+    ['Lot Sq Ft',      sfVal(deal.lot_sf ?? bj.lot_sf)],
+    ['Lot Acres',      bj.lot_ac ?? deal.acres ? (bj.lot_ac ?? deal.acres) + ' ac' : null],
+    ['Building Sq Ft', sfVal(deal.building_sf)],
     ['Stories',        fmt(deal.stories)],
     ['Units',          fmt(deal.units)],
-    ['Parking',        fmt(bj.parking_spaces)],
-    ['Construction',   fmt(bj.construction_type)],
+    ['Parking',        fmt(bj.parking_spaces ?? deal.parking_space_count)],
+    ['Construction',   fmt(bj.construction_type ?? deal.construction_type)],
+    ['Exterior Walls', fmt(bj.exterior_walls ?? deal.exterior_walls)],
+    ['Roof Type',      fmt(bj.roof_type ?? deal.roof_type)],
+    ['Foundation',     fmt(bj.foundation ?? deal.foundation)],
+    ['HVAC Cooling',   fmt(bj.hvac_cooling ?? deal.hvac_cooling)],
+    ['HVAC Heating',   fmt(bj.hvac_heating ?? deal.hvac_heating)],
+    ['Has Pool',       boolFmt(bj.has_pool ?? deal.has_pool)],
+    ['Has Elevator',   boolFmt(bj.has_elevator ?? deal.has_elevator)],
+    ['Sprinklers',     boolFmt(bj.has_fire_sprinklers ?? deal.has_fire_sprinklers)],
     ['Yr Renovated',   fmt(bj.year_renovated)],
   ];
 
   const zoningRows = [
-    ['Zoning Code',  fmt(deal.zoning)],
-    ['Jurisdiction', fmt(deal.city_jurisdiction)],
-    ['In ETJ',       deal.in_etj != null ? (deal.in_etj ? 'Yes' : 'No') : null],
-    ['ETJ City',     fmt(deal.etj_city)],
+    ['Zoning Code',     fmt(bj.zoning_code || deal.zoning) === '—' ? null : fmt(bj.zoning_code || deal.zoning)],
+    ['Jurisdiction',    fmt(deal.city_jurisdiction)],
+    ['In ETJ',          boolFmt(deal.in_etj)],
+    ['ETJ City',        fmt(deal.etj_city)],
+    ['Future Land Use', fmt(bj.future_land_use ?? deal.future_land_use)],
+    ['Opp. Zone',       boolFmt(bj.in_opportunity_zone ?? deal.in_opportunity_zone)],
+    ['TIF District',    fmt(bj.tif_district ?? deal.tif_district)],
+    ['Permit Count 5yr',hasVal(bj.permit_count_5yr ?? deal.permit_count_5yr) ? String(bj.permit_count_5yr ?? deal.permit_count_5yr) : null],
+    ['Last Permit',     fmt(bj.last_permit_date ?? deal.last_permit_date)],
+    ['Last Permit Type',fmt(bj.last_permit_type ?? deal.last_permit_type)],
   ];
 
   const contextRows = [
-    ['Submarket',    fmt(deal.submarket)],
-    ['MSA',          fmt(deal.msa)],
-    ['County',       fmt(deal.county)],
-    ['FIPS',         fmt(deal.fips)],
-    ['Census Tract', fmt(deal.census_tract ?? bj.censusTract)],
-    ['Latitude',     deal.lat ? deal.lat.toFixed(6) : null],
-    ['Longitude',    deal.lng ? deal.lng.toFixed(6) : null],
+    ['Submarket',       fmt(deal.submarket)],
+    ['MSA',             fmt(deal.msa)],
+    ['County',          fmt(deal.county)],
+    ['FIPS',            fmt(deal.fips ?? bj.fips)],
+    ['Census Tract',    fmt(deal.census_tract ?? bj.census_tract)],
+    ['School District', fmt(deal.school_district)],
+    ['Median HH Income',mon(deal.median_hh_income)],
+    ['% Renter Occ.',   hasVal(deal.pct_renter_occupied) ? (parseFloat(deal.pct_renter_occupied) * 100).toFixed(1) + '%' : null],
+    ['Nearest Road',    deal.nearest_road_name ? `${deal.nearest_road_name}${deal.nearest_road_aadt ? ` (${Number(deal.nearest_road_aadt).toLocaleString()} AADT)` : ''}` : null],
+    ['Latitude',        deal.lat ? deal.lat.toFixed(6) : null],
+    ['Longitude',       deal.lng ? deal.lng.toFixed(6) : null],
   ];
 
   const riskRows = [
-    ['Distress Score',  hasVal(score) ? String(Math.round(parseFloat(score))) : null],
-    ['Distress Tier',   fmt(deal.distress_tier)],
-    ['Tax Delinquent',  fmt(deal.tax_delinquent)],
-    ['Liens',           fmt(deal.liens)],
-    ['Code Violations', fmt(deal.code_violations)],
-    ['Vacancy Est.',    fmt(deal.vacancy_est)],
+    ['Distress Score',    hasVal(score) ? String(Math.round(parseFloat(score))) : null],
+    ['Distress Tier',     fmt(deal.distress_tier)],
+    ['Seller Motivation', hasVal(bj.seller_motivation_score ?? deal.seller_motivation_score) ? String(bj.seller_motivation_score ?? deal.seller_motivation_score) : null],
+    ['Tax Delinquent',    fmt(deal.tax_delinquent ?? deal.tax_delinquent_year ?? bj.tax_delinquent_year)],
+    ['Liens',             fmt(deal.liens)],
+    ['Code Violations',   fmt(deal.code_violations)],
+    ['Vacancy Est.',      fmt(deal.vacancy_est)],
   ];
 
   const dealIntelRows = [
-    ['Match Score', hasVal(deal.match_score) ? String(deal.match_score) : null],
-    ['Buy Box',     fmt(deal.buy_box_name)],
-    ['Status',      fmt(deal.status)],
-    ['Deal State',  fmt(deal.deal_state)],
-    ['Days Active', hasVal(deal.days) ? String(deal.days) + ' days' : null],
-    ['Feedback',    fmt(deal.feedback)],
-    ['Source',      fmt(deal.source)],
-    ['Enriched',    fmt(enriched)],
+    ['Match Score',       hasVal(deal.match_score) ? String(deal.match_score) : null],
+    ['Buy Box',           fmt(deal.buy_box_name)],
+    ['Status',            fmt(deal.status)],
+    ['Deal State',        fmt(deal.deal_state)],
+    ['Days Active',       hasVal(deal.days) ? String(deal.days) + ' days' : null],
+    ['Feedback',          fmt(deal.feedback)],
+    ['Source',            fmt(deal.source)],
+    ['Enriched',          fmt(enriched)],
+    ['Assemblage Score',  hasVal(bj.assemblage_score ?? deal.assemblage_score) ? String(bj.assemblage_score ?? deal.assemblage_score) : null],
+    ['Dev. Potential',    hasVal(bj.development_potential_score ?? deal.development_potential_score) ? String(bj.development_potential_score ?? deal.development_potential_score) : null],
+    ['Same-Owner Parcels',hasVal(deal.same_owner_parcel_count) ? String(deal.same_owner_parcel_count) : null],
   ];
 
   const salesHistory = Array.isArray(bj.sales_history) ? bj.sales_history : [];
 
   const metrics = [
     { label: 'Assessed Value', value: mon(deal.assessed_value ?? bj.assessed_value) },
-    { label: 'Lot Size',       value: sf(deal.lot_sf ?? bj.lot_sf) || (bj.lot_ac ? bj.lot_ac + ' ac' : null) },
+    { label: 'Lot Size',       value: sfVal(deal.lot_sf ?? bj.lot_sf) || (bj.lot_ac ? bj.lot_ac + ' ac' : null) },
     { label: 'Year Built',     value: fmt(deal.year_built) },
     { label: 'Hold Period',    value: bj.hold_years ? bj.hold_years + ' yrs' : null },
     { label: 'Owner Distance', value: ownerDistanceCell() },
@@ -388,6 +407,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
       <div className="dd-discovery-panel">
         <div className="dd-discovery-left">
           <span className="dd-discovery-eyebrow">AI Property Brief</span>
+          {bj.headline && <p className="dd-headline">{bj.headline}</p>}
           <p className={`dd-discovery-narrative${bj.narrative ? '' : ' dd-discovery-narrative--empty'}`}>
             {bj.narrative || 'No summary narrative available for this property.'}
           </p>
@@ -403,6 +423,12 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
               ))}
             </div>
           )}
+          {bj.next_action && (
+            <div className="dd-next-action">
+              <span className="dd-next-action-label">Recommended Action</span>
+              <span className="dd-next-action-text">{bj.next_action}</span>
+            </div>
+          )}
         </div>
         <div className="dd-discovery-right">
           <div className="dd-discovery-image">
@@ -412,9 +438,8 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
       </div>
 
       <div className="dd-body" style={{ flex: 1 }}>
-
         <div className="dd-cols">
-          {/* LEFT COLUMN: Property Record → Ownership → Financials → Capital Stack → Transactions */}
+
           <div className="dd-col">
 
             <div id="dd-property" className="dd-sec">
@@ -459,23 +484,23 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
             </div>
 
             <div id="dd-financials" className="dd-sec">
-              <SecHead title="Financials" date={enriched} />
+              <SecHead title="Financial Picture" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={financialsRows} />
-                <p className="dd-sec-source">Source: Nightdrop AVM · County Assessor</p>
+                <p className="dd-sec-source">Source: Nightdrop AVM · County Assessor · Tax Records</p>
               </div>
             </div>
 
             <div id="dd-capital" className="dd-sec">
-              <SecHead title="Capital Stack" date={enriched} />
+              <SecHead title="Loans &amp; Equity" date={enriched} />
               <div className="dd-sec-body">
                 {hasLoan ? (
                   <table className="dd-table">
                     <thead><tr><th>Lender</th><th>Amount</th><th>Rate</th><th>Due</th></tr></thead>
                     <tbody>
                       <tr>
-                        <td>{fmt(bj.lender)}</td>
-                        <td>{mon(bj.loan_amount)}</td>
+                        <td>{fmt(bj.lender ?? bj.first_lender_name)}</td>
+                        <td>{mon(bj.loan_amount ?? bj.first_loan_amount)}</td>
                         <td>{pct(bj.rate)}</td>
                         <td className="muted">{fmt(bj.due)}</td>
                       </tr>
@@ -489,7 +514,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
             </div>
 
             <div id="dd-transactions" className="dd-sec">
-              <SecHead title="Transactions" date={enriched} />
+              <SecHead title="Sales History" date={enriched} />
               <div className="dd-sec-body">
                 {salesHistory.length > 0 ? (
                   <table className="dd-table">
@@ -524,30 +549,45 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
 
           </div>
 
-          {/* RIGHT COLUMN: Site & Lot → Zoning → Site Context → Risk → Distress → Deal Intel */}
           <div className="dd-col">
 
             <div id="dd-site" className="dd-sec">
-              <SecHead title="Site &amp; Lot" date={enriched} />
+              <SecHead title="Site, Lot &amp; Physical" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={siteRows} />
-                <p className="dd-sec-source">Source: Nightdrop Data · County GIS</p>
+                <p className="dd-sec-source">Source: Nightdrop Data · County GIS · ATTOM</p>
               </div>
             </div>
 
             <div id="dd-zoning" className="dd-sec">
-              <SecHead title="Zoning" date={enriched} />
+              <SecHead title="Zoning &amp; Development" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={zoningRows} />
-                <p className="dd-sec-source">Source: City/County Zoning Records</p>
+                <p className="dd-sec-source">Source: City/County Zoning · GIS Profile · Building Permits</p>
               </div>
             </div>
 
             <div id="dd-context" className="dd-sec">
-              <SecHead title="Site Context" date={enriched} />
+              <SecHead title="Location Context" date={enriched} />
               <div className="dd-sec-body">
                 <Rows data={contextRows} />
                 <p className="dd-sec-source">Source: US Census · HUD · CoStar Submarket</p>
+              </div>
+            </div>
+
+            <div id="dd-foreclosure" className="dd-sec">
+              <SecHead title="Foreclosure" date={enriched} />
+              <div className="dd-sec-body">
+                <Rows data={foreclosureRows} />
+                <p className="dd-sec-source">Source: County Deed Records · Foreclosure Records</p>
+              </div>
+            </div>
+
+            <div id="dd-climate" className="dd-sec">
+              <SecHead title="Climate Risk" date={enriched} />
+              <div className="dd-sec-body">
+                <Rows data={climateRows} />
+                <p className="dd-sec-source">Source: First Street Foundation · FEMA · ATTOM</p>
               </div>
             </div>
 
@@ -573,10 +613,7 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
                         const type = (sig.type || sig.category || '').replace(/_/g, ' ') || 'General';
                         return (
                           <tr key={i}>
-                            <td>
-                              <span className={`dd-signal-dot ${dotColor}`} />
-                              {label}
-                            </td>
+                            <td><span className={`dd-signal-dot ${dotColor}`} />{label}</td>
                             <td className="muted" style={{ textTransform: 'capitalize' }}>{type}</td>
                             <td>
                               <Chip color={color === 'red' ? 'red' : color === 'amber' ? 'amber' : 'green'}>
@@ -605,7 +642,6 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
 
           </div>
 
-          {/* IMAGE SIDEBAR */}
           {(deal.lat && deal.lng) && (
             <div className="dd-img-sidebar">
               <div className="dd-img-thumb">
@@ -619,6 +655,15 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
             </div>
           )}
         </div>
+
+        {attomId && (
+          <div id="dd-portfolio" className="dd-sec dd-portfolio-sec">
+            <SecHead title="Owner Portfolio" />
+            <div className="dd-sec-body">
+              <OwnerPortfolio deal={deal} />
+            </div>
+          </div>
+        )}
 
         <div className="dd-footer-bar">
           <span>
