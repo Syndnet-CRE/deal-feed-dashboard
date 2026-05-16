@@ -9,8 +9,7 @@ import TopHeader from './components/TopHeader';
 import LeftPanel from './components/LeftPanel';
 import { DealDetail } from './components/DealDetail';
 import { ConfirmModal } from './components/ConfirmModal';
-import { BuyBoxWizard } from './components/BuyBoxWizard';
-import { BuyBoxEditModal } from './components/BuyBoxEditModal';
+import BuyBoxPage from './pages/BuyBoxPage';
 import { DashboardView } from './views/DashboardView';
 import { BuyBoxesView } from './views/BuyBoxesView';
 import { MapView } from './views/MapView';
@@ -101,40 +100,6 @@ function PauseBoxConfirm({ buyBox, onClose }) {
   );
 }
 
-function WizardLayer({ showWizard, editingBuyBox, editingGeoBuyBox, onboardingMatch, onDismissCreate, onDismissEdit, onDismissGeoEdit, addToast, handleSetView, navigate }) {
-  const { refetch } = useDeals();
-  return (
-    <>
-      {(showWizard || onboardingMatch) && (
-        <BuyBoxWizard
-          mode="create"
-          onSuccess={() => {
-            addToast('Buy box activated! We start tonight.', 'success');
-            onDismissCreate();
-            handleSetView('boxes');
-            refetch();
-          }}
-          onCancel={() => { onDismissCreate(); if (onboardingMatch) navigate('/dashboard', { replace: true }); }}
-        />
-      )}
-      {editingBuyBox && (
-        <BuyBoxEditModal
-          box={editingBuyBox}
-          onClose={onDismissEdit}
-          onSaved={() => { onDismissEdit(); refetch(); }}
-        />
-      )}
-      {editingGeoBuyBox && (
-        <BuyBoxEditModal
-          geoOnly
-          box={editingGeoBuyBox}
-          onClose={onDismissGeoEdit}
-          onSaved={() => { onDismissGeoEdit(); refetch(); }}
-        />
-      )}
-    </>
-  );
-}
 
 function AppShell() {
   const addToast = useToast();
@@ -145,14 +110,17 @@ function AppShell() {
   const onboardingMatch = useMatch('/onboarding');
   const [view, setView] = useState('dashboard');
   const [confirmDanger, setConfirmDanger] = useState(null);
-  const [showWizard, setShowWizard] = useState(false);
-  const [editingBuyBox, setEditingBuyBox] = useState(null);
-  const [editingGeoBox, setEditingGeoBox] = useState(null);
   const [pausingBuyBox, setPausingBuyBox] = useState(null);
   const [kpis, setKpis] = useState(null);
   const [feedFilter, setFeedFilter] = useState('all');
 
   const isOnDeal = !!dealMatch;
+
+  useEffect(() => {
+    if (onboardingMatch) {
+      navigate('/buy-boxes/new', { replace: true });
+    }
+  }, [onboardingMatch, navigate]);
   const isModal  = isOnDeal && !!location.state?.fromMap;
   const noScroll = view === 'map';
 
@@ -182,10 +150,7 @@ function AppShell() {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key !== 'Escape') return;
-      setShowWizard(prev => (prev ? false : prev));
       setConfirmDanger(prev => (prev ? null : prev));
-      setEditingBuyBox(prev => (prev ? null : prev));
-      setEditingGeoBox(prev => (prev ? null : prev));
       setPausingBuyBox(prev => (prev ? null : prev));
     };
     window.addEventListener('keydown', onKey);
@@ -221,7 +186,7 @@ function AppShell() {
             view={isOnDeal && !isModal ? null : view}
             setView={handleSetView}
             kpis={kpis}
-            onCreateBuyBox={() => setShowWizard(true)}
+            onCreateBuyBox={() => navigate('/buy-boxes/new')}
             unreadCount={kpis?.unread_count || 0}
             feedFilter={feedFilter}
             setFeedFilter={setFeedFilter}
@@ -229,6 +194,8 @@ function AppShell() {
 
           <main className={`app-content${noScroll ? ' no-scroll' : ''}`} data-screen-label={view}>
             <Routes>
+              <Route path="/buy-boxes/new" element={<BuyBoxPage mode="new" />} />
+              <Route path="/buy-boxes/:id/edit" element={<BuyBoxPage mode="edit" />} />
               <Route path="/*" element={
                 <>
                   {isOnDeal && !isModal && (
@@ -248,9 +215,9 @@ function AppShell() {
                       {view === 'map'      && <MapView onOpenDeal={handleOpenDeal}/>}
                       {view === 'boxes'    && (
                         <BuyBoxesView
-                          onCreate={() => setShowWizard(true)}
-                          onEdit={setEditingBuyBox}
-                          onEditGeo={setEditingGeoBox}
+                          onCreate={() => navigate('/buy-boxes/new')}
+                          onEdit={(box) => navigate('/buy-boxes/' + box.id + '/edit')}
+                          onEditGeo={(box) => navigate('/buy-boxes/' + box.id + '/edit')}
                           onPause={setPausingBuyBox}
                         />
                       )}
@@ -277,19 +244,7 @@ function AppShell() {
         </div>
 
         {confirmDanger && <ConfirmModal kind={confirmDanger} onClose={() => setConfirmDanger(null)}/>}
-        {pausingBuyBox && <PauseBoxConfirm buyBox={pausingBuyBox} onClose={() => setPausingBuyBox(null)}/>}
-        <WizardLayer
-          showWizard={showWizard}
-          editingBuyBox={editingBuyBox}
-          editingGeoBuyBox={editingGeoBox}
-          onboardingMatch={onboardingMatch}
-          onDismissCreate={() => setShowWizard(false)}
-          onDismissEdit={() => setEditingBuyBox(null)}
-          onDismissGeoEdit={() => setEditingGeoBox(null)}
-          addToast={addToast}
-          handleSetView={handleSetView}
-          navigate={navigate}
-        />
+        {pausingBuyBox && <PauseBoxConfirm buyBox={pausingBuyBox} onClose={() => setPausingBuyBox(null)}/> }
       </div>
     </DealsProvider>
     </DealStateProvider>

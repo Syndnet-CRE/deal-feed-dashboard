@@ -45,10 +45,12 @@ export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter
     const prev = prevCountRef.current;
     if (matchCount === prev) return;
     prevCountRef.current = matchCount;
-    setDelta(matchCount - prev);
-    setPulse(true);
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setPulse(false), 600);
+    if (matchCount !== null && matchCount !== undefined && prev !== null && prev !== undefined) {
+      setDelta(matchCount - prev);
+      setPulse(true);
+      clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => setPulse(false), 600);
+    }
   }, [matchCount]);
 
   const { equityVal, equitySub, holdVal, holdSub, occupancyVal, occupancySub } = deriveStatTrio(form)
@@ -67,7 +69,7 @@ export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter
         <div className="quote-block">
           <div className="quote-label">Live match pool</div>
           <div className={`quote-value${pulse ? ' recalc' : ''}`}>
-            {matchCount.toLocaleString('en-US')}
+            {matchCount !== null && matchCount !== undefined ? matchCount.toLocaleString('en-US') : '--'}
           </div>
           {delta !== 0 && (
             <div className="quote-delta">
