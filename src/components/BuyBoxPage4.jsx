@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Ic } from './buybox-icons'
 
 const SIGNALS = [
@@ -71,11 +72,27 @@ const SIGNALS = [
     count: 384_600,
     desc: 'No recorded mortgage — owner has full equity and no debt service pressure.',
   },
+  {
+    id: 'near-mortgage-maturity',
+    icon: 'maturity',
+    title: 'Balloon or ARM reset within 18 months',
+    count: 4_709,
+    desc: 'Mortgage balloon payment or adjustable-rate reset due within 18 months — payment shock risk.',
+  },
+  {
+    id: 'prior-foreclosure-auction',
+    icon: 'gavel',
+    title: 'Prior foreclosure auction on record',
+    count: 6_601,
+    desc: 'Property was previously sold at a foreclosure auction — history of distressed ownership.',
+  },
 ]
 
 export function BuyBoxPage4({ form, setForm }) {
   const signals = form.signals || []
   const logic = form.logic || 'OR'
+  const distressFloor = form.distress_floor || ''
+  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   const toggle = id => {
     setForm({
@@ -144,6 +161,33 @@ export function BuyBoxPage4({ form, setForm }) {
               OR
             </button>
           </div>
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <button
+            onClick={() => setAdvancedOpen(o => !o)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--fg-mute)', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}
+          >
+            <span style={{ fontSize: 9 }}>{advancedOpen ? '▲' : '▼'}</span> ADVANCED
+          </button>
+          {advancedOpen && (
+            <div style={{ padding: '14px 0 4px' }}>
+              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 10 }}>
+                Distress score floor — minimum score a property must carry to qualify
+              </div>
+              <div className="preset-row">
+                {[{ label: 'Any', value: '' }, { label: '30+', value: '30' }, { label: '40+', value: '40' }, { label: '60+', value: '60' }].map(o => (
+                  <button
+                    key={o.value}
+                    className={`preset-chip${distressFloor === o.value ? ' on' : ''}`}
+                    onClick={() => setForm({ ...form, distress_floor: o.value })}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

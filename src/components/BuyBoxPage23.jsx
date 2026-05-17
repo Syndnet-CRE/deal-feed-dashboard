@@ -51,17 +51,18 @@ function Toggle({ checked, onChange }) {
 }
 
 const UNITS_CLASSES = new Set(['multifamily'])
-const CLEAR_HEIGHT_CLASSES = new Set(['industrial'])
 const NO_STORIES_CLASSES = new Set(['land'])
+const SFR_CLASSES = new Set(['sfr'])
 
 export function BuyBoxPage2({ form, setForm }) {
-  const phys = form.phys || { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '', clear_height_min: '', clear_height_max: '' }
+  const phys = form.phys || { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '', beds_min: '', baths_min: '' }
   const fin = form.fin || { price_min: '', price_max: '', equity_preset: '', assessed_below_market: false }
   const assetClass = (form.assets || [])[0] || ''
 
   const showUnits = UNITS_CLASSES.has(assetClass)
-  const showClearHeight = CLEAR_HEIGHT_CLASSES.has(assetClass)
   const showStories = !NO_STORIES_CLASSES.has(assetClass)
+  const showBeds = SFR_CLASSES.has(assetClass)
+  const showBaths = SFR_CLASSES.has(assetClass)
 
   const setRange = (key, type, v) => {
     setForm({
@@ -122,14 +123,39 @@ export function BuyBoxPage2({ form, setForm }) {
               </div>
             </RangeRow>
           )}
-          {showClearHeight && (
-            <RangeRow label="Clear height" hint="feet — industrial / warehouse">
-              <RangeInputs minV={phys.clear_height_min} maxV={phys.clear_height_max} onMin={v => setRange('clear_height', 'min', v)} onMax={v => setRange('clear_height', 'max', v)} unit="ft" step={1} />
-            </RangeRow>
-          )}
           {showUnits && (
             <RangeRow label="Unit count" hint="multifamily">
               <RangeInputs minV={phys.units_min} maxV={phys.units_max} onMin={v => setRange('units', 'min', v)} onMax={v => setRange('units', 'max', v)} unit="units" />
+            </RangeRow>
+          )}
+          {showBeds && (
+            <RangeRow label="Bedrooms minimum" hint="SFR">
+              <div className="preset-row">
+                {[{ label: 'Any', value: '' }, { label: '2+', value: '2' }, { label: '3+', value: '3' }, { label: '4+', value: '4' }].map(o => (
+                  <button
+                    key={o.value}
+                    className={`preset-chip${phys.beds_min === o.value ? ' on' : ''}`}
+                    onClick={() => setRange('beds', 'min', phys.beds_min === o.value && o.value !== '' ? '' : o.value)}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </RangeRow>
+          )}
+          {showBaths && (
+            <RangeRow label="Bathrooms minimum" hint="SFR">
+              <div className="preset-row">
+                {[{ label: 'Any', value: '' }, { label: '1+', value: '1' }, { label: '2+', value: '2' }, { label: '3+', value: '3' }].map(o => (
+                  <button
+                    key={o.value}
+                    className={`preset-chip${phys.baths_min === o.value ? ' on' : ''}`}
+                    onClick={() => setRange('baths', 'min', phys.baths_min === o.value && o.value !== '' ? '' : o.value)}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
             </RangeRow>
           )}
         </div>
@@ -143,7 +169,7 @@ export function BuyBoxPage2({ form, setForm }) {
           <span className="section-meta">Public records + V1 valuation</span>
         </div>
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border-sub)', borderRadius: 'var(--r-card)', padding: '4px 24px' }}>
-          <RangeRow label="Last sale price" hint="USD">
+          <RangeRow label="Assessed value" hint="tax record, not sale price">
             <RangeInputs minV={fin.price_min} maxV={fin.price_max} onMin={v => setFinRange('price', 'min', v)} onMax={v => setFinRange('price', 'max', v)} unit="$" step={50000} />
           </RangeRow>
           <RangeRow label="Minimum owner equity" hint="percent of current value">

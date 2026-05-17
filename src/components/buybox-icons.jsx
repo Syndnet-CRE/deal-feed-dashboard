@@ -154,4 +154,11 @@ export const Ic = {
       <circle cx="12" cy="16" r="1.5" />
     </svg>
   ),
+  maturity: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M16 2 V6 M8 2 V6 M3 9 H21" />
+      <path d="M12 12 V15 L14 17" />
+    </svg>
+  ),
 };

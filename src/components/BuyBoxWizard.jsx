@@ -25,11 +25,12 @@ const NATIVE_FORM = {
   assets: [],
   subtypes: [],
   geo: { states: [], counties: [], metros: [], zips: [] },
-  phys: { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '', clear_height_min: '', clear_height_max: '' },
+  phys: { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '', beds_min: '', baths_min: '' },
   fin: { price_min: '', price_max: '', equity_preset: '', assessed_below_market: false },
   owner: { entity: '', occupancy: '', hold_min: '', hold_max: '', out_of_state: false },
   signals: [],
   logic: 'OR',
+  distress_floor: '',
   risk: { climate: 10, flood: false, wildfire: 10, wildfireOpen: false, heat: 10, heatOpen: false },
   threshold: 'balanced',
   delivery: { cadence: 'daily', max: 5 },
@@ -69,7 +70,8 @@ function toNativeForm(b) {
       acres_min: b.acres_min ?? '', acres_max: b.acres_max ?? '',
       year_min: b.year_built_min ?? '', year_max: b.year_built_max ?? '',
       stories_min: b.stories_min ?? '', units_min: b.units_min ?? '', units_max: b.units_max ?? '',
-      clear_height_min: b.clear_height_min ?? '', clear_height_max: b.clear_height_max ?? '',
+      beds_min: b.bedrooms_count_min ? String(b.bedrooms_count_min) : '',
+      baths_min: b.bath_count_min ? String(b.bath_count_min) : '',
     },
     fin: {
       price_min: b.value_min ?? '', price_max: b.value_max ?? '',
@@ -83,6 +85,7 @@ function toNativeForm(b) {
     },
     signals: b.distress_signals || [],
     logic: b.distress_match_mode ? b.distress_match_mode.toUpperCase() : 'OR',
+    distress_floor: b.distress_score_min ? String(b.distress_score_min) : '',
     risk: {
       climate: b.climate_risk_max ? b.climate_risk_max / 10 : 10,
       flood: b.flood_exclude || false,
@@ -116,7 +119,8 @@ function nativeToPayload(form) {
     year_built_min: toNum(form.phys.year_min), year_built_max: toNum(form.phys.year_max),
     stories_min: toNum(form.phys.stories_min),
     units_min: toNum(form.phys.units_min), units_max: toNum(form.phys.units_max),
-    clear_height_min: toNum(form.phys.clear_height_min), clear_height_max: toNum(form.phys.clear_height_max),
+    bedrooms_count_min: toNum(form.phys.beds_min),
+    bath_count_min: toNum(form.phys.baths_min),
     value_min: toNum(form.fin.price_min), value_max: toNum(form.fin.price_max),
     min_equity_pct: form.fin.equity_preset ? (EQUITY_MAP[form.fin.equity_preset] ?? null) : null,
     assessed_below_market: form.fin.assessed_below_market || false,
@@ -133,7 +137,8 @@ function nativeToPayload(form) {
     heat_risk_max: form.risk.heat < 10 ? form.risk.heat * 10 : null,
     match_threshold: THRESHOLD_MAP[form.threshold] ?? 0.80,
     run_schedule: form.delivery.cadence === 'weekly' ? { days: ['mon'] } : { days: ['mon','tue','wed','thu','fri','sat','sun'] },
-    delivery_max_per_run: 5,
+    delivery_max_per_run: form.delivery.max || 5,
+    distress_score_min: toNum(form.distress_floor) || null,
   };
 }
 
