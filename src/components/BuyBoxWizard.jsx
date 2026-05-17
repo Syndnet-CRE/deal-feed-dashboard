@@ -6,6 +6,7 @@ import { BuyBoxPage2, BuyBoxPage3 } from './BuyBoxPage23';
 import { BuyBoxPage4 } from './BuyBoxPage4';
 import { BuyBoxPage5 } from './BuyBoxPage5';
 import { BuyBoxPage6 } from './BuyBoxPage6';
+import { BuyBoxPage7 } from './BuyBoxPage7';
 import { BuyBoxRightRail } from './BuyBoxRightRail';
 import { Ic } from './buybox-icons';
 import BuyBoxActivatedDialog from './BuyBoxActivatedDialog';
@@ -17,8 +18,9 @@ const STEPS = [
   { id: 2, label: 'Profile' },
   { id: 3, label: 'Owner' },
   { id: 4, label: 'Distress' },
-  { id: 5, label: 'Threshold' },
-  { id: 6, label: 'Activate' },
+  { id: 5, label: 'Location' },
+  { id: 6, label: 'Threshold' },
+  { id: 7, label: 'Activate' },
 ];
 
 const NATIVE_FORM = {
@@ -32,6 +34,7 @@ const NATIVE_FORM = {
   logic: 'OR',
   distress_floor: '',
   risk: { climate: 10, flood: false, wildfire: 10, wildfireOpen: false, heat: 10, heatOpen: false },
+  underimproved_land: false,
   threshold: 'balanced',
   delivery: { cadence: 'daily', max: 5 },
   name: '',
@@ -94,6 +97,7 @@ function toNativeForm(b) {
       heat: b.heat_risk_max ? b.heat_risk_max / 10 : 10,
       heatOpen: false,
     },
+    underimproved_land: b.underimproved_land || false,
     threshold: reversedThreshold,
     delivery: {
       cadence: b.run_schedule?.days?.length === 1 ? 'weekly' : 'daily',
@@ -135,6 +139,7 @@ function nativeToPayload(form) {
     flood_exclude: form.risk.flood || false,
     wildfire_risk_max: form.risk.wildfire < 10 ? form.risk.wildfire * 10 : null,
     heat_risk_max: form.risk.heat < 10 ? form.risk.heat * 10 : null,
+    underimproved_land: form.underimproved_land || false,
     match_threshold: THRESHOLD_MAP[form.threshold] ?? 0.80,
     run_schedule: form.delivery.cadence === 'weekly' ? { days: ['mon'] } : { days: ['mon','tue','wed','thu','fri','sat','sun'] },
     delivery_max_per_run: form.delivery.max || 5,
@@ -158,6 +163,7 @@ function buildFilters(form) {
   if (form.signals.length) out.push({ id: 'signals', label: form.logic, val: `${form.signals.length} signals` });
   if (form.risk.climate < 10) out.push({ id: 'climate', label: 'Climate', val: `≤${form.risk.climate}` });
   if (form.risk.flood) out.push({ id: 'flood', label: '', val: 'No floodplain' });
+  if (form.underimproved_land) out.push({ id: 'underimproved', label: '', val: 'Underimproved land' });
   return out;
 }
 
@@ -181,6 +187,7 @@ function buildSummary(form) {
   if (form.signals.length) arr.push({ label: form.logic, val: `${form.signals.length} signals` });
   if (form.risk.climate < 10) arr.push({ label: 'Climate', val: `≤${form.risk.climate}/10` });
   if (form.risk.flood) arr.push({ label: '', val: 'No floodplain' });
+  if (form.underimproved_land) arr.push({ label: '', val: 'Underimproved land' });
   return arr;
 }
 
@@ -204,7 +211,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
   const filterKey = JSON.stringify({
     assets: form.assets, geo: form.geo, phys: form.phys, fin: form.fin,
     owner: form.owner, signals: form.signals, logic: form.logic,
-    risk: form.risk, threshold: form.threshold,
+    risk: form.risk, underimproved_land: form.underimproved_land, threshold: form.threshold,
   });
 
   useEffect(() => {
@@ -226,9 +233,9 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-        if (page < 6 && canGoNext(page, formRef.current)) setPage(p => p + 1);
+        if (page < 7 && canGoNext(page, formRef.current)) setPage(p => p + 1);
       }
-      if (e.key === 'ArrowRight' && e.altKey && page < 6) setPage(p => p + 1);
+      if (e.key === 'ArrowRight' && e.altKey && page < 7) setPage(p => p + 1);
       if (e.key === 'ArrowLeft' && e.altKey && page > 1) setPage(p => p - 1);
       if (e.key === 'Escape') onCancel();
     };
@@ -273,6 +280,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
     else if (id === 'signals') setForm({ ...f, signals: [] });
     else if (id === 'climate') setForm({ ...f, risk: { ...f.risk, climate: 10 } });
     else if (id === 'flood') setForm({ ...f, risk: { ...f.risk, flood: false } });
+    else if (id === 'underimproved') setForm({ ...f, underimproved_land: false });
   };
 
   const renderPage = () => {
@@ -281,8 +289,9 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
       case 2: return <BuyBoxPage2 form={form} setForm={setForm} />;
       case 3: return <BuyBoxPage3 form={form} setForm={setForm} />;
       case 4: return <BuyBoxPage4 form={form} setForm={setForm} />;
-      case 5: return <BuyBoxPage5 form={form} setForm={setForm} />;
-      case 6: return <BuyBoxPage6 form={form} setForm={setForm} matchCount={form.matchCount} summary={summary} onActivate={handleActivate} activating={activating} goToStep={setPage} />;
+      case 5: return <BuyBoxPage5 form={form} setForm={setForm} assetClass={form.assets[0]} />;
+      case 6: return <BuyBoxPage6 form={form} setForm={setForm} />;
+      case 7: return <BuyBoxPage7 form={form} setForm={setForm} matchCount={form.matchCount} summary={summary} onActivate={handleActivate} activating={activating} goToStep={setPage} />;
       default: return null;
     }
   };
@@ -338,7 +347,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
 
           <div className="topbar-right">
             <button className="icon-btn" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} aria-label="Previous step">←</button>
-            <button className="icon-btn" onClick={() => page < 6 && canGoNext(page, form) && setPage(p => p + 1)} disabled={page === 6 || !canGoNext(page, form)} aria-label="Next step">→</button>
+            <button className="icon-btn" onClick={() => page < 7 && canGoNext(page, form) && setPage(p => p + 1)} disabled={page === 7 || !canGoNext(page, form)} aria-label="Next step">→</button>
             <span style={{ margin: '0 8px', color: 'var(--border-hi)' }}>|</span>
             <span>Next</span>
             <span className="kbd">⌘↵</span>
@@ -359,7 +368,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
               </button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-mute)' }}>
-                  Step {page} of 6 · {form.matchCount.toLocaleString('en-US')} matches
+                  Step {page} of 7 · {form.matchCount.toLocaleString('en-US')} matches
                 </span>
                 {page < 6 ? (
                   <button className="btn btn-primary" onClick={() => setPage(p => p + 1)} disabled={!canGoNext(page, form)}>

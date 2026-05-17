@@ -1,99 +1,72 @@
-import { Ic } from './buybox-icons'
-
-const CADENCES = [
-  { id: 'daily', title: 'Daily', sub: 'Top matches every morning', time: '06:00 AM EST' },
-  { id: 'weekly', title: 'Weekly', sub: 'Curated digest each Monday', time: 'Mon 07:00 AM' },
-  { id: 'realtime', title: 'Real-time', sub: 'Pushed as they hit the criteria', time: 'No SLA' },
+const THRESHOLDS = [
+  { id: 'volume', pct: 70, title: 'Volume', sub: 'More deals, wider funnel',
+    desc: "You'll get more deals. Some won't check every box but they're still worth a look. Good for investors who want a wide funnel and are comfortable filtering themselves.",
+    deals: [15, 25] },
+  { id: 'balanced', pct: 80, title: 'Balanced', sub: 'The default',
+    desc: 'Properties need to hit most of your criteria to land in your feed. This is where most active buyers want to be.',
+    deals: [8, 15] },
+  { id: 'precision', pct: 90, title: 'Precision', sub: 'Fewer deals, tighter signal',
+    desc: 'Every property that comes through hits almost everything you set. Good for investors who want to move fast when something lands, not sort through volume.',
+    deals: [2, 6] },
 ]
 
-export function BuyBoxPage6({ form, setForm, matchCount, summary, onActivate, activating, goToStep }) {
-  const name = form.name || ''
+export function BuyBoxPage6({ form, setForm }) {
+  const threshold = form.threshold || 'balanced'
   const delivery = form.delivery || { cadence: 'daily', max: 25 }
-  const cadence = CADENCES.find(c => c.id === delivery.cadence) ?? CADENCES[0]
+  const matchCount = form.matchCount || 0
+
+  const active = THRESHOLDS.find(t => t.id === threshold) || THRESHOLDS[1]
+
+  const passedPool = Math.max(8, Math.round(matchCount * (active.pct === 70 ? 0.045 : active.pct === 80 ? 0.022 : 0.008)))
 
   return (
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">06/06</span>
+          <span className="mono-step mono">06/07</span>
           <span className="sep" />
-          <span>Review & activate</span>
+          <span>Match threshold</span>
         </div>
-        <h1 className="page-title">Last look before it goes live.</h1>
-        <p className="page-sub">Name the buy box, confirm your filters, and pick how often Nightdrop should send matches. You can pause or revise from the dashboard anytime.</p>
+        <h1 className="page-title">How good does a match need to be?</h1>
+        <p className="page-sub">The threshold sets overall quality. Tighter means fewer, better matches. Looser means more deals to sort through. You can change this anytime from the dashboard.</p>
       </header>
 
-      <div className="review-hero">
-        <div>
-          <div className="quote-label">Buy box name</div>
-          <input
-            className="review-name-input"
-            value={name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            placeholder="Sun Belt SFR distress — Q2 '26"
-          />
-          <div className="review-meta">UUID bb-{Math.abs(name.length * 31337 + 124).toString(16).padStart(8,'0').slice(0,8)} · last edited just now</div>
-        </div>
-        <div className="review-count">
-          <div className="review-count-label">Live match pool</div>
-          <div className="review-count-val">{matchCount.toLocaleString('en-US')}</div>
-          <div className="review-count-sub">↑ ready for delivery</div>
-        </div>
-      </div>
-
-      <div className="review-section">
-        <div className="review-section-title">
-          <span>Filters</span>
-          <button className="review-section-edit" onClick={() => goToStep?.(1)}>Edit ↗</button>
-        </div>
-        <div className="review-chips">
-          {summary.length === 0 && <span className="caption">No filters configured — your match pool is the entire universe.</span>}
-          {summary.map((s, i) => (
-            <span key={i} className="f-chip">
-              <span className="label">{s.label}</span>
-              <span className="val">{s.val}</span>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="review-section">
-        <div className="review-section-title">
-          <span>Delivery cadence</span>
-          <button className="review-section-edit" onClick={() => goToStep?.(5)}>Connect to email →</button>
-        </div>
-        <div className="delivery-grid">
-          {CADENCES.map(c => (
-            <button
-              key={c.id}
-              className={`delivery${delivery.cadence === c.id ? ' on' : ''}`}
-              onClick={() => setForm({ ...form, delivery: { ...delivery, cadence: c.id } })}
-            >
-              <div className="delivery-head">
-                <span className="delivery-title">{c.title}</span>
-                <span className="delivery-radio" />
-              </div>
-              <div className="delivery-sub">{c.sub}</div>
-              <div className="delivery-time">{c.time}</div>
-            </button>
-          ))}
+      <section className="section">
+        <div className="section-head">
+          <div className="section-title">
+            <span className="section-title-num">A</span> Match threshold
+          </div>
+          <span className="section-meta">Pick one</span>
         </div>
 
-      </div>
-
-      <div className="activate-ribbon">
-        <div className="activate-ribbon-text">
-          You're about to activate <strong>{name || 'this buy box'}</strong>.{' '}
-          {cadence.id === 'realtime'
-            ? <>Matches will be pushed <strong>as they arrive</strong>.</>
-            : <>The first batch will land in your inbox at <strong>{cadence.time}</strong>.</>
-          }{' '}
-          Pause or adjust anytime — no charges either way.
+        <div className="threshold-grid">
+          {THRESHOLDS.map(t => {
+            const on = threshold === t.id
+            return (
+              <button
+                key={t.id}
+                className={`threshold${on ? ' on' : ''}`}
+                onClick={() => setForm({ ...form, threshold: t.id })}
+              >
+                <div className="threshold-pct mono">{t.pct}<span className="threshold-pct-sym">%{t.id === 'precision' ? '+' : ''}</span></div>
+                <div className="threshold-title">{t.title}</div>
+                <div className="threshold-sub">{t.sub}</div>
+                <div className="threshold-desc">{t.desc}</div>
+                <div className="threshold-radio" />
+              </button>
+            )
+          })}
         </div>
-        <button className="btn btn-fire" onClick={onActivate} disabled={activating} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {activating ? 'Placing trade…' : <>Activate buy box <Ic.zap width="16" height="16" /></>}
-        </button>
-      </div>
+
+        <div className="threshold-estimate">
+          <span className="threshold-estimate-dot" />
+          <span>
+            At <strong className="mono">{active.pct}%{active.id === 'precision' ? '+' : ''}</strong> threshold,
+            your current criteria match approximately <strong className="mono">{passedPool.toLocaleString('en-US')}</strong> properties.
+            You'll receive <strong className="mono">up to 5</strong> deals per delivery.
+          </span>
+        </div>
+      </section>
     </div>
   )
 }

@@ -1,70 +1,72 @@
-const THRESHOLDS = [
-  { id: 'volume', pct: 70, title: 'Volume', sub: 'More deals, wider funnel',
-    desc: "You'll get more deals. Some won't check every box but they're still worth a look. Good for investors who want a wide funnel and are comfortable filtering themselves.",
-    deals: [15, 25] },
-  { id: 'balanced', pct: 80, title: 'Balanced', sub: 'The default',
-    desc: 'Properties need to hit most of your criteria to land in your feed. This is where most active buyers want to be.',
-    deals: [8, 15] },
-  { id: 'precision', pct: 90, title: 'Precision', sub: 'Fewer deals, tighter signal',
-    desc: 'Every property that comes through hits almost everything you set. Good for investors who want to move fast when something lands, not sort through volume.',
-    deals: [2, 6] },
-]
+function Toggle({ checked, onChange }) {
+  return (
+    <div
+      className={`toggle${checked ? ' on' : ''}`}
+      style={{ cursor: 'pointer' }}
+      onClick={onChange}
+    />
+  )
+}
 
-export function BuyBoxPage5({ form, setForm }) {
-  const threshold = form.threshold || 'balanced'
-  const delivery = form.delivery || { cadence: 'daily', max: 25 }
-  const matchCount = form.matchCount || 0
-
-  const active = THRESHOLDS.find(t => t.id === threshold) || THRESHOLDS[1]
-
-  const passedPool = Math.max(8, Math.round(matchCount * (active.pct === 70 ? 0.045 : active.pct === 80 ? 0.022 : 0.008)))
+export function BuyBoxPage5({ form, setForm, assetClass }) {
+  const floodExclude = form.risk?.flood || false
+  const underimprovedLand = form.underimproved_land || false
+  const isLandClass = form.assets?.includes('land') || assetClass === 'land'
 
   return (
     <div className="page-fade">
       <header className="page-head">
         <div className="page-eyebrow">
-          <span className="mono-step mono">05/06</span>
+          <span className="mono-step mono">05/07</span>
           <span className="sep" />
-          <span>Match threshold</span>
+          <span>Location rules</span>
         </div>
-        <h1 className="page-title">How good does a match need to be?</h1>
-        <p className="page-sub">The threshold sets overall quality. Tighter means fewer, better matches. Looser means more deals to sort through. You can change this anytime from the dashboard.</p>
+        <h1 className="page-title">Where should we exclude?</h1>
+        <p className="page-sub">Apply geographic and land use filters to refine your target universe.</p>
       </header>
 
       <section className="section">
         <div className="section-head">
           <div className="section-title">
-            <span className="section-title-num">A</span> Match threshold
+            <span className="section-title-num">A</span> Location rules
           </div>
-          <span className="section-meta">Pick one</span>
+          <span className="section-meta">Toggle as needed</span>
         </div>
 
-        <div className="threshold-grid">
-          {THRESHOLDS.map(t => {
-            const on = threshold === t.id
-            return (
-              <button
-                key={t.id}
-                className={`threshold${on ? ' on' : ''}`}
-                onClick={() => setForm({ ...form, threshold: t.id })}
-              >
-                <div className="threshold-pct mono">{t.pct}<span className="threshold-pct-sym">%{t.id === 'precision' ? '+' : ''}</span></div>
-                <div className="threshold-title">{t.title}</div>
-                <div className="threshold-sub">{t.sub}</div>
-                <div className="threshold-desc">{t.desc}</div>
-                <div className="threshold-radio" />
-              </button>
-            )
-          })}
-        </div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border-sub)', borderRadius: 'var(--r-card)', padding: '4px 24px' }}>
+          <div style={{ padding: '18px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--fg)', fontWeight: 600 }}>Exclude floodplain properties</div>
+              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 4 }}>Filters out parcels in FEMA-designated flood zones</div>
+            </div>
+            <Toggle
+              checked={floodExclude}
+              onChange={() =>
+                setForm({
+                  ...form,
+                  risk: { ...form.risk, flood: !floodExclude },
+                })
+              }
+            />
+          </div>
 
-        <div className="threshold-estimate">
-          <span className="threshold-estimate-dot" />
-          <span>
-            At <strong className="mono">{active.pct}%{active.id === 'precision' ? '+' : ''}</strong> threshold,
-            your current criteria match approximately <strong className="mono">{passedPool.toLocaleString('en-US')}</strong> properties.
-            You'll receive <strong className="mono">up to 5</strong> deals per delivery.
-          </span>
+          {isLandClass && (
+            <div style={{ padding: '18px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-sub)' }}>
+              <div>
+                <div style={{ fontSize: 13, color: 'var(--fg)', fontWeight: 600 }}>Underimproved land only</div>
+                <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 4 }}>Land parcels where improvement value is less than 30% of land value</div>
+              </div>
+              <Toggle
+                checked={underimprovedLand}
+                onChange={() =>
+                  setForm({
+                    ...form,
+                    underimproved_land: !underimprovedLand,
+                  })
+                }
+              />
+            </div>
+          )}
         </div>
       </section>
     </div>
