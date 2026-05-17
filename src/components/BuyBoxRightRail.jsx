@@ -23,7 +23,7 @@ function deriveStatTrio(form) {
   return { equityVal, equitySub, holdVal, holdSub, occupancyVal, occupancySub }
 }
 
-export function BuyBoxRightRail({ matchCount, filters, geoStates, onRemoveFilter, form }) {
+export function BuyBoxRightRail({ matchCount, filters = [], geoStates = [], onRemoveFilter, form }) {
   const [clock, setClock] = useState(() => {
     const now = new Date();
     return `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;

@@ -2,17 +2,20 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
+import http from 'http';
 import https from 'https';
 import { fileURLToPath } from 'url';
 import { Buffer } from 'buffer';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const API_TARGET = process.env.API_TARGET || 'https://nightdrop-api.onrender.com';
+const _apiUrl = new URL(API_TARGET);
 
 // DEV ONLY: exposes /__dev_login on the Vite dev server. Reads creds from
-// .dev-auth.json (gitignored, project-local), POSTs to the production backend,
-// returns the token to the frontend. Lets localhost auto-authenticate without
-// ever showing a login screen. The endpoint does NOT exist in production
-// builds — Netlify only serves dist/, never runs Vite middleware.
+// .dev-auth.json (gitignored, project-local), POSTs to the API backend
+// (local or production depending on API_TARGET), returns the token to the
+// frontend. Lets localhost auto-authenticate without ever showing a login screen.
+// The endpoint does NOT exist in production builds.
 function devAuthPlugin() {
   return {
     name: 'dev-auth-login',
@@ -47,10 +50,11 @@ function devAuthPlugin() {
           return;
         }
         const body = JSON.stringify({ email: creds.email, password: creds.password });
-        const apiReq = https.request(
+        const transport = _apiUrl.protocol === 'https:' ? https : http;
+        const apiReq = transport.request(
           {
-            hostname: 'nightdrop-api.onrender.com',
-            port: 443,
+            hostname: _apiUrl.hostname,
+            port: _apiUrl.port || (_apiUrl.protocol === 'https:' ? 443 : 80),
             path: '/api/dealfeed/auth/login',
             method: 'POST',
             headers: {
@@ -85,9 +89,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://nightdrop-api.onrender.com',
+        target: API_TARGET,
         changeOrigin: true,
-        secure: true,
+        secure: API_TARGET.startsWith('https'),
       },
     },
   },
