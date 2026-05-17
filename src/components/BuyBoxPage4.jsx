@@ -1,13 +1,77 @@
 import { Ic } from './buybox-icons'
 
 const SIGNALS = [
-  { id: 'foreclosure', icon: 'gavel', title: 'In active foreclosure', count: 84_200, desc: 'Notice of default, lis pendens, or scheduled auction within the next 180 days.' },
-  { id: 'ltv', icon: 'ltv', title: 'High LTV (80%+)', count: 412_800, desc: 'Outstanding loan balance exceeds 80% of current estimated value.' },
-  { id: 'arm', icon: 'arm', title: 'ARM or variable rate', count: 226_400, desc: 'Mortgage is adjustable-rate or has a balloon payment within 24 months.' },
-  { id: 'equity', icon: 'equity', title: 'Equity threshold met', count: 1_184_700, desc: 'Owner equity falls between your minimum and maximum equity bands.' },
-  { id: 'longhold', icon: 'clock', title: 'Long hold, no refi', count: 318_900, desc: 'Owned 10+ years with no mortgage activity in the last 7 years.' },
+  {
+    id: 'active-foreclosure',
+    icon: 'gavel',
+    title: 'Active foreclosure record',
+    count: 84_200,
+    desc: 'Notice of default, lis pendens, or scheduled auction within the next 180 days.',
+  },
+  {
+    id: 'tax-delinquent',
+    icon: 'tax',
+    title: 'Tax delinquent',
+    count: 218_400,
+    desc: 'Outstanding property tax balance — one or more years past due.',
+  },
+  {
+    id: 'absentee-owner',
+    icon: 'absent',
+    title: 'Absentee owner',
+    count: 1_480_000,
+    desc: 'Owner mailing address does not match the property address.',
+  },
+  {
+    id: 'long-term-hold',
+    icon: 'clock',
+    title: 'Long-term hold, no refi',
+    count: 318_900,
+    desc: 'Owned 10+ years with no mortgage activity in the last 7 years.',
+  },
+  {
+    id: 'quit-claim-deed',
+    icon: 'deed',
+    title: 'Quit-claim deed in history',
+    count: 142_600,
+    desc: 'Title was transferred via quit-claim, often signaling estate transfer or motivated exit.',
+  },
+  {
+    id: 'non-arms-length',
+    icon: 'deed',
+    title: 'Non-arms-length prior sale',
+    count: 98_100,
+    desc: 'Last sale was between related parties — family transfer, trust, or internal LLC.',
+  },
+  {
+    id: 'investor-buyer',
+    icon: 'investor',
+    title: 'Investor buyer at last purchase',
+    count: 612_400,
+    desc: 'Property was acquired by an LLC, fund, or repeat investor — not an owner-occupant.',
+  },
+  {
+    id: 'arm-mortgage',
+    icon: 'arm',
+    title: 'ARM or variable-rate mortgage',
+    count: 226_400,
+    desc: 'Mortgage is adjustable-rate or has a balloon payment within 24 months.',
+  },
+  {
+    id: 'high-ltv',
+    icon: 'ltv',
+    title: 'High LTV (80%+)',
+    count: 412_800,
+    desc: 'Outstanding loan balance exceeds 80% of current estimated value.',
+  },
+  {
+    id: 'free-and-clear',
+    icon: 'free',
+    title: 'Free and clear (no mortgage)',
+    count: 384_600,
+    desc: 'No recorded mortgage — owner has full equity and no debt service pressure.',
+  },
 ]
-
 
 export function BuyBoxPage4({ form, setForm }) {
   const signals = form.signals || []

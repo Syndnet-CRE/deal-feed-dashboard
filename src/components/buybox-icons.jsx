@@ -118,4 +118,40 @@ export const Ic = {
       <path d="M12 7 V12 L15 14" />
     </svg>
   ),
+  tax: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M8 9 H16 M8 13 H13" />
+      <path d="M16 15 L18 17 M18 15 L16 17" />
+    </svg>
+  ),
+  absent: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <circle cx="9" cy="7" r="3" />
+      <path d="M3 20 C3 16 6 13 9 13" />
+      <path d="M17 13 L21 17 M21 13 L17 17" />
+    </svg>
+  ),
+  deed: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M6 3 H15 L20 8 V21 H6 Z" />
+      <path d="M15 3 V8 H20" />
+      <path d="M10 12 H16 M10 16 H16" />
+      <path d="M8 12 L9 13 L8 14" />
+    </svg>
+  ),
+  investor: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="3" y="9" width="18" height="12" rx="1" />
+      <path d="M8 9 V7 C8 5.3 9.3 4 11 4 H13 C14.7 4 16 5.3 16 7 V9" />
+      <path d="M12 13 V17 M10 15 H14" />
+    </svg>
+  ),
+  free: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11 V7 C8 4.8 9.8 3 12 3 C14.2 3 16 4.8 16 7" />
+      <circle cx="12" cy="16" r="1.5" />
+    </svg>
+  ),
 };

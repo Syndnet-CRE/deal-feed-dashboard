@@ -50,9 +50,18 @@ function Toggle({ checked, onChange }) {
   )
 }
 
+const UNITS_CLASSES = new Set(['multifamily'])
+const CLEAR_HEIGHT_CLASSES = new Set(['industrial'])
+const NO_STORIES_CLASSES = new Set(['land'])
+
 export function BuyBoxPage2({ form, setForm }) {
-  const phys = form.phys || { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', stories_max: '', units_min: '', units_max: '' }
+  const phys = form.phys || { sf_min: '', sf_max: '', acres_min: '', acres_max: '', year_min: '', year_max: '', stories_min: '', units_min: '', units_max: '', clear_height_min: '', clear_height_max: '' }
   const fin = form.fin || { price_min: '', price_max: '', equity_preset: '', assessed_below_market: false }
+  const assetClass = (form.assets || [])[0] || ''
+
+  const showUnits = UNITS_CLASSES.has(assetClass)
+  const showClearHeight = CLEAR_HEIGHT_CLASSES.has(assetClass)
+  const showStories = !NO_STORIES_CLASSES.has(assetClass)
 
   const setRange = (key, type, v) => {
     setForm({
@@ -98,24 +107,31 @@ export function BuyBoxPage2({ form, setForm }) {
           <RangeRow label="Year built" hint="construction year">
             <RangeInputs minV={phys.year_min} maxV={phys.year_max} onMin={v => setRange('year', 'min', v)} onMax={v => setRange('year', 'max', v)} unit="yr" />
           </RangeRow>
-          <RangeRow label="Stories" hint="select all that apply">
-            <div className="preset-row">
-              {[{label: '1', value: 1}, {label: '2', value: 2}, {label: '3', value: 3}, {label: '4–6', value: 4}, {label: '7+', value: 7}].map(s => (
-                <button
-                  key={s.value}
-                  className={`preset-chip${phys.stories_min === s.value ? ' on' : ''}`}
-                  onClick={() => setRange('stories', 'min', phys.stories_min === s.value ? '' : s.value)}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </RangeRow>
-          <div style={{ padding: '18px 0' }}>
-            <RangeRow label="Units" hint="for multifamily only">
+          {showStories && (
+            <RangeRow label="Stories" hint="select all that apply">
+              <div className="preset-row">
+                {[{label: '1', value: 1}, {label: '2', value: 2}, {label: '3', value: 3}, {label: '4–6', value: 4}, {label: '7+', value: 7}].map(s => (
+                  <button
+                    key={s.value}
+                    className={`preset-chip${phys.stories_min === s.value ? ' on' : ''}`}
+                    onClick={() => setRange('stories', 'min', phys.stories_min === s.value ? '' : s.value)}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </RangeRow>
+          )}
+          {showClearHeight && (
+            <RangeRow label="Clear height" hint="feet — industrial / warehouse">
+              <RangeInputs minV={phys.clear_height_min} maxV={phys.clear_height_max} onMin={v => setRange('clear_height', 'min', v)} onMax={v => setRange('clear_height', 'max', v)} unit="ft" step={1} />
+            </RangeRow>
+          )}
+          {showUnits && (
+            <RangeRow label="Unit count" hint="multifamily">
               <RangeInputs minV={phys.units_min} maxV={phys.units_max} onMin={v => setRange('units', 'min', v)} onMax={v => setRange('units', 'max', v)} unit="units" />
             </RangeRow>
-          </div>
+          )}
         </div>
       </section>
 
