@@ -90,7 +90,7 @@ describe('canProceedStep', () => {
     });
   });
 
-  describe('steps 2-5: always return true', () => {
+  describe('steps 2-6: always return true', () => {
     const minimalForm = {};
 
     it('returns true for step 2', () => {
@@ -108,27 +108,31 @@ describe('canProceedStep', () => {
     it('returns true for step 5', () => {
       expect(canProceedStep(5, minimalForm)).toBe(true);
     });
+
+    it('returns true for step 6 (threshold page — name is collected on step 7, not here)', () => {
+      expect(canProceedStep(6, minimalForm)).toBe(true);
+    });
   });
 
-  describe('step 6: name required', () => {
-    it('returns true when name is non-empty', () => {
-      const form = { name: 'My Box' };
+  describe('step 6: no name gate — name is entered on the step 7 review page', () => {
+    it('returns true when name is empty string', () => {
+      const form = { name: '' };
       expect(canProceedStep(6, form)).toBe(true);
     });
 
-    it('returns false when name is empty string', () => {
-      const form = { name: '' };
-      expect(canProceedStep(6, form)).toBe(false);
-    });
-
-    it('returns false when name is whitespace only', () => {
+    it('returns true when name is whitespace only', () => {
       const form = { name: '   ' };
-      expect(canProceedStep(6, form)).toBe(false);
+      expect(canProceedStep(6, form)).toBe(true);
     });
 
-    it('returns false when name is null', () => {
+    it('returns true when name is null', () => {
       const form = { name: null };
-      expect(canProceedStep(6, form)).toBe(false);
+      expect(canProceedStep(6, form)).toBe(true);
+    });
+
+    it('returns true when name is non-empty', () => {
+      const form = { name: 'My Box' };
+      expect(canProceedStep(6, form)).toBe(true);
     });
   });
 });
@@ -670,6 +674,25 @@ describe('buildPayload', () => {
       };
       const payload = buildPayload(form);
       expect(payload.delivery_max_per_run).toBe(25);
+    });
+
+    it('uses form.delivery.max_per_run not a hardcoded value', () => {
+      const make = (max) => ({
+        assets: ['sfr'],
+        geo: { states: ['TX'], counties: [], zips: [] },
+        phys: { sf_min: null, sf_max: null, acres_min: null, acres_max: null, year_min: null, year_max: null, stories_min: null, stories_max: null, units_min: null, units_max: null },
+        fin: { price_min: null, price_max: null, equity_preset: null, assessed_below_market: false },
+        owner: { entity: [], occupancy: null, hold_min: null, hold_max: null, out_of_state: false },
+        signals: [],
+        logic: { mode: 'or' },
+        risk: { climate_max: 100, flood_exclude: false, wildfire_max: 100, heat_max: 100 },
+        threshold: 0.80,
+        name: 'Test',
+        delivery: { cadence: 'daily', max_per_run: max },
+      });
+      expect(buildPayload(make(10)).delivery_max_per_run).toBe(10);
+      expect(buildPayload(make(50)).delivery_max_per_run).toBe(50);
+      expect(buildPayload(make(1)).delivery_max_per_run).toBe(1);
     });
   });
 
@@ -1649,7 +1672,7 @@ describe('toFormState', () => {
       expect(form.delivery.max_per_run).toBe(25);
     });
 
-    it('maps delivery_max_per_run null to delivery.max_per_run 10', () => {
+    it('maps delivery_max_per_run null to delivery.max_per_run 5 (EMPTY_FORM default)', () => {
       const buyBox = {
         asset_classes: ['sfr'],
         geo_states: ['TX'],
@@ -1686,7 +1709,7 @@ describe('toFormState', () => {
         delivery_max_per_run: null,
       };
       const form = toFormState(buyBox);
-      expect(form.delivery.max_per_run).toBe(10);
+      expect(form.delivery.max_per_run).toBe(5);
     });
   });
 
