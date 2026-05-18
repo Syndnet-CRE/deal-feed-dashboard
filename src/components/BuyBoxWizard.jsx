@@ -370,7 +370,7 @@ export function BuyBoxWizard({ mode, initialData, onSuccess, onCancel }) {
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--fg-mute)' }}>
                   Step {page} of 7 · {form.matchCount.toLocaleString('en-US')} matches
                 </span>
-                {page < 6 ? (
+                {page < 7 ? (
                   <button className="btn btn-primary" onClick={() => setPage(p => p + 1)} disabled={!canGoNext(page, form)}>
                     Continue <span className="kbd">⌘↵</span>
                   </button>

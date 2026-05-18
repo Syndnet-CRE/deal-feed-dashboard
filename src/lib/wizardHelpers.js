@@ -69,8 +69,7 @@ function toNum(v) {
 /**
  * Determines if the form can proceed to the next step.
  * Step 1: requires form.assets.length > 0 AND form.geo.states.length > 0
- * Steps 2-5: always return true
- * Step 6: requires form.name to be non-empty trimmed string
+ * Steps 2-6: always return true (name is collected on step 7, not step 6)
  *
  * @param {number} step
  * @param {Object} form
@@ -85,14 +84,6 @@ export function canProceedStep(step, form) {
       form.geo.states &&
       form.geo.states.length > 0
     );
-  }
-
-  if (step >= 2 && step <= 5) {
-    return true;
-  }
-
-  if (step === 6) {
-    return form.name != null && form.name.trim().length > 0;
   }
 
   return true;
@@ -185,7 +176,7 @@ export function buildPayload(form) {
     run_schedule: {
       days: days,
     },
-    delivery_max_per_run: 5,
+    delivery_max_per_run: form.delivery.max_per_run,
   };
 
   return payload;
