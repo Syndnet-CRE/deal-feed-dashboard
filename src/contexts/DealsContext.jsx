@@ -73,7 +73,7 @@ export function DealsProvider({ children }) {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const postFeedback = useCallback(async (dealId, fb) => {
-    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, fb } : d));
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, feedback: fb } : d));
     try {
       await api.post(`/api/dealfeed/deals/${dealId}/feedback`, { feedback: fb });
     } catch {

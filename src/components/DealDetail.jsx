@@ -7,6 +7,7 @@ import { OwnerPortfolio } from './OwnerPortfolio.jsx';
 import { fmt, fmtMoney, hasVal } from '../lib/format.js';
 import { useDeals } from '../contexts/DealsContext.jsx';
 import { useReadState } from '../contexts/ReadStateContext';
+import { useToast } from '../contexts/ToastContext';
 import '../styles/deal-detail.css';
 
 const TABS = [
@@ -65,6 +66,7 @@ function boolFmt(v) {
 export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) {
   const { postFeedback, updateStatus, logContact, fetchContacts, contacts, dealNotes, fetchDealNotes, createDealNote } = useDeals();
   const { markRead } = useReadState();
+  const addToast = useToast();
   const [activeTab, setActiveTab] = useState('summary');
   const [hotLoading, setHotLoading] = useState(false);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -350,8 +352,19 @@ export function DealDetail({ deal, onClose, deals, dealIndex, onNavigateDeal }) 
             <button className="dd-btn primary" onClick={handleMarkHot} disabled={hotLoading}>
               {deal.feedback === 'hot' ? '★ Hot' : '☆ Mark as Hot'}
             </button>
-            <button className="dd-btn outline" onClick={() => postFeedback(deal.id, deal.feedback === 'no' ? null : 'no')}>
-              Not Relevant
+            <button
+              className={`dd-btn outline${deal.feedback === 'not_relevant' ? ' active' : ''}`}
+              onClick={async () => {
+                const isUndo = deal.feedback === 'not_relevant';
+                await postFeedback(deal.id, isUndo ? null : 'not_relevant');
+                addToast(
+                  isUndo ? 'Marked relevant again' : 'Marked as not relevant',
+                  isUndo ? 'info' : 'success'
+                );
+                if (!isUndo && onClose) onClose();
+              }}
+            >
+              {deal.feedback === 'not_relevant' ? '✓ Not Relevant' : 'Not Relevant'}
             </button>
             {onClose && (
               <button className="dd-btn close-btn" onClick={onClose} aria-label="Close">&times;</button>

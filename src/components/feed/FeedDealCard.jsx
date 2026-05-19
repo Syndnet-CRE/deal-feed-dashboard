@@ -6,6 +6,7 @@ import OverflowMenu from '../OverflowMenu';
 import DealChatThread from './DealChatThread';
 import { fmt, fmtMoney } from '../../lib/format';
 import { api } from '../../lib/api';
+import { useDeals } from '../../contexts/DealsContext.jsx';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
@@ -128,16 +129,19 @@ function ExpandedDetail({ deal }) {
 
 export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
   const navigate = useNavigate();
+  const { postFeedback } = useDeals();
   const [isRead, setIsRead] = useState(deal.is_read || isReadProp || false);
-  const [fb, setFb] = useState(deal.feedback || null);
   const [saved, setSaved] = useState(deal.saved || false);
   const [hidden, setHidden] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
-  const [notRelevantUndo, setNotRelevantUndo] = useState(false);
+  const [notRelevantUndo, setNotRelevantUndo] = useState(deal.feedback === 'not_relevant');
   const cardRef = useRef(null);
   const readTimerRef = useRef(null);
   const hasTracked = useRef(isRead);
+
+  // Feedback is the single source of truth from DealsContext via the deal prop
+  const fb = deal.feedback || null;
 
   const markRead = useCallback(async () => {
     if (hasTracked.current) return;
@@ -166,11 +170,8 @@ export default function FeedDealCard({ deal, onHide, isRead: isReadProp }) {
 
   async function handleFeedback(val) {
     const next = fb === val ? null : val;
-    setFb(next);
     if (next === 'not_relevant') setNotRelevantUndo(true);
-    try {
-      await api.post(`/api/dealfeed/deals/${deal.id}/feedback`, { feedback: next });
-    } catch { setFb(fb); }
+    await postFeedback(deal.id, next);
   }
 
   async function handleSave() {
