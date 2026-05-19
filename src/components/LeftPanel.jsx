@@ -19,13 +19,27 @@ const FILTERS = [
   { id: 'hot',    label: 'Hot',    Icon: Flame },
 ];
 
-function MetricTile({ Icon, label, value, accent }) {
+function MetricTile({ Icon, label, value, accent, active, disabled, onClick, title }) {
+  const className = [
+    'metric-tile',
+    accent ? `accent-${accent}` : '',
+    active ? 'active' : '',
+    disabled ? 'disabled' : '',
+    onClick ? 'clickable' : '',
+  ].filter(Boolean).join(' ');
   return (
-    <div className={`metric-tile${accent ? ` accent-${accent}` : ''}`}>
+    <button
+      type="button"
+      className={className}
+      onClick={onClick}
+      disabled={!onClick}
+      aria-pressed={onClick ? !!active : undefined}
+      title={title}
+    >
       <div className="metric-tile-icon"><Icon size={14} /></div>
       <div className="metric-tile-value">{value}</div>
       <div className="metric-tile-label">{label}</div>
-    </div>
+    </button>
   );
 }
 
@@ -124,10 +138,40 @@ export default function LeftPanel({ view, setView, kpis, onCreateBuyBox, unreadC
         <div className="left-panel-divider" />
 
         <div className="left-panel-metric-grid">
-          <MetricTile Icon={TrendingUp} label="New This Week" value={kpis?.new_this_week ?? '—'} accent="green" />
-          <MetricTile Icon={Flame}      label="Hot Deals"     value={kpis?.hot_deals ?? '—'}      accent="orange" />
-          <MetricTile Icon={Target}     label="Response Rate" value={responseRateValue}            accent="blue" />
-          <MetricTile Icon={Clock}      label="Awaiting"      value={kpis?.awaiting_response ?? '—'} accent="violet" />
+          <MetricTile
+            Icon={TrendingUp}
+            label="New This Week"
+            value={kpis?.new_this_week ?? '—'}
+            accent="green"
+            active={feedFilter === 'new_this_week'}
+            onClick={setFeedFilter ? () => setFeedFilter(feedFilter === 'new_this_week' ? 'all' : 'new_this_week') : undefined}
+            title="Filter to deals from the last 7 days"
+          />
+          <MetricTile
+            Icon={Flame}
+            label="Hot Deals"
+            value={kpis?.hot_deals ?? '—'}
+            accent="orange"
+            active={feedFilter === 'hot'}
+            onClick={setFeedFilter ? () => setFeedFilter(feedFilter === 'hot' ? 'all' : 'hot') : undefined}
+            title="Filter to hot deals (score 8+ or marked hot)"
+          />
+          <MetricTile
+            Icon={Target}
+            label="Response Rate"
+            value={responseRateValue}
+            accent="blue"
+            disabled
+            title="Coming soon"
+          />
+          <MetricTile
+            Icon={Clock}
+            label="Awaiting"
+            value={kpis?.awaiting_response ?? '—'}
+            accent="violet"
+            disabled
+            title="Coming soon"
+          />
         </div>
 
         <div className="left-panel-divider" />

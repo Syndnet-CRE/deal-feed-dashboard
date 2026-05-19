@@ -15,6 +15,14 @@ function sameDay(a, b) {
   );
 }
 
+function isWithinLastWeek(deal) {
+  const ts = deal.sentAt || deal.created_at;
+  if (!ts) return false;
+  const t = new Date(ts).getTime();
+  if (!Number.isFinite(t)) return false;
+  return t >= Date.now() - 7 * 24 * 60 * 60 * 1000;
+}
+
 export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = () => {} }) {
   const { deals, loading } = useDeals();
   const [hiddenIds, setHiddenIds] = useState(new Set());
@@ -29,6 +37,7 @@ export function DashboardView({ kpis, searchQuery, filter = 'all', setFilter = (
         if (filter === 'unread') return !d.is_read;
         if (filter === 'saved')  return !!d.saved;
         if (filter === 'hot')    return d.feedback === 'hot' || (d.score || d.match_score || 0) >= 8;
+        if (filter === 'new_this_week') return isWithinLastWeek(d);
         return true;
       })
       .filter(d => {
