@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as d3 from 'd3';
 import { useDeals } from '../contexts/DealsContext.jsx';
 import { fmtMoney } from '../lib/format.js';
@@ -8,7 +9,7 @@ function sfLabel(v) {
   return Number(v).toLocaleString() + ' sf';
 }
 
-function drawGraph(svgEl, portfolio, sourceAddress) {
+function drawGraph(svgEl, portfolio, sourceAddress, onNodeClick) {
   const props = (portfolio.properties || []).slice(0, 24);
   if (!props.length) return;
 
@@ -18,6 +19,7 @@ function drawGraph(svgEl, portfolio, sourceAddress) {
       id: String(p.attom_id),
       label: p.address_full || p.address || String(p.attom_id),
       matchedBy: p.matched_by,
+      dealId: p.deal_id || null,
     })),
   ];
 
@@ -56,7 +58,13 @@ function drawGraph(svgEl, portfolio, sourceAddress) {
     .attr('text-anchor', 'middle');
 
   const node = svg.append('g').selectAll('g')
-    .data(nodes).join('g');
+    .data(nodes).join('g')
+    .style('cursor', d => (!d.isSource && d.dealId) ? 'pointer' : 'default')
+    .on('click', (_event, d) => {
+      if (!d.isSource && d.dealId && typeof onNodeClick === 'function') {
+        onNodeClick(d.dealId);
+      }
+    });
 
   node.append('circle')
     .attr('r', d => d.isSource ? 20 : 14)
@@ -74,7 +82,10 @@ function drawGraph(svgEl, portfolio, sourceAddress) {
     .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
     .attr('font-size', 9).attr('fill', '#0F4A99').attr('font-weight', 'bold');
 
-  node.append('title').text(d => d.label);
+  node.append('title').text(d => {
+    if (d.isSource) return d.label;
+    return d.dealId ? `View Deal: ${d.label}` : d.label;
+  });
 
   sim.on('tick', () => {
     link
@@ -91,6 +102,7 @@ function drawGraph(svgEl, portfolio, sourceAddress) {
 
 export function OwnerPortfolio({ deal }) {
   const { portfolios, fetchOwnerPortfolio } = useDeals();
+  const navigate = useNavigate();
   const svgRef = useRef(null);
   const attomId = deal.attomId || deal.attom_id;
   const portfolio = portfolios[attomId];
@@ -101,9 +113,9 @@ export function OwnerPortfolio({ deal }) {
 
   useEffect(() => {
     if (portfolio && portfolio.properties?.length && svgRef.current) {
-      drawGraph(svgRef.current, portfolio, deal.address);
+      drawGraph(svgRef.current, portfolio, deal.address, (dealId) => navigate(`/deal/${dealId}`));
     }
-  }, [portfolio, deal.address]);
+  }, [portfolio, deal.address, navigate]);
 
   if (!attomId) return null;
 
