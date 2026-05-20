@@ -11,7 +11,7 @@ Start: `cd ~/nightdrop-dashboard && claude --dangerously-skip-permissions`
 
 ## PURPOSE
 
-Nightdrop Dashboard is a React SPA for CRE investors to review distressed property deals matched to their buy boxes. Users authenticate, browse their deal feed, inspect deal details, manage buy boxes, and view deals on a Mapbox map. Frontend hits scoutgpt-api backend at `~/parcyl/scoutgpt-api` via `/api/dealfeed/*`.
+Nightdrop Dashboard is a React SPA for CRE investors to review distressed property deals matched to their buy boxes. Users authenticate, browse their deal feed, inspect deal details, manage buy boxes, and view deals on a Mapbox map. Frontend hits the nightdrop-api backend at `~/nightdrop-api` (Render service `nightdrop-api`) via `/api/dealfeed/*`.
 
 ## STACK
 
@@ -42,7 +42,7 @@ VITE_API_BASE_URL=   # empty = same origin, routes through Vite proxy
 VITE_MAPBOX_TOKEN=   # Mapbox public token
 ```
 
-`.env.development` is committed — proxies to `scoutgpt-app.onrender.com`. `.env` is gitignored.
+`.env.development` is committed with `VITE_API_BASE_URL=` empty, so dev routes through the Vite proxy. The Vite proxy target defaults to `https://nightdrop-api.onrender.com` (see `vite.config.js` `API_TARGET`). Override per-shell with `API_TARGET=http://localhost:3001 npm run dev` to point at a local backend. `.env` is gitignored; if you keep a local `.env` with a different `VITE_API_BASE_URL`, it will override `.env.development` and bypass the Vite proxy entirely.
 
 ## ARCHITECTURE
 
@@ -89,7 +89,7 @@ Dangerous files — edit carefully:
 - `src/styles/styles.css` — ~3,900 lines; global overrides
 - `src/styles/feed-layout.css` — ~2,300 lines; Dashboard three-column layout
 - `src/styles/deal-detail.css` — ~1,150 lines
-- `src/lib/wizardHelpers.js` — `canProceed()`, `buildPayload()` — unit tested; geo contract must match backend
+- `src/lib/wizardHelpers.js` — `canProceedStep()`, `buildPayload()`, `toFormState()` — heavily unit tested but currently ORPHANED. The active wizard (`BuyBoxWizard.jsx`) re-implements all this logic inline as `NATIVE_FORM` / `nativeToPayload` / `toNativeForm`. Only consumer of `wizardHelpers` is the also-orphaned `BuyBoxEditModal.jsx`. Two parallel mappers; do not assume one reflects the other.
 
 ## KNOWN LANDMINES
 
@@ -100,7 +100,7 @@ Dangerous files — edit carefully:
 - `BuyBoxWizard` backdrop has no onClick close — intentional, prevents accidental mid-flow dismissal.
 - `POST /api/dealfeed/buy-boxes/preview` may not exist on backend yet — fails silently.
 - Playwright tests hardcoded to port 5173. Kill other Vite instances before running.
-- **Geo contract drift** — `buildPayload()` serializes `geo_cities`/`geo_zips`/`geo_radius_*` but backend `matchProperties()` only reads `geo_states`/`geo_counties`. Touching either file: verify both sides stay in sync.
+- **Geo is mutually exclusive on the backend.** `matchProperties()` in `~/nightdrop-api/scripts/run_deal_feed.js:229` checks geo modes in priority order: **county > city > zip > radius > state**. Only one mode is active per box; selecting counties REPLACES city/zip/state filtering, not adds to it. The wizard UI lets users multi-select all four — that data is persisted, but only the highest-priority non-empty mode actually narrows results.
 - Design tokens: `--green=#5BCC48`, `--warning=#F4B73E`, `--danger=#E5484D`. Never hardcode these hex values.
 - Font: Manrope (sans). No JetBrains Mono anywhere — banned.
 
@@ -112,18 +112,20 @@ Dangerous files — edit carefully:
 | `hookify.silent-zero-results.local.md` | `run_deal_feed.js` | Zero-match logging |
 | `hookify.unregistered-routes.local.md` | New route files | Register in `server.js` |
 | `hookify.orphaned-scripts.local.md` | New scripts | Add npm script or cron |
-| `hookify.uuid-and-backend-target.local.md` | ID cast or hardcoded URL | IDs are UUIDs; backend is scoutgpt-app |
+| `hookify.uuid-and-backend-target.local.md` | ID cast or hardcoded URL | IDs are UUIDs; backend is `nightdrop-api` (review this rule — historical copy may still reference `scoutgpt-app`) |
 
 ## BACKEND CONTRACT
 
-Backend: `~/parcyl/scoutgpt-api`. Two Render services — same repo, different branches:
+Backend repo: `~/nightdrop-api` (GitHub: `Syndnet-CRE/nightdrop-api`, branch `main`).
+Render service: **`nightdrop-api`** at **`https://nightdrop-api.onrender.com`**.
 
-| Service | Branch | URL | Active? |
-|---------|--------|-----|---------|
-| **scoutgpt-app** | `main` | https://scoutgpt-app.onrender.com | **YES — use this** |
-| scoutgpt-api | `develop` | https://scoutgpt-api.onrender.com | NO — empty DB |
+The Vite dev proxy default in `vite.config.js` already points here. Production builds inline whatever `VITE_API_BASE_URL` Netlify is configured with — verify in the Netlify env settings, not in local `.env` files.
 
-Push to `main`. Open Render shell on `scoutgpt-app`. The other one has an empty Neon DB and will mislead you.
+> Historical note: earlier docs referenced `~/parcyl/scoutgpt-api` and `scoutgpt-app.onrender.com`. That backend is no longer the production target for nightdrop-dashboard. Some local `.env` files, Netlify env vars, and hookify rules may still carry the old URL — treat any sighting as drift to fix.
+
+Key paths inside `~/nightdrop-api`:
+- `routes/dealfeed/*.js` — REST endpoints (`auth`, `buyboxes`, `onboarding`, `admin`)
+- `scripts/run_deal_feed.js` — the matcher; `matchProperties(box, limit)` at line 181
 
 **DB rules**: All `df_*` tables live on `$DATABASE_WRITE_URL` via `poolWrite`. All `df_*` IDs are **UUID strings** — never `parseInt()` them.
 
