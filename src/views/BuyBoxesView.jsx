@@ -144,7 +144,18 @@ function WeekStrip({ schedule, dim = false }) {
 // ────────────────────────────────────────────────────────────
 // Card
 // ────────────────────────────────────────────────────────────
-function CardMenu({ box, column, onEdit, onEditGeo, onPause, onResume }) {
+function CardMenu({
+  box,
+  column,
+  onEdit,
+  onEditGeo,
+  onPause,
+  onResume,
+  placement = 'down',
+  triggerClassName = 'bb-card__menu',
+  triggerAriaLabel = 'More',
+  triggerIcon = null,
+}) {
   const { deleteBuyBox } = useDeals();
   const addToast = useToast();
   const [open, setOpen] = useState(false);
@@ -171,13 +182,23 @@ function CardMenu({ box, column, onEdit, onEditGeo, onPause, onResume }) {
     }
   };
 
+  const ddClass = `bb-card__dd${placement === 'up' ? ' bb-card__dd--up' : ''}`;
+  const icon = triggerIcon ?? <MoreHorizontal size={14} strokeWidth={1.5} />;
+
   return (
     <div className="bb-card__menu-wrap" ref={wrapRef}>
-      <button type="button" className="bb-card__menu" aria-label="More" onClick={() => { setOpen(v => !v); setConfirmDel(false); }}>
-        <MoreHorizontal size={14} strokeWidth={1.5} />
+      <button
+        type="button"
+        className={triggerClassName}
+        aria-label={triggerAriaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => { setOpen(v => !v); setConfirmDel(false); }}
+      >
+        {icon}
       </button>
       {open && (
-        <div className="bb-card__dd">
+        <div className={ddClass} role="menu">
           <button className="bb-card__dd-item" onClick={() => { close(); onEdit?.(box); }}>
             <Edit3 size={12} strokeWidth={1.6} /> Edit buy box
           </button>
@@ -235,7 +256,6 @@ function BuyBoxCard({ box, column, onEdit, onEditGeo, onPause, onResume, onDragS
       <header className="bb-card__head">
         <span className="bb-card__dot" />
         <h3 className="bb-card__title" title={box.label}>{box.label}</h3>
-        <CardMenu box={box} column={column} onEdit={onEdit} onEditGeo={onEditGeo} onPause={onPause} onResume={onResume} />
       </header>
 
       {isGap ? (
@@ -301,14 +321,18 @@ function BuyBoxCard({ box, column, onEdit, onEditGeo, onPause, onResume, onDragS
             Configure
           </button>
         )}
-        <button
-          type="button"
-          className="bb-iconbtn"
-          aria-label="Tune"
-          onClick={() => onEdit?.(box)}
-        >
-          <Sliders size={14} strokeWidth={1.6} />
-        </button>
+        <CardMenu
+          box={box}
+          column={column}
+          onEdit={onEdit}
+          onEditGeo={onEditGeo}
+          onPause={onPause}
+          onResume={onResume}
+          placement="up"
+          triggerClassName="bb-iconbtn"
+          triggerAriaLabel="Buy box options"
+          triggerIcon={<Sliders size={14} strokeWidth={1.6} />}
+        />
       </div>
     </article>
   );
