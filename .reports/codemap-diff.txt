@@ -1,0 +1,76 @@
+Codemap generation report
+=========================
+Date: 2026-05-20
+Run: initial generation (no prior codemaps detected)
+
+Output files
+------------
+docs/CODEMAPS/architecture.md   ~700 tokens
+docs/CODEMAPS/backend.md        ~750 tokens
+docs/CODEMAPS/frontend.md       ~900 tokens
+docs/CODEMAPS/data.md           ~600 tokens
+docs/CODEMAPS/dependencies.md   ~500 tokens
+Total: ~3,450 tokens across 5 files
+
+Project shape
+-------------
+Type: React 19 SPA (Vite 8, JSX, no TypeScript)
+Source dirs: src/{App.jsx, hooks, contexts, lib, views, pages, components, styles, assets, data}
+Entry: src/main.jsx → src/App.jsx
+Component count: ~75 .jsx files
+Lib count: 8 .js files
+View count: 11 .jsx
+Test count: 120 passing (post wizardHelpers.test.js deletion)
+
+New since last commit (6b51fb5)
+-------------------------------
++ src/components/buyBoxInputs.jsx          (shared themed NumberField/RangeInputs/SingleInput)
++ src/lib/buyBoxFieldSchema.js             (per-class field visibility map)
++ src/lib/numberFormat.js                  (formatNumber/parseNumber for input formatting)
++ src/lib/wizardFormState.js               (EMPTY_FORM, nativeToPayload, toNativeForm)
+- src/components/BuyBoxConfigurator/       (10 files removed — prior prototype)
+- src/components/BuyBoxEditModal.jsx       (orphan removed)
+- src/lib/wizardHelpers.js + .test.js      (orphan removed, -77 tests)
+
+Architecture changes
+--------------------
+* Buy box create endpoint switched: POST /api/dealfeed/onboarding → POST /api/dealfeed/buy-boxes
+  (rationale: /onboarding silently dropped the 35 new MVP filter fields from migration 049)
+* Asset class taxonomy expanded from 8 → 10 classes (self_storage, mobile_home_rv,
+  gas_station_c_store added; hospitality removed)
+* New shared input components reduce duplication between Page 2 and Page 5
+* Wizard form state extracted from BuyBoxWizard.jsx into its own module
+
+Dependencies
+------------
+No package.json changes since last codemap (none existed before).
+External services: nightdrop-api, Mapbox, Google Fonts, Netlify.
+
+Staleness watch
+---------------
+This is the initial generation — re-run after any of:
+- Major feature additions (new view, new wizard step, new context)
+- Backend contract changes (migration 050+)
+- Taxonomy edits (the 4-file lockstep)
+- Significant component refactors
+
+Recommend next refresh: when migration 050 lands, OR when a new top-level
+view is added to AppShell.
+
+Known landmines surfaced in codemaps
+------------------------------------
+* DealMap calls fitDeals in both onLoad and useEffect (both needed)
+* DashboardView silently falls back to MOCK_DEALS for zero-deal subscribers
+* Parcyl DB covers 5 Central TX counties only (Travis, Bastrop, Hays,
+  Williamson, Caldwell). UI exposes 51 states.
+* /api/dealfeed/buy-boxes/preview may not exist on backend yet (fails silently)
+* All df_* IDs are UUIDs — never parseInt()
+* 4-file taxonomy lockstep across two repos
+
+Source documents (do not duplicate)
+-----------------------------------
+- notes/audit/CROSS-REPO-AUDIT-BUY-BOX-MVP-2026-05-20.md (load-bearing reference)
+- ~/nightdrop-api/docs/taxonomy/mvp-buy-box-taxonomy.md (authoritative taxonomy)
+- ~/nightdrop-api/CLAUDE.md (backend project rules + migration ledger)
+- CLAUDE.md (frontend project rules)
+- notes/REFERENCE.md (component + endpoint reference)
