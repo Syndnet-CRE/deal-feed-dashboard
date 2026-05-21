@@ -1,121 +1,160 @@
+// Buy Box taxonomy — 10-class MVP. Locked 2026-05-20.
+// MIRRORS ~/nightdrop-api/services/assetUseCodes.js exactly.
+// Drift between this file and the three backend taxonomy files breaks the nightly matcher.
+
+// 10 asset classes, order matters for UI display.
 export const ASSET_CLASSES = [
+  {
+    id: 'self_storage',
+    label: 'Self Storage',
+    description: 'Self storage and mini-warehouse facilities',
+    subtypes: [
+      { label: 'Self Storage / Mini-Warehouse', code: 229 },
+    ],
+  },
   {
     id: 'multifamily',
     label: 'Multifamily',
-    description: 'Residential income properties: duplexes, apartments, and residential income buildings',
+    description: 'Duplex, triplex, quadruplex, apartments, and residential income',
     subtypes: [
-      { label: 'Duplex (2 Units)',          code: 366 },
+      { label: 'Duplex (2 Units)',           code: 366 },
       { label: 'Triplex (3 Units)',          code: 383 },
       { label: 'Quadruplex (4 Units)',       code: 386 },
       { label: 'Apartment / Multifamily 5+', code: 369 },
-      { label: 'Mobile / Manufactured Home', code: 373 },
       { label: 'Loft / Live-Work',           code: 378 },
       { label: 'Residential Income (NEC)',   code: 375 },
     ],
   },
   {
-    id: 'industrial',
-    label: 'Industrial',
-    description: 'Warehouse, manufacturing, flex, and storage facilities',
+    id: 'mobile_home_rv',
+    label: 'Mobile Home / RV Parks',
+    description: 'Mobile home and RV park communities',
     subtypes: [
-      { label: 'Light Industrial',                 code: 212 },
-      { label: 'Warehouse / Distribution',         code: 238 },
-      { label: 'Heavy Industrial / Manufacturing', code: 220 },
-      { label: 'Flex Industrial',                  code: 222 },
-      { label: 'Self Storage / Mini-Warehouse',    code: 229 },
-      { label: 'Truck Terminal / Freight',         code: 231 },
-      { label: 'Processing / Packaging',           code: 210 },
-      { label: 'Industrial Park',                  code: 280 },
-      { label: 'Industrial (General)',             code: 395 },
+      { label: 'Mobile / Manufactured Home', code: 373 },
     ],
   },
   {
-    id: 'retail',
-    label: 'Retail',
-    description: 'Storefronts, shopping centers, restaurants, and service retail',
+    id: 'residential_sfr',
+    label: 'Single Family Residential',
+    description: 'Single family, condos, townhouses, PUDs, cabins, zero-lot-line',
     subtypes: [
-      { label: 'Retail (General)',                code: 135 },
-      { label: 'Strip Mall / Shopping Center',    code: 393 },
-      { label: 'Neighborhood Shopping Center',    code: 126 },
-      { label: 'Community / Neighborhood Retail', code: 361 },
-      { label: 'Supermarket / Grocery',           code: 148 },
-      { label: 'Convenience Store',               code: 124 },
-      { label: 'Restaurant / Food Service',       code: 169 },
-      { label: 'Fast Food / QSR',                 code: 146 },
-      { label: 'Auto Dealership',                 code: 171 },
-      { label: 'Auto Repair / Service',           code: 172 },
-      { label: 'Drugstore / Pharmacy',            code: 127 },
-      { label: 'Car Wash / Laundromat',           code: 186 },
-      { label: 'Retail (Specialty)',              code: 161 },
-    ],
-  },
-  {
-    id: 'office',
-    label: 'Office',
-    description: 'Professional, medical, and general office buildings',
-    subtypes: [
-      { label: 'Office Building (General)',       code: 178 },
-      { label: 'Professional Office',            code: 160 },
-      { label: 'Medical Office',                 code: 139 },
-      { label: 'Office Park',                    code: 193 },
-      { label: 'Mixed-Use Commercial',           code: 194 },
-      { label: 'Commercial Loft / Mixed-Use',    code: 183 },
-      { label: 'Mixed Residential / Commercial', code: 181 },
-      { label: 'Commercial (NEC / Misc)',         code: 359 },
+      { label: 'Single Family Residential', code: 385 },
+      { label: 'Condominium',               code: 401 },
+      { label: 'Townhouse',                 code: 360 },
+      { label: 'Planned Unit Development',  code: 380 },
+      { label: 'Cabin / Cottage',           code: 388 },
+      { label: 'Zero Lot Line',             code: 381 },
     ],
   },
   {
     id: 'land',
     label: 'Land',
-    description: 'Vacant, agricultural, ranch, and undeveloped parcels',
+    description: 'Vacant land, agricultural, ranch, timberland, transitional parcels',
     subtypes: [
-      { label: 'Vacant Land (General)',    code: 389 },
+      { label: 'Vacant Land (General)',      code: 389 },
       { label: 'Vacant Land (Agricultural)', code: 120 },
-      { label: 'Agricultural (General)',   code: 392 },
-      { label: 'Ranch / Range Land',       code: 117 },
-      { label: 'Cropland / Row Crops',     code: 105 },
-      { label: 'Pastureland / Grazing',    code: 109 },
-      { label: 'Timberland / Forestry',    code: 118 },
+      { label: 'Agricultural (General)',     code: 392 },
+      { label: 'Ranch / Range Land',         code: 117 },
+      { label: 'Cropland / Row Crops',       code: 105 },
+      { label: 'Pastureland / Grazing',      code: 109 },
+      { label: 'Timberland / Forestry',      code: 118 },
     ],
   },
   {
-    id: 'sfr',
-    label: 'Single Family',
-    description: 'Single family homes, condos, co-ops, and owner-occupied residential',
+    id: 'industrial',
+    label: 'Industrial',
+    description: 'Warehouse, distribution, manufacturing, flex, processing',
     subtypes: [
-      { label: 'Single Family Residence',  code: 100 },
-      { label: 'Condominium',              code: 102 },
-      { label: 'Cooperative (Co-op)',      code: 104 },
-      { label: 'Mobile / Manufactured Home (SFR)', code: 373 },
+      { label: 'Warehouse / Distribution',         code: 238 },
+      { label: 'Light Industrial',                 code: 212 },
+      { label: 'Heavy Industrial / Manufacturing', code: 220 },
+      { label: 'Flex Industrial',                  code: 222 },
+      { label: 'Processing / Packaging',           code: 210 },
+      { label: 'Truck Terminal / Freight',         code: 231 },
+      { label: 'Industrial Park',                  code: 280 },
+      { label: 'Commercial Warehouse (Small)',     code: 184 },
     ],
   },
   {
-    id: 'hospitality',
-    label: 'Hospitality',
-    description: 'Hotels, motels, resorts, extended stay, and bed & breakfast',
+    id: 'retail',
+    label: 'Retail',
+    description: 'Storefronts, shopping centers, restaurants, service retail',
     subtypes: [
-      { label: 'Hotel',                    code: 260 },
-      { label: 'Motel',                    code: 265 },
-      { label: 'Extended Stay / Suite Hotel', code: 270 },
-      { label: 'Resort',                   code: 275 },
-      { label: 'Bed & Breakfast / Inn',    code: 293 },
+      { label: 'Retail (General)',                code: 135 },
+      { label: 'Strip Mall',                      code: 393 },
+      { label: 'Neighborhood Shopping Center',    code: 126 },
+      { label: 'Community Retail',                code: 361 },
+      { label: 'Supermarket / Grocery',           code: 148 },
+      { label: 'Convenience Store',               code: 124 },
+      { label: 'Restaurant / Food Service',       code: 169 },
+      { label: 'Fast Food / QSR',                 code: 146 },
+      { label: 'Auto Dealership',                 code: 171 },
+      { label: 'Auto Repair',                     code: 172 },
+      { label: 'Drugstore / Pharmacy',            code: 127 },
+      { label: 'Laundromat / Car Wash',           code: 186 },
+    ],
+  },
+  {
+    id: 'gas_station_c_store',
+    label: 'Gas Station / C-Store',
+    description: 'Service stations, convenience stores',
+    subtypes: [
+      { label: 'Service Station / Gas Station', code: 167 },
+      { label: 'Convenience Store',             code: 124 },
+    ],
+  },
+  {
+    id: 'office',
+    label: 'Office',
+    description: 'Professional, medical, mixed-use office',
+    subtypes: [
+      { label: 'Office Building (General)',    code: 178 },
+      { label: 'Professional Office',          code: 160 },
+      { label: 'Medical Office',               code: 139 },
+      { label: 'Office Park',                  code: 193 },
+      { label: 'Mixed-Use Commercial',         code: 194 },
+      { label: 'Commercial Loft / Mixed-Use',  code: 183 },
     ],
   },
   {
     id: 'special_purpose',
     label: 'Special Purpose',
-    description: 'Gas stations, parking, healthcare, and other specialty property types',
+    description: 'Banks, parking, recreation, theaters, healthcare, day care',
     subtypes: [
-      { label: 'Service Station / Gas Station', code: 167 },
-      { label: 'Parking Lot / Garage',          code: 339 },
-      { label: 'Healthcare / Medical Clinic',   code: 296 },
-      { label: 'Rehabilitation / Skilled Nursing', code: 155 },
-      { label: 'Townhouse',                     code: 360 },
-      { label: 'Planned Unit Development',      code: 380 },
+      { label: 'Bank / Savings Institution',          code: 150 },
+      { label: 'Parking Lot / Garage',                code: 339 },
+      { label: 'Bowling Alley / Recreation',          code: 151 },
+      { label: 'Theater / Cinema',                    code: 348 },
+      { label: 'Funeral Home',                        code: 133 },
+      { label: 'Rehabilitation / Skilled Nursing',    code: 155 },
+      { label: 'Healthcare / Medical Clinic',         code: 296 },
+      { label: 'Day Care / Child Care',               code: 175 },
     ],
   },
 ];
 
+// Land sub-asset slugs — passed via `sub_assets[]` on the buy box payload.
+// Backend matcher in matcher_clauses.py routes path_of_growth through the
+// Land Transitional rule (additive AND conditions configurable per buy box).
+export const LAND_SUB_ASSETS = [
+  { slug: 'urban_infill',       label: 'Infill & Urban Lots' },
+  { slug: 'suburban_fringe',    label: 'Suburban Fringe' },
+  { slug: 'agricultural_rural', label: 'Rural & Agricultural Acreage' },
+  { slug: 'path_of_growth',     label: 'Transitional / Path of Growth' },
+];
+
+// Building class A/B/C — multi-select. Each translates to a year_built range
+// in the matcher (A >= 2010, B 1985..2009, C <= 1984). Year built min/max
+// can be ANDed manually on top.
+export const VALID_BUILDING_CLASSES = ['A', 'B', 'C'];
+
+export const BUILDING_CLASS_YEAR_DEFAULTS = {
+  A: { year_built_min: 2010, year_built_max: '' },
+  B: { year_built_min: 1985, year_built_max: 2009 },
+  C: { year_built_min: '',   year_built_max: 1984 },
+};
+
+// Schedule + distress + owner enums — unchanged from prior taxonomy
 export const SCHEDULE_DAYS = [
   { abbr: 'mon', label: 'Mon' },
   { abbr: 'tue', label: 'Tue' },
@@ -129,16 +168,16 @@ export const SCHEDULE_DAYS = [
 export const ALL_DAYS = SCHEDULE_DAYS.map(d => d.abbr);
 
 export const DISTRESS_SIGNAL_OPTIONS = [
-  { value: 'active-foreclosure',       label: 'Active foreclosure record' },
-  { value: 'tax-delinquent',           label: 'Tax delinquent' },
-  { value: 'absentee-owner',           label: 'Absentee owner' },
-  { value: 'long-term-hold',           label: 'Long-term hold' },
-  { value: 'quit-claim-deed',          label: 'Quit claim deed in history' },
-  { value: 'non-arms-length',          label: 'Non-arms-length prior sale' },
-  { value: 'investor-buyer',           label: 'Investor buyer at last purchase' },
-  { value: 'arm-mortgage',             label: 'ARM mortgage' },
-  { value: 'high-ltv',                 label: 'High LTV (>80%)' },
-  { value: 'free-and-clear',           label: 'Free and clear (no mortgage)' },
+  { value: 'active-foreclosure',     label: 'Active foreclosure record' },
+  { value: 'tax-delinquent',         label: 'Tax delinquent' },
+  { value: 'absentee-owner',         label: 'Absentee owner' },
+  { value: 'long-term-hold',         label: 'Long-term hold' },
+  { value: 'quit-claim-deed',        label: 'Quit claim deed in history' },
+  { value: 'non-arms-length',        label: 'Non-arms-length prior sale' },
+  { value: 'investor-buyer',         label: 'Investor buyer at last purchase' },
+  { value: 'arm-mortgage',           label: 'ARM mortgage' },
+  { value: 'high-ltv',               label: 'High LTV (>80%)' },
+  { value: 'free-and-clear',         label: 'Free and clear (no mortgage)' },
 ];
 
 export const OWNER_TYPE_OPTIONS = [
@@ -182,8 +221,26 @@ export const MAJOR_METROS = [
   'Virginia Beach, VA','Washington, DC',
 ];
 
+// Back-compat shim: legacy buy boxes may have asset_class strings like 'sfr',
+// 'hospitality', 'gas_station'. Map them to the new 10-class set on load.
+const LEGACY_CLASS_ALIASES = {
+  sfr: 'residential_sfr',
+  hospitality: 'special_purpose',
+  gas_station: 'gas_station_c_store',
+  rv_park: 'mobile_home_rv',
+  mixed_use: 'office',
+  medical_office: 'office',
+  hotel: 'special_purpose',
+};
+
+export function normalizeAssetClassSlug(slug) {
+  if (!slug) return slug;
+  return LEGACY_CLASS_ALIASES[slug] || slug;
+}
+
 export function getAssetClass(id) {
-  return ASSET_CLASSES.find(c => c.id === id) || null;
+  const normalized = normalizeAssetClassSlug(id);
+  return ASSET_CLASSES.find(c => c.id === normalized) || null;
 }
 
 export function formatUseCodes(asset_class, asset_use_codes) {

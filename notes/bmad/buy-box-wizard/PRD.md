@@ -1,3 +1,11 @@
+> **SHIPPED / HISTORICAL — 2026-05-20**
+>
+> The work in this PRD shipped (migration 029, 8-field expansion, initial wizard). Superseded by `buy-box-wizard-v2` (which also shipped), and now superseded by the buy box MVP rebuild driven by the 10-class taxonomy on the backend (nightdrop-api 2026-05-20, migration 049).
+>
+> **Current state:** `notes/audit/CROSS-REPO-AUDIT-BUY-BOX-MVP-2026-05-20.md`
+
+---
+
 # PRD — Buy Box Wizard Buildout
 Date: 2026-05-03
 Author: PM phase

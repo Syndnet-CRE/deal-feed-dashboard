@@ -1,3 +1,11 @@
+> **SHIPPED / HISTORICAL — 2026-05-20**
+>
+> The 7-step wizard rebuild + 13 new fields shipped. References to `scoutgpt-api` are historical — the backend was extracted to `nightdrop-api` on 2026-05-12. The 8-class taxonomy this PRD assumes was replaced by a 10-class taxonomy on the backend on 2026-05-20 (migration 049 + 35 new filter fields).
+>
+> **Current state:** `notes/audit/CROSS-REPO-AUDIT-BUY-BOX-MVP-2026-05-20.md`
+
+---
+
 # PRD — buy-box-wizard-v2
 
 Date: 2026-05-11

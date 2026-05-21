@@ -59,11 +59,18 @@ const DEFAULT_FACTS = [
 
 function normalizeAssetClass(raw) {
   const s = (raw || '').toLowerCase();
+  if (!s) return '';
+  // Match against the 10-class MVP taxonomy from backend.
   if (s.includes('self storage') || s.includes('mini-warehouse') || s.includes('mini warehouse')) return 'self_storage';
+  if (s.includes('mobile') || s.includes('manufactured home') || s.includes('rv park')) return 'mobile_home_rv';
+  if (s.includes('multifamily') || s.includes('duplex') || s.includes('triplex') || s.includes('quadruplex') || s.includes('apartment') || s.includes('residential income') || s.includes('loft')) return 'multifamily';
+  if (s.includes('single family') || s.includes('condominium') || s.includes('townhouse') || s.includes('cabin') || s.includes('cottage') || s.includes('zero lot') || s === 'sfr' || s === 'residential_sfr') return 'residential_sfr';
   if (s.includes('vacant land') || s.includes('agricultural') || s.includes('ranch') || s.includes('cropland') || s.includes('pastureland') || s.includes('timberland') || s === 'land') return 'land';
-  if (s.includes('multifamily') || s.includes('duplex') || s.includes('triplex') || s.includes('quadruplex') || s.includes('apartment') || s.includes('residential income')) return 'multifamily';
-  if (s.includes('industrial') || s.includes('warehouse') || s.includes('manufacturing') || s.includes('flex')) return 'industrial';
-  if (s.includes('retail') || s.includes('shopping') || s.includes('storefront') || s.includes('restaurant') || s.includes('grocery')) return 'retail';
+  if (s.includes('industrial') || s.includes('warehouse') || s.includes('manufacturing') || s.includes('flex') || s.includes('truck terminal')) return 'industrial';
+  if (s.includes('gas station') || s.includes('service station')) return 'gas_station_c_store';
+  if (s.includes('retail') || s.includes('shopping') || s.includes('storefront') || s.includes('restaurant') || s.includes('grocery') || s.includes('strip mall') || s.includes('drugstore') || s.includes('pharmacy') || s.includes('laundromat') || s.includes('car wash') || s.includes('auto dealership') || s.includes('auto repair') || s.includes('convenience store') || s.includes('fast food') || s.includes('qsr')) return 'retail';
+  if (s.includes('office') || s.includes('mixed-use commercial') || s.includes('professional office') || s.includes('medical office')) return 'office';
+  if (s.includes('bank') || s.includes('parking') || s.includes('bowling') || s.includes('theater') || s.includes('funeral') || s.includes('rehabilitation') || s.includes('skilled nursing') || s.includes('healthcare') || s.includes('medical clinic') || s.includes('day care') || s.includes('child care') || s.includes('special purpose')) return 'special_purpose';
   return s.replace(/\s+/g, '_');
 }
 

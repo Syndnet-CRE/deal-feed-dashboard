@@ -12,9 +12,12 @@ All dealfeed primary keys (`subscriber.id`, `deal.id`, `box.id`, `note.id`, `con
 - For React keys, the raw string is fine
 
 ## Backend target rule
-The production backend is **`https://scoutgpt-app.onrender.com`** (deployed from the `main` branch of scoutgpt-api). The other Render service `scoutgpt-api.onrender.com` is a free-tier dev environment with an empty database — never point this app at it.
+The production backend is **`https://nightdrop-api.onrender.com`** (deployed from the `main` branch of `~/nightdrop-api`, GitHub `Syndnet-CRE/nightdrop-api`). The previous backend `scoutgpt-app.onrender.com` is deprecated for this app — the service was extracted to its own repo on 2026-05-12.
 
-If you see a hardcoded `scoutgpt-api.onrender.com` URL in source, flag it. Production overrides should come from `VITE_API_BASE_URL`, never from a string literal in code.
+If you see a hardcoded `scoutgpt-app.onrender.com` or `scoutgpt-api.onrender.com` URL in source, flag it as drift. Production overrides should come from `VITE_API_BASE_URL`, never from a string literal in code.
 
 ## Why this rule exists
-The dual-Render-service / dual-database topology in scoutgpt-api caused a full afternoon of "I can't log in" debugging. See `CLAUDE.md` → BACKEND CONTRACT → "Backend topology" for the full mapping.
+- The dual-Render-service / dual-database topology in the old scoutgpt-api caused a full afternoon of "I can't log in" debugging.
+- After the nightdrop-api extraction (2026-05-12), some local `.env` files, Netlify env vars, and rule files still carried the old URL. Any reappearance is drift.
+
+See `CLAUDE.md` → BACKEND CONTRACT for the current mapping.

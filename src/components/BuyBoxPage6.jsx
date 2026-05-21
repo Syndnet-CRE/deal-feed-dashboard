@@ -12,7 +12,6 @@ const THRESHOLDS = [
 
 export function BuyBoxPage6({ form, setForm }) {
   const threshold = form.threshold || 'balanced'
-  const delivery = form.delivery || { cadence: 'daily', max: 25 }
   const matchCount = form.matchCount || 0
 
   const active = THRESHOLDS.find(t => t.id === threshold) || THRESHOLDS[1]

@@ -13,6 +13,7 @@ import {
   AlertTriangle, ArrowUpRight, Trash2, Edit3,
 } from 'lucide-react';
 import { useDeals } from '../contexts/DealsContext';
+import { getAssetClass, normalizeAssetClassSlug } from '../lib/buyBoxTaxonomy';
 import { useToast } from '../contexts/ToastContext';
 import { BuyerSearchComingSoonModal } from '../components/BuyerSearchComingSoonModal';
 import '../styles/buyBoxes.css';
@@ -69,12 +70,14 @@ function formatGeo(box) {
 }
 
 function formatAsset(box) {
-  const classes = box.asset_classes ?? [];
-  if (!classes.length) return { primary: '—', extra: null };
-  return {
-    primary: classes[0],
-    extra: classes.length > 1 ? `+${classes.length - 1} more` : null,
-  };
+  // Backend MVP: asset_class is the singular slug (one of 10). Legacy rows may
+  // still carry asset_classes[] only — fall back gracefully.
+  const slug = box.asset_class || (box.asset_classes ?? [])[0];
+  if (!slug) return { primary: '—', extra: null };
+  const cls = getAssetClass(normalizeAssetClassSlug(slug));
+  const primary = cls?.label || slug;
+  const extra = (box.asset_classes?.length ?? 0) > 1 ? `+${box.asset_classes.length - 1} more` : null;
+  return { primary, extra };
 }
 
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];

@@ -1,3 +1,11 @@
+> **SHIPPED / HISTORICAL — 2026-05-20**
+>
+> The buy-boxes-page-as-command-center work shipped earlier in May. Kanban cards now show pipeline summary, new-deal counts, match threshold badges. The wizard step reorder mentioned here landed via `buy-box-wizard-v2`. Backend has since moved to a 10-class taxonomy with 35 additional filter fields.
+>
+> **Current state:** `notes/audit/CROSS-REPO-AUDIT-BUY-BOX-MVP-2026-05-20.md`
+
+---
+
 # PRD: Buy Box Command Center
 Feature: buy-box-command-center
 Status: Ready for BMAD execution

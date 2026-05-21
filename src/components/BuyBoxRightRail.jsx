@@ -104,8 +104,8 @@ export function BuyBoxRightRail({ matchCount, filters = [], geoStates = [], onRe
           <div className="rail-geo">
             <div className="quote-label" style={{ marginBottom: 10 }}>
               Geographic concentration
-              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 400, marginLeft: 8, fontSize: 10, color: 'var(--fg-mute)', textTransform: 'none', letterSpacing: 0 }}>
-                · {geoStates.length} {geoStates.length === 1 ? 'state' : 'states'}
+              <span style={{ fontFamily: 'var(--font-secondary)', fontWeight: 400, marginLeft: 8, fontSize: 10, color: 'var(--fg-mute)', textTransform: 'none', letterSpacing: 0 }}>
+                · <span className={`count${geoStates.length > 0 ? ' active' : ''}`}>{geoStates.length}</span> {geoStates.length === 1 ? 'state' : 'states'}
               </span>
             </div>
             <div className="rail-geo-grid">

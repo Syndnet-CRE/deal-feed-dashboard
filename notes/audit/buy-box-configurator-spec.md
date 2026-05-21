@@ -1,3 +1,12 @@
+> **STALE — 2026-05-20**
+>
+> Captured before the backend MVP rebuild shipped (nightdrop-api 2026-05-20: migration 049, 10-class taxonomy, 35 new filter fields, Python matcher). The matcher reference at line 181 of `scripts/run_deal_feed.js` is the legacy Node matcher — no longer scheduled. Current matcher is `~/nightdrop-api/agents/lib/property_matcher.py` + `matcher_clauses.py`.
+>
+> **Current state:** `notes/audit/CROSS-REPO-AUDIT-BUY-BOX-MVP-2026-05-20.md`
+> **Backend spec:** `~/nightdrop-api/docs/taxonomy/mvp-buy-box-taxonomy.md`
+
+---
+
 # Buy Box Configurator — Current-State Spec
 
 **Repo:** nightdrop-dashboard

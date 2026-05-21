@@ -1,42 +1,56 @@
 import { useState, useEffect, useRef, Fragment } from 'react'
 import {
   Home, Building, Building2, Layers, Coins,
-  ShoppingBag, ShoppingCart, Store, Utensils, Car, Wrench, Stethoscope, Tag,
+  ShoppingBag, ShoppingCart, Store, Utensils, Car, Wrench, Stethoscope,
   Briefcase, Factory, Warehouse, Package, Archive, Truck,
   Map, Sprout, Wheat, Fence, TreePine,
-  Hotel, BedDouble, BedSingle, Umbrella,
-  Fuel, ParkingSquare, Hospital, Heart, MapPin, Landmark, School, Dumbbell, Building as ChurchIcon,
+  Fuel, ParkingSquare, Hospital, Heart, MapPin, Landmark, Dumbbell, Film, Baby,
 } from 'lucide-react'
 import { Ic } from './buybox-icons'
-import { ASSET_CLASSES as TAXONOMY_CLASSES, US_STATES, MAJOR_METROS } from '../lib/buyBoxTaxonomy'
+import { ASSET_CLASSES as TAXONOMY_CLASSES, LAND_SUB_ASSETS, US_STATES, MAJOR_METROS } from '../lib/buyBoxTaxonomy'
 import { api } from '../lib/api'
 
+// Icons keyed by ATTOM use code. Codes match the 10-class taxonomy in buyBoxTaxonomy.js.
 const SUBTYPE_ICONS = {
-  100: Home, 102: Building, 104: Building2, 373: Home,
-  366: Home, 383: Building, 386: Building2, 369: Building2,
-  378: Layers, 375: Coins,
+  // Self Storage
+  229: Archive,
+  // Multifamily
+  366: Home, 383: Building, 386: Building2, 369: Building2, 378: Layers, 375: Coins,
+  // Mobile Home / RV
+  373: Home,
+  // SFR
+  385: Home, 401: Building, 360: Home, 380: MapPin, 388: TreePine, 381: Home,
+  // Land
+  389: Map, 120: Sprout, 392: Wheat, 117: Fence, 105: Wheat, 109: Sprout, 118: TreePine,
+  // Industrial
+  238: Warehouse, 212: Factory, 220: Wrench, 222: Package, 210: Package,
+  231: Truck, 280: Factory, 184: Warehouse,
+  // Retail
   135: ShoppingBag, 393: Store, 126: Store, 361: Store, 148: ShoppingCart,
   124: ShoppingBag, 169: Utensils, 146: Utensils, 171: Car, 172: Wrench,
-  127: Stethoscope, 186: Car, 161: Tag,
-  178: Building2, 160: Briefcase, 139: Stethoscope, 193: Building,
-  194: Layers, 183: Layers, 181: Home, 359: Building2,
-  212: Factory, 238: Warehouse, 220: Wrench, 222: Package, 229: Archive,
-  231: Truck, 210: Package, 280: Factory, 395: Building2,
-  389: Map, 120: Sprout, 392: Wheat, 117: Fence, 105: Wheat, 109: Sprout, 118: TreePine,
-  260: Hotel, 265: BedDouble, 270: BedSingle, 275: Umbrella, 293: Home,
-  167: Fuel, 339: ParkingSquare, 296: Hospital, 155: Heart,
-  360: Home, 380: MapPin, 150: Landmark, 175: School, 267: Dumbbell, 348: ChurchIcon, 133: ChurchIcon,
+  127: Stethoscope, 186: Car,
+  // Gas Station / C-Store
+  167: Fuel,
+  // Office
+  178: Building2, 160: Briefcase, 139: Stethoscope, 193: Building, 194: Layers, 183: Layers,
+  // Special Purpose
+  150: Landmark, 339: ParkingSquare, 151: Dumbbell, 348: Film, 133: Heart,
+  155: Heart, 296: Hospital, 175: Baby,
 }
 
+// Per-class display config. Counts are placeholder — backend doesn't surface per-class
+// tracked-property counts yet. Update when /api/dealfeed/admin/property-counts ships.
 const ASSET_DISPLAY = {
-  sfr:             { icon: 'sfr',         title: 'Single-family',       sub: 'Detached, condo, co-op',         count: 4_280_400 },
-  multifamily:     { icon: 'smm',         title: 'Multifamily',         sub: '2+ units, apartments',            count: 1_391_000 },
-  retail:          { icon: 'commercial',  title: 'Commercial / Retail',  sub: 'Storefronts, shopping centers',  count: 412_100   },
-  office:          { icon: 'lmm',         title: 'Office',              sub: 'Professional, medical',           count: 218_400   },
-  industrial:      { icon: 'industrial',  title: 'Industrial',          sub: 'Warehouse, flex, storage',        count: 198_400   },
-  land:            { icon: 'land',        title: 'Vacant land',         sub: 'Lots, acreage, agricultural',    count: 1_840_000 },
-  hospitality:     { icon: 'hospitality', title: 'Hospitality',         sub: 'Hotels, motels, resorts',        count: 64_800    },
-  special_purpose: { icon: 'mixed',       title: 'Special Purpose',     sub: 'Gas station, parking, medical',  count: 48_200    },
+  self_storage:        { icon: 'industrial',  title: 'Self Storage',          sub: 'Mini-warehouse facilities',         count: 12_400    },
+  multifamily:         { icon: 'smm',         title: 'Multifamily',           sub: 'Duplex, apartments, residential income', count: 1_391_000 },
+  mobile_home_rv:      { icon: 'land',        title: 'Mobile Home / RV',      sub: 'Mobile home + RV park communities', count: 28_900    },
+  residential_sfr:     { icon: 'sfr',         title: 'Single Family',         sub: 'SFR, condo, townhouse, PUD',        count: 4_280_400 },
+  land:                { icon: 'land',        title: 'Land',                  sub: 'Vacant, ag, ranch, transitional',   count: 1_840_000 },
+  industrial:          { icon: 'industrial',  title: 'Industrial',            sub: 'Warehouse, flex, manufacturing',    count: 198_400   },
+  retail:              { icon: 'commercial',  title: 'Retail',                sub: 'Storefronts, shopping, food service', count: 412_100   },
+  gas_station_c_store: { icon: 'commercial',  title: 'Gas Station / C-Store', sub: 'Service stations, convenience',     count: 18_600    },
+  office:              { icon: 'lmm',         title: 'Office',                sub: 'Professional, medical, mixed-use',  count: 218_400   },
+  special_purpose:     { icon: 'mixed',       title: 'Special Purpose',       sub: 'Bank, parking, healthcare, day care', count: 48_200    },
 }
 
 const DISPLAY_CLASSES = TAXONOMY_CLASSES.map(c => ({
@@ -173,10 +187,18 @@ export function BuyBoxPage1({ form, setForm }) {
   }, [geo.states])
 
   const selectedClass = sel.length === 1 ? DISPLAY_CLASSES.find(c => c.id === sel[0]) : null
+  const isLand = sel[0] === 'land'
+  const subAssets = form.sub_assets || []
 
   const toggleAsset = (id) => {
-    const next = sel[0] === id ? [] : [id]
-    setForm({ ...form, assets: next, subtypes: [] })
+    if (sel[0] === id) {
+      setForm({ ...form, assets: [], subtypes: [], sub_assets: [] })
+      return
+    }
+    // Start with no subtypes checked. Empty `subtypes` is valid: nativeToPayload
+    // expands it to every code in the class so the backend validator passes,
+    // while the UI lets the user pick up to 3 to narrow.
+    setForm({ ...form, assets: [id], subtypes: [], sub_assets: [] })
   }
 
   const toggleSubtype = (code) => {
@@ -184,6 +206,13 @@ export function BuyBoxPage1({ form, setForm }) {
     if (!active && subtypes.length >= 3) return
     const next = active ? subtypes.filter(c => c !== code) : [...subtypes, code]
     setForm({ ...form, subtypes: next })
+  }
+
+  const toggleSubAsset = (slug) => {
+    const next = subAssets.includes(slug)
+      ? subAssets.filter(s => s !== slug)
+      : [...subAssets, slug]
+    setForm({ ...form, sub_assets: next })
   }
 
   const toggleState = (code) => {
@@ -276,7 +305,7 @@ export function BuyBoxPage1({ form, setForm }) {
           <div className="section-title">
             <span className="section-title-num">A</span> Asset class
           </div>
-          <span className="section-meta">{sel.length ? '1 selected' : 'pick one'}</span>
+          <span className="section-meta">{sel.length ? <><span className="count active">1</span> selected</> : 'pick one'}</span>
         </div>
         <div className="asset-grid">
           {DISPLAY_CLASSES.map(a => (
@@ -285,13 +314,42 @@ export function BuyBoxPage1({ form, setForm }) {
         </div>
       </section>
 
-      {selectedClass && (
+      {selectedClass && isLand && (
+        <section className="section subtype-section">
+          <div className="section-head">
+            <div className="section-title subtype-section-title">
+              <span className="subtype-arrow">↳</span> Land sub-asset
+            </div>
+            <span className="section-meta"><span className={`count${subAssets.length > 0 ? ' active' : ''}`}>{subAssets.length}</span> selected · optional</span>
+          </div>
+          <div className="subtype-chips">
+            {LAND_SUB_ASSETS.map(sa => {
+              const active = subAssets.includes(sa.slug)
+              return (
+                <button
+                  key={sa.slug}
+                  className={`subtype-chip${active ? ' active' : ''}`}
+                  onClick={() => toggleSubAsset(sa.slug)}
+                >
+                  {active && <span className="subtype-chip-check"><Ic.check width="10" height="10" /></span>}
+                  {sa.label}
+                </button>
+              )
+            })}
+          </div>
+          <p className="subtype-hint">
+            Path of Growth applies the Land Transitional rule (dev potential + improvement-to-land ratio + future land use). Timberland is included under Rural & Agricultural.
+          </p>
+        </section>
+      )}
+
+      {selectedClass && !isLand && (
         <section className="section subtype-section">
           <div className="section-head">
             <div className="section-title subtype-section-title">
               <span className="subtype-arrow">↳</span> Sub-asset class
             </div>
-            <span className="section-meta">{subtypes.length}/3 selected · optional</span>
+            <span className="section-meta"><span className={`count${subtypes.length > 0 ? ' active' : ''}`}>{subtypes.length}</span>/3 selected · optional</span>
           </div>
           <div className="subtype-chips">
             {selectedClass.subtypes.map(st => {
@@ -323,7 +381,7 @@ export function BuyBoxPage1({ form, setForm }) {
             <span className="section-title-num">B</span> Geography
           </div>
           <span className="section-meta">
-            {geo.states.length} states · {counties.length} counties · {metros.length} metros · {(geo.zips || []).length} zip codes
+            <span className={`count${geo.states.length > 0 ? ' active' : ''}`}>{geo.states.length}</span> states · <span className={`count${counties.length > 0 ? ' active' : ''}`}>{counties.length}</span> counties · <span className={`count${metros.length > 0 ? ' active' : ''}`}>{metros.length}</span> metros · <span className={`count${(geo.zips || []).length > 0 ? ' active' : ''}`}>{(geo.zips || []).length}</span> zip codes
           </span>
         </div>
 
@@ -331,7 +389,7 @@ export function BuyBoxPage1({ form, setForm }) {
           <div className="geo-block">
             <div className="geo-label">
               <span>States</span>
-              <span className="geo-label-count">{geo.states.length}</span>
+              <span className={`geo-label-count count${geo.states.length > 0 ? ' active' : ''}`}>{geo.states.length}</span>
             </div>
             <div className="combo">
               <div className="combo-search">
@@ -350,7 +408,7 @@ export function BuyBoxPage1({ form, setForm }) {
                       <div className="combo-item-label">
                         <span className="check"><Ic.check width="10" height="10" /></span>
                         <span style={{ fontSize: 13 }}>{s.name}</span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--fg-mute)' }}>{s.code}</span>
+                        <span style={{ fontFamily: 'var(--font-secondary)', fontSize: 10, color: 'var(--fg-mute)' }}>{s.code}</span>
                       </div>
                       <span className="combo-item-count">{(s.count / 1000).toFixed(0)}K</span>
                     </div>
@@ -363,7 +421,7 @@ export function BuyBoxPage1({ form, setForm }) {
           <div className="geo-block">
             <div className="geo-label">
               <span>{geoTab === 'counties' ? 'Counties' : 'Cities / Metros'}</span>
-              <span className="geo-label-count">{geoTab === 'counties' ? counties.length : metros.length}</span>
+              <span className={`geo-label-count count${(geoTab === 'counties' ? counties.length : metros.length) > 0 ? ' active' : ''}`}>{geoTab === 'counties' ? counties.length : metros.length}</span>
             </div>
 
             <div className="geo-seg">
@@ -469,7 +527,7 @@ export function BuyBoxPage1({ form, setForm }) {
             <span>
               Specific ZIP codes<span style={{ textTransform: 'none', letterSpacing: 0, color: 'var(--fg-mute)', fontWeight: 400, marginLeft: 8 }}>· optional · type a 5-digit code and press Enter</span>
             </span>
-            <span className="geo-label-count">{(geo.zips || []).length}</span>
+            <span className={`geo-label-count count${(geo.zips || []).length > 0 ? ' active' : ''}`}>{(geo.zips || []).length}</span>
           </div>
           <div className="chip-input">
             {(geo.zips || []).map(z => (

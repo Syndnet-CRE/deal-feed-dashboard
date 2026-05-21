@@ -1,58 +1,20 @@
-import { useState } from 'react'
 import { Ic } from './buybox-icons'
 
+// Card order is tier-grouped for visual hierarchy: pressure (amber) → flag (blue) → urgent (red).
+// IDs are stable — backend stores signals as a set, not a list. Reorder is purely cosmetic.
 const SIGNALS = [
-  {
-    id: 'active-foreclosure',
-    icon: 'gavel',
-    title: 'Active foreclosure record',
-    count: 84_200,
-    desc: 'Notice of default, lis pendens, or scheduled auction within the next 180 days.',
-  },
-  {
-    id: 'tax-delinquent',
-    icon: 'tax',
-    title: 'Tax delinquent',
-    count: 218_400,
-    desc: 'Outstanding property tax balance — one or more years past due.',
-  },
-  {
-    id: 'absentee-owner',
-    icon: 'absent',
-    title: 'Absentee owner',
-    count: 1_480_000,
-    desc: 'Owner mailing address does not match the property address.',
-  },
+  // ── 🟡 Pressure (financial / timing) ──────────────────────────────────────
   {
     id: 'long-term-hold',
+    tier: 'pressure',
     icon: 'clock',
     title: 'Long-term hold, no refi',
     count: 318_900,
     desc: 'Owned 10+ years with no mortgage activity in the last 7 years.',
   },
   {
-    id: 'quit-claim-deed',
-    icon: 'deed',
-    title: 'Quit-claim deed in history',
-    count: 142_600,
-    desc: 'Title was transferred via quit-claim, often signaling estate transfer or motivated exit.',
-  },
-  {
-    id: 'non-arms-length',
-    icon: 'deed',
-    title: 'Non-arms-length prior sale',
-    count: 98_100,
-    desc: 'Last sale was between related parties — family transfer, trust, or internal LLC.',
-  },
-  {
-    id: 'investor-buyer',
-    icon: 'investor',
-    title: 'Investor buyer at last purchase',
-    count: 612_400,
-    desc: 'Property was acquired by an LLC, fund, or repeat investor — not an owner-occupant.',
-  },
-  {
     id: 'arm-mortgage',
+    tier: 'pressure',
     icon: 'arm',
     title: 'ARM or variable-rate mortgage',
     count: 226_400,
@@ -60,6 +22,7 @@ const SIGNALS = [
   },
   {
     id: 'high-ltv',
+    tier: 'pressure',
     icon: 'ltv',
     title: 'High LTV (80%+)',
     count: 412_800,
@@ -67,13 +30,65 @@ const SIGNALS = [
   },
   {
     id: 'free-and-clear',
+    tier: 'pressure',
     icon: 'free',
     title: 'Free and clear (no mortgage)',
     count: 384_600,
     desc: 'No recorded mortgage — owner has full equity and no debt service pressure.',
   },
+  // ── 🔵 Flag (ownership profile) ───────────────────────────────────────────
+  {
+    id: 'absentee-owner',
+    tier: 'flag',
+    icon: 'absent',
+    title: 'Absentee owner',
+    count: 1_480_000,
+    desc: 'Owner mailing address does not match the property address.',
+  },
+  {
+    id: 'quit-claim-deed',
+    tier: 'flag',
+    icon: 'deed',
+    title: 'Quit-claim deed in history',
+    count: 142_600,
+    desc: 'Title was transferred via quit-claim, often signaling estate transfer or motivated exit.',
+  },
+  {
+    id: 'non-arms-length',
+    tier: 'flag',
+    icon: 'deed',
+    title: 'Non-arms-length prior sale',
+    count: 98_100,
+    desc: 'Last sale was between related parties — family transfer, trust, or internal LLC.',
+  },
+  {
+    id: 'investor-buyer',
+    tier: 'flag',
+    icon: 'investor',
+    title: 'Investor buyer at last purchase',
+    count: 612_400,
+    desc: 'Property was acquired by an LLC, fund, or repeat investor — not an owner-occupant.',
+  },
+  // ── 🔴 Urgent (acute distress) ────────────────────────────────────────────
+  {
+    id: 'active-foreclosure',
+    tier: 'urgent',
+    icon: 'gavel',
+    title: 'Active foreclosure record',
+    count: 84_200,
+    desc: 'Notice of default, lis pendens, or scheduled auction within the next 180 days.',
+  },
+  {
+    id: 'tax-delinquent',
+    tier: 'urgent',
+    icon: 'tax',
+    title: 'Tax delinquent',
+    count: 218_400,
+    desc: 'Outstanding property tax balance — one or more years past due.',
+  },
   {
     id: 'near-mortgage-maturity',
+    tier: 'urgent',
     icon: 'maturity',
     title: 'Balloon or ARM reset within 18 months',
     count: 4_709,
@@ -81,6 +96,7 @@ const SIGNALS = [
   },
   {
     id: 'prior-foreclosure-auction',
+    tier: 'urgent',
     icon: 'gavel',
     title: 'Prior foreclosure auction on record',
     count: 6_601,
@@ -92,7 +108,6 @@ export function BuyBoxPage4({ form, setForm }) {
   const signals = form.signals || []
   const logic = form.logic || 'OR'
   const distressFloor = form.distress_floor || ''
-  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   const toggle = id => {
     setForm({
@@ -119,7 +134,7 @@ export function BuyBoxPage4({ form, setForm }) {
             <span className="section-title-num">A</span> Distress signals
           </div>
           <span className="section-meta">
-            {signals.length} of {SIGNALS.length} active
+            <span className={`count${signals.length > 0 ? ' active' : ''}`}>{signals.length}</span> of {SIGNALS.length} active
           </span>
         </div>
 
@@ -130,7 +145,7 @@ export function BuyBoxPage4({ form, setForm }) {
             return (
               <button
                 key={s.id}
-                className={`signal${on ? ' on' : ''}`}
+                className={`signal tier-${s.tier}${on ? ' on' : ''}`}
                 onClick={() => toggle(s.id)}
               >
                 <span className="signal-toggle" />
@@ -163,31 +178,24 @@ export function BuyBoxPage4({ form, setForm }) {
           </div>
         </div>
 
-        <div style={{ marginTop: 16 }}>
-          <button
-            onClick={() => setAdvancedOpen(o => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, color: 'var(--fg-mute)', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0' }}
-          >
-            <span style={{ fontSize: 9 }}>{advancedOpen ? '▲' : '▼'}</span> ADVANCED
-          </button>
-          {advancedOpen && (
-            <div style={{ padding: '14px 0 4px' }}>
-              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 10 }}>
-                Distress score floor — minimum score a property must carry to qualify
-              </div>
-              <div className="preset-row">
-                {[{ label: 'Any', value: '' }, { label: '30+', value: '30' }, { label: '40+', value: '40' }, { label: '60+', value: '60' }].map(o => (
-                  <button
-                    key={o.value}
-                    className={`preset-chip${distressFloor === o.value ? ' on' : ''}`}
-                    onClick={() => setForm({ ...form, distress_floor: o.value })}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
+        <div style={{ marginTop: 14, padding: '14px 16px', background: 'var(--surface-sub)', border: '1px solid var(--border-sub)', borderRadius: 'var(--r-card)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg)' }}>Distress score minimum</div>
+              <div style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 2 }}>Min score a property must carry to qualify (0–100)</div>
             </div>
-          )}
+          </div>
+          <div className="preset-row">
+            {[{ label: 'Any', value: '' }, { label: '30+', value: '30' }, { label: '40+', value: '40' }, { label: '60+', value: '60' }, { label: '80+', value: '80' }].map(o => (
+              <button
+                key={o.value}
+                className={`preset-chip${distressFloor === o.value ? ' on' : ''}`}
+                onClick={() => setForm({ ...form, distress_floor: o.value })}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
